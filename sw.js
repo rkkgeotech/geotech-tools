@@ -5,7 +5,7 @@ const CACHE = 'fieldlog-v2.1';
 
 // Everything the app needs to run offline
 const ASSETS = [
-  './fieldlog-v2.html',
+  './index.html',
   './manifest.json',
   // Google Fonts — cached on first load, served locally after that
   'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap',
