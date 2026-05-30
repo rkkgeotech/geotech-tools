@@ -2,7 +2,7 @@
   "name": "FieldLog — Boring Log Entry",
   "short_name": "FieldLog",
   "description": "Offline-first boring log data entry for field geotechs",
-  "start_url": "./fieldlog-v2.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f0f2f5",
