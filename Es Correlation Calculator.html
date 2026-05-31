@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Es Correlation Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#0c1f35;--navy2:#152d4a;--blue:#1d5fa8;--blue2:#2471c9;
+    --steel:#4a7daa;--amber:#d97706;--green:#166534;--red:#991b1b;
+    --bg:#f0f4f8;--bg2:#ffffff;--border:#c8d6e5;--text:#1a2b3c;--muted:#5a738a;
+    --mono:'IBM Plex Mono','Courier New',monospace;
+    --sans:'IBM Plex Sans','Segoe UI',sans-serif;
+    --gb:#1d5fa8;--gb2:#e4eef8;--gf:#166534;--gf2:#e2f0e8;
+    --gk:#6b1a1a;--gk2:#f7ecec;--gw:#4a1778;--gw2:#f2eaf9;
+    --gg:#6b3200;--gg2:#f7efe6;--gu:#1e3a4f;--gu2:#e8eef4;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);font-size:13px;background:var(--bg);color:var(--text);line-height:1.5}
+
+  /* ── HEADER ── */
+  .header{background:var(--navy);color:#fff;border-bottom:3px solid var(--blue2)}
+  .header-inner{max-width:1320px;margin:0 auto;padding:18px 24px 14px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+  .header h1{font-size:17px;font-weight:700;letter-spacing:-.3px}
+  .header h1 span{color:#6db3f5}
+  .header-sub{font-size:10.5px;color:#7a9fc0;margin-top:3px;font-family:var(--mono)}
+  .header-tag{font-family:var(--mono);font-size:10px;color:#5a8ab0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:3px 8px;border-radius:2px;white-space:nowrap}
+
+  /* ── LAYOUT ── */
+  .container{max-width:1320px;margin:0 auto;padding:20px 20px 40px}
+
+  /* ── CARD ── */
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:3px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card-head{background:var(--navy2);color:#fff;padding:9px 16px;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+  .card-head-l{display:flex;align-items:center;gap:8px}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--blue2);flex-shrink:0}
+  .card-body{padding:18px 20px}
+
+  /* ── FORM ── */
+  .field-row{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  select,input[type=number],input[type=text]{padding:7px 10px;border:1px solid var(--border);border-radius:3px;font-size:13px;font-family:var(--sans);color:var(--text);background:#fff}
+  select:focus,input:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 3px rgba(36,113,201,.12)}
+
+  /* ── BUTTONS ── */
+  .btn-calc{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;background:var(--blue);color:#fff;border:none;border-radius:3px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:background .12s}
+  .btn-calc:hover{background:var(--navy2)}
+  .btn-sm{padding:5px 12px;font-size:11px;font-family:var(--sans);font-weight:500;border:1px solid var(--border);border-radius:3px;background:#fff;color:var(--steel);cursor:pointer;transition:background .1s}
+  .btn-sm:hover{background:#eaf2fc}
+  .btn-add{padding:5px 12px;font-size:12px;font-family:var(--sans);font-weight:500;border:1px solid var(--blue);border-radius:3px;background:#f0f6ff;color:var(--blue);cursor:pointer}
+  .btn-add:hover{background:#dbeafe}
+  .btn-del{padding:2px 7px;font-size:12px;font-family:var(--mono);border:1px solid #dce8f4;border-radius:2px;background:#f5f7fa;color:var(--muted);cursor:pointer}
+  .btn-del:hover{background:#fce8e8;border-color:#f5b8b8;color:var(--red)}
+  .toggle-link{font-size:11px;color:#7a9fc0;cursor:pointer;background:none;border:none;font-family:var(--sans);padding:0;text-decoration:underline}
+
+  /* ── NOTES ── */
+  .note-box{font-size:11.5px;color:var(--muted);background:#f4f8fc;border-left:3px solid var(--steel);padding:8px 12px;margin-bottom:14px;line-height:1.6}
+  .note-box strong{color:var(--text)}
+  .formula-bar{display:flex;gap:16px;flex-wrap:wrap;padding:10px 14px;background:var(--navy);border-radius:3px;font-family:var(--mono);font-size:10.5px;color:#6db3f5}
+  .formula-bar span{white-space:nowrap}
+  .formula-bar em{color:#a0c8f0;font-style:normal}
+  .tbl-note{font-size:10.5px;color:var(--muted);margin-top:10px;padding:6px 10px;background:#f5f7fa;border-left:2px solid var(--border);line-height:1.6}
+
+  /* ── TABLES (param entry) ── */
+  .tbl-wrap{overflow-x:auto}
+  .param-tbl{border-collapse:collapse;width:100%;font-size:12px}
+  .param-tbl th{background:#dce8f4;color:var(--navy);padding:6px 8px;border:1px solid var(--border);font-size:10.5px;font-weight:700;white-space:nowrap;text-align:center}
+  .param-tbl th.left{text-align:left}
+  .param-tbl td{padding:3px 4px;border:1px solid #d8e4ee;vertical-align:middle}
+  .param-tbl td.rownum{text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);width:30px}
+  .param-tbl input[type=text],.param-tbl input[type=number]{width:100%;padding:5px 7px;font-size:12px;border:1px solid #d8e4ee;border-radius:2px}
+  .param-tbl input:focus{border-color:var(--blue2);outline:none}
+  .param-tbl select{width:100%;padding:5px 6px;font-size:12px;border:1px solid #d8e4ee;border-radius:2px}
+  .auto-cell{text-align:center;font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--navy);background:#eef5fc;white-space:nowrap}
+  .soil-disp{font-size:11px;color:var(--muted);font-style:italic;padding:3px 6px}
+  .depth-bot{font-size:9.5px;color:var(--muted);margin-top:1px;font-family:var(--mono)}
+
+  /* ── TABS ── */
+  .tab-bar{display:flex;align-items:flex-end;gap:0;border-bottom:2px solid var(--navy2);flex-wrap:wrap}
+  .tab-btn{padding:8px 18px;font-size:12px;font-family:var(--sans);font-weight:500;border:1px solid var(--border);border-bottom:none;background:var(--bg);color:var(--muted);cursor:pointer;border-radius:3px 3px 0 0;margin-right:2px;margin-bottom:-2px;transition:background .1s;white-space:nowrap}
+  .tab-btn.active{background:var(--bg2);color:var(--navy);font-weight:700;border-color:var(--navy2);border-bottom:2px solid var(--bg2);z-index:1;position:relative}
+  .tab-btn:hover:not(.active){background:#e4ecf4}
+  .tab-btn.add-tab{border-style:dashed;color:var(--blue);background:transparent;margin-left:4px}
+  .tab-btn.add-tab:hover{background:#f0f6ff}
+  .tab-btn.sum-tab{background:var(--navy);color:#7a9fc0;border-color:var(--navy);margin-left:auto}
+  .tab-btn.sum-tab.active{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+  .tab-panel{display:none;padding:20px}
+  .tab-panel.active{display:block}
+  .tab-panels{background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px;min-height:200px;margin-bottom:16px}
+
+  /* ── BORING HEADER ── */
+  .bor-hdr{background:#f4f8fc;border:1px solid var(--border);border-radius:3px;padding:12px 16px;margin-bottom:14px}
+  .ce-box{padding:6px 10px;background:#fff;border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:13px;min-width:56px;text-align:center}
+
+  /* ── PILLS ── */
+  .summary-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .pill{background:#f0f6ff;border:1px solid #c0d8f0;border-radius:3px;padding:8px 14px;min-width:110px}
+  .pill-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .pill-value{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--navy);margin:2px 0 1px}
+  .pill-sub{font-size:10px;color:var(--muted)}
+  .pill.good .pill-value{color:var(--green)}
+
+  /* ── RESULTS TABLE ── */
+  .res-wrap{overflow-x:auto}
+  .res-tbl{border-collapse:collapse;font-size:11px}
+  .res-tbl th{padding:4px 6px;border:1px solid var(--border);text-align:center;font-size:9.5px;font-weight:700;white-space:nowrap}
+  .res-tbl td{padding:4px 6px;border:1px solid #d8e4ee;text-align:right;font-family:var(--mono);font-size:11px;white-space:nowrap}
+  .res-tbl td.left{text-align:left;font-family:var(--sans);font-size:11px;white-space:normal;min-width:100px}
+  .sticky-l{position:sticky;left:0;z-index:2}
+  .gh-bowles{background:var(--gb);color:#fff}.sh-bowles{background:var(--gb2);color:var(--gb)}
+  .gh-fhwa  {background:var(--gf);color:#fff}.sh-fhwa  {background:var(--gf2);color:var(--gf)}
+  .gh-km    {background:var(--gk);color:#fff}.sh-km    {background:var(--gk2);color:var(--gk)}
+  .gh-webb  {background:var(--gw);color:#fff}.sh-webb  {background:var(--gw2);color:var(--gw)}
+  .gh-beg   {background:var(--gg);color:#fff}.sh-beg   {background:var(--gg2);color:var(--gg)}
+  .gh-usace {background:var(--gu);color:#fff}.sh-usace {background:var(--gu2);color:var(--gu)}
+  .ca-bowles{background:var(--gb2);color:var(--gb);font-weight:600}
+  .ca-fhwa  {background:var(--gf2);color:var(--gf);font-weight:600}
+  .ca-km    {background:var(--gk2);color:var(--gk);font-weight:600}
+  .ca-webb  {background:var(--gw2);color:var(--gw);font-weight:600}
+  .ca-beg   {background:var(--gg2);color:var(--gg);font-weight:600}
+  .ca-usace {background:var(--gu2);color:var(--gu);font-weight:600}
+  .cell-dim{color:#b8cad4;font-weight:400}.cell-na{color:#ccd8e0;font-weight:400}
+  .cell-range{background:var(--navy);color:#6db3f5;font-weight:700;font-size:10px;text-align:center!important;white-space:normal!important;line-height:1.5;min-width:72px}
+  .row-sum td{background:#f0f4f8;font-style:italic;font-size:10.5px;font-family:var(--mono)}
+  .row-sum td.left{font-style:normal;font-weight:700;font-family:var(--sans);font-size:11px}
+
+  /* ── SUMMARY TABLE ── */
+  .sum-tbl{border-collapse:collapse;width:100%;font-size:12px}
+  .sum-tbl th{background:var(--navy2);color:#fff;padding:7px 10px;border:1px solid var(--border);font-size:10.5px;font-weight:600;text-align:left}
+  .sum-tbl td{padding:6px 10px;border:1px solid #d8e4ee;vertical-align:middle;line-height:1.5}
+  .sum-tbl tr:nth-child(even) td{background:#f8fafc}
+  .sum-tbl tr:hover td{filter:brightness(.97)}
+  .dv-input{width:110px;font-family:var(--mono);font-size:12px;text-align:center;padding:5px 8px;border:1px solid var(--border);border-radius:3px;background:#fff8e8}
+  .dv-input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(217,119,6,.15)}
+
+  /* ── REFERENCE TABLE ── */
+  .ref-tbl{border-collapse:collapse;width:100%;font-size:12px}
+  .ref-tbl th{background:#dce8f4;color:var(--navy);padding:7px 10px;border:1px solid var(--border);font-size:10.5px;font-weight:700;text-align:left}
+  .ref-tbl td{padding:7px 10px;border:1px solid #d8e4ee;vertical-align:top;line-height:1.6}
+  .ref-tbl tr:nth-child(even) td{background:#f8fafc}
+  .ref-tbl code{font-family:var(--mono);font-size:10.5px;background:#edf2f7;padding:1px 5px;border-radius:2px}
+
+  .hdr-btn{padding:6px 14px;font-size:11.5px;font-family:var(--sans);font-weight:600;
+    border:1px solid rgba(255,255,255,.28);border-radius:3px;background:rgba(255,255,255,.1);
+    color:#d0e8f8;cursor:pointer;transition:background .12s;letter-spacing:.2px}
+  .hdr-btn:hover{background:rgba(255,255,255,.22)}
+  .hdr-btn.save{border-color:rgba(134,239,172,.5);color:#bbf7d0}
+  .hdr-btn.save:hover{background:rgba(134,239,172,.15)}
+  .hdr-btn.print-btn{border-color:rgba(147,197,253,.35);color:#93c5fd}
+  .hdr-btn.print-btn:hover{background:rgba(147,197,253,.12)}
+  .hidden{display:none}
+  tr:hover td{filter:brightness(.98)}
+
+  /* ── PLOTS ── */
+  .plot-wrap{overflow-x:auto;margin:0}
+  .plot-outer{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+  .plot-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;padding:4px 0;align-items:center}
+  .plot-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text)}
+  .plot-legend-swatch{width:12px;height:12px;border-radius:2px;flex-shrink:0;border:1.5px solid transparent}
+  .plot-hint{font-size:10px;color:var(--muted);margin-left:auto}
+  .plot-note{font-size:10.5px;color:var(--muted);margin-top:6px;font-style:italic}
+  /* ── PLOT TOOLTIP ── */
+  #plot-tip{position:fixed;background:rgba(12,31,53,.95);color:#e8f0f8;padding:9px 13px;border-radius:4px;
+    font-size:11.5px;font-family:var(--sans);pointer-events:none;z-index:9999;line-height:1.8;
+    white-space:nowrap;border:1px solid rgba(100,160,220,.3);box-shadow:0 4px 16px rgba(0,0,0,.35);display:none}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <h1>Elastic Modulus <span>Correlation Calculator</span></h1>
+      <div class="header-sub">SPT N-Value → E<sub>s</sub> (ksf) &nbsp;·&nbsp; Bowles / FHWA / Kulhawy &amp; Mayne / Webb / Begemann / USACE &nbsp;·&nbsp; 21 Correlations</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="hdr-btn save" onclick="saveProject()" title="Save all project data to a JSON file">&#8659; Save Project</button>
+      <button class="hdr-btn"      onclick="loadProject()" title="Load a previously saved project JSON file">&#8657; Load Project</button>
+      <button class="hdr-btn print-btn" onclick="printAll()" title="Print all borings + summary + reference sheet (opens print window)">&#9113; Print All</button>
+    </div>
+    <div class="header-tag">v4.0 &nbsp;|&nbsp; Per-Boring Tabs &nbsp;·&nbsp; (N<sub>1</sub>)<sub>60</sub> Correction &nbsp;·&nbsp; Es Profiles &amp; Print</div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ── GLOBAL PARAMETERS ──────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-head"><div class="card-head-l"><div class="dot"></div>Global Parameters</div></div>
+  <div class="card-body">
+    <div class="field-row" style="margin-bottom:12px">
+      <div class="field"><label>P<sub>a</sub> (ksf)</label><input type="number" id="inpPa" value="2.11622" step="0.00001" style="width:120px"></div>
+      <div class="field"><label>B — Footing Width (ft)</label><input type="number" id="inpB" value="" step="0.5" style="width:100px" placeholder="e.g. 10"></div>
+      <div class="field"><label>D — Embedment (ft)</label><input type="number" id="inpD" value="" step="0.5" style="width:100px" placeholder="e.g. 5"></div>
+      <div class="field"><label>γ<sub>w</sub> (pcf)</label><input type="number" id="inpGw" value="62.4" step="0.1" style="width:90px" oninput="recalcAllBorings()"></div>
+    </div>
+    <div class="note-box" style="margin-top:10px"><strong>B and D (USACE formula U1 only):</strong> leave blank to exclude U1 from all results — recommended when no design footing size has been established. The footing-geometry term in U1 can otherwise skew the applicable E<sub>s</sub> range significantly.</div>
+    <div class="formula-bar">
+      <span><em>N₆₀ = N × C<sub>E</sub></em> &nbsp;|&nbsp; <em>C<sub>E</sub> = ER / 60</em></span>
+      <span>(N<sub>1</sub>)<sub>60</sub> = N₆₀ × C<sub>N</sub></span>
+      <span>C<sub>N</sub> = min(2.0, √(2116 / σ′<sub>v,psf</sub>))</span>
+      <span>σ′<sub>v</sub> = γ·z<sub>dry</sub> + (γ − γ<sub>w</sub>)·z<sub>wet</sub></span>
+      <span>kPa → ksf: ÷ 47.88 &nbsp;|&nbsp; ksi → ksf: × 144</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── STRATUM PARAMETERS ─────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-head"><div class="card-head-l"><div class="dot"></div>Stratum Parameters</div></div>
+  <div class="card-body">
+    <div class="note-box">Define soil strata used across all borings. Unit weight γ drives the σ′<sub>v</sub> calculation for C<sub>N</sub>. A single γ is applied from surface to sample depth (treated as γ<sub>sat</sub> below GWT).</div>
+    <div class="tbl-wrap">
+      <table class="param-tbl">
+        <thead><tr>
+          <th style="width:30px">#</th>
+          <th class="left" style="width:105px">Stratum ID</th>
+          <th class="left" style="width:215px">Soil Type</th>
+          <th style="width:100px">γ (pcf)</th>
+          <th class="left" style="width:250px">Description</th>
+          <th style="width:34px"></th>
+        </tr></thead>
+        <tbody id="stratBody"></tbody>
+      </table>
+    </div>
+    <button class="btn-add" style="margin-top:8px" onclick="addStratum()">+ Add Stratum</button>
+  </div>
+</div>
+
+<!-- ── BORING TABS ─────────────────────────────────────────────────────────── -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn add-tab" onclick="addBoring()">+ Add Boring</button>
+  <button class="tab-btn sum-tab" id="tabbtn-summary" onclick="switchTab('summary')">▶ Summary</button>
+</div>
+<div class="tab-panels" id="tabPanels">
+  <div id="tabpanel-summary" class="tab-panel">
+    <div class="note-box">Aggregates E<sub>s</sub> across all borings, organized by stratum. Run <strong>Calculate E<sub>s</sub></strong> in each boring tab before generating the summary. Design values are user-defined.</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn-calc" onclick="generateSummary()">&#9654; Generate Summary</button>
+      <button class="btn-sm" onclick="exportSummaryCSV()">&#8595; Export Summary CSV</button>
+      <button class="btn-sm" onclick="printSummaryPage()" title="Print summary + reference sheet">&#9113; Print Summary</button>
+    </div>
+    <div id="summaryContent"></div>
+    <div id="splot"></div>
+  </div>
+</div>
+
+<!-- ── REFERENCES ─────────────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-head">
+    <div class="card-head-l"><div class="dot"></div>References</div>
+    <button class="toggle-link" id="refToggle" onclick="toggleRef()">Show ▾</button>
+  </div>
+  <div id="refBody" class="card-body hidden"></div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════════════
+const SOIL_TYPES = [
+  {key:'nc_sand',    label:'NC Sand (clean)'},
+  {key:'oc_sand',    label:'OC Sand (clean)'},
+  {key:'sat_sand',   label:'Sand, saturated / submerged'},
+  {key:'sand_fines', label:'Sand with fines'},
+  {key:'fine_med',   label:'Fine to medium sand'},
+  {key:'coarse',     label:'Coarse sand'},
+  {key:'gravelly',   label:'Gravelly sand / Sandy gravel'},
+  {key:'clayey',     label:'Clayey sand'},
+  {key:'silt',       label:'Silt / Sandy silt / Clayey silt'},
+  {key:'silt_sand',  label:'Silt with sand'},
+  {key:'gravel_sand',label:'Gravel with sand'},
+];
+const SOIL_LABEL = {};
+SOIL_TYPES.forEach(s => SOIL_LABEL[s.key] = s.label);
+
+const GRP = {
+  bowles:{label:'Bowles (1996)',              gh:'gh-bowles',sh:'sh-bowles',ca:'ca-bowles'},
+  fhwa:  {label:'FHWA (2002)',                gh:'gh-fhwa',  sh:'sh-fhwa',  ca:'ca-fhwa'},
+  km:    {label:'Kulhawy &amp; Mayne (1990)', gh:'gh-km',    sh:'sh-km',    ca:'ca-km'},
+  webb:  {label:'Webb (1969)',                gh:'gh-webb',  sh:'sh-webb',  ca:'ca-webb'},
+  beg:   {label:'Begemann (1974)',            gh:'gh-beg',   sh:'sh-beg',   ca:'ca-beg'},
+  usace: {label:'USACE EM 1110-1-1904',       gh:'gh-usace', sh:'sh-usace', ca:'ca-usace'},
+};
+
+// fn(N, N60, N160, Pa, B, D) → ksf | null
+const CORRS = [
+  {id:'B1', g:'bowles',short:'500(N₆₀+15)',    note:'NC Sand',        ntype:'N₆₀',    app:['nc_sand','fine_med','coarse'],               fn:(N,N60,n1,Pa,B,D)=>N60>0?500*(N60+15)/47.88:null},
+  {id:'B2', g:'bowles',short:'6000·N₆₀',       note:'NC Sand',        ntype:'N₆₀',    app:['nc_sand','fine_med','coarse'],               fn:(N,N60,n1,Pa,B,D)=>N60>0?6000*N60/47.88:null},
+  {id:'B3', g:'bowles',short:'7000·√N₆₀',      note:'NC Sand',        ntype:'N₆₀',    app:['nc_sand','fine_med','coarse'],               fn:(N,N60,n1,Pa,B,D)=>N60>0?7000*Math.sqrt(N60)/47.88:null},
+  {id:'B4', g:'bowles',short:'2750·N₆₀',       note:'All NC Sand',    ntype:'N₆₀',    app:['nc_sand','fine_med','coarse','sand_fines'],  fn:(N,N60,n1,Pa,B,D)=>N60>0?2750*N60/47.88:null},
+  {id:'B5', g:'bowles',short:'40000+1050·N₆₀', note:'OC Sand',        ntype:'N₆₀',    app:['oc_sand'],                                  fn:(N,N60,n1,Pa,B,D)=>N60>0?(40000+1050*N60)/47.88:null},
+  {id:'B6', g:'bowles',short:'250(N₆₀+15)',    note:'Sat. Sand',      ntype:'N₆₀',    app:['sat_sand'],                                 fn:(N,N60,n1,Pa,B,D)=>N60>0?250*(N60+15)/47.88:null},
+  {id:'B7', g:'bowles',short:'320(N₆₀+15)',    note:'Clayey Sand',    ntype:'N₆₀',    app:['clayey'],                                   fn:(N,N60,n1,Pa,B,D)=>N60>0?320*(N60+15)/47.88:null},
+  {id:'B8', g:'bowles',short:'1200(N₆₀+6)',    note:'Gravelly Sand',  ntype:'N₆₀',    app:['gravelly'],                                 fn:(N,N60,n1,Pa,B,D)=>N60>0?1200*(N60+6)/47.88:null},
+  {id:'B9', g:'bowles',short:'300(N₆₀+6)',     note:'Silt',           ntype:'N₆₀',    app:['silt','silt_sand'],                         fn:(N,N60,n1,Pa,B,D)=>N60>0?300*(N60+6)/47.88:null},
+  {id:'F1', g:'fhwa',  short:'0.056·N₆₀',      note:'Silt',           ntype:'N₆₀',    app:['silt','silt_sand'],                         fn:(N,N60,n1,Pa,B,D)=>N60>0?0.056*N60*144:null},
+  {id:'F2', g:'fhwa',  short:'0.097·N₆₀',      note:'Fine–Med Sand',  ntype:'N₆₀',    app:['fine_med','sand_fines'],                    fn:(N,N60,n1,Pa,B,D)=>N60>0?0.097*N60*144:null},
+  {id:'F3', g:'fhwa',  short:'0.139·N₆₀',      note:'Coarse Sand',    ntype:'N₆₀',    app:['coarse'],                                   fn:(N,N60,n1,Pa,B,D)=>N60>0?0.139*N60*144:null},
+  {id:'F4', g:'fhwa',  short:'0.167·N₆₀',      note:'Sandy Gravel',   ntype:'N₆₀',    app:['gravelly'],                                 fn:(N,N60,n1,Pa,B,D)=>N60>0?0.167*N60*144:null},
+  {id:'K1', g:'km',    short:'5·(N₁)₆₀·Pa',    note:'Sand w/Fines',   ntype:'(N₁)₆₀', app:['sand_fines','fine_med'],                    fn:(N,N60,n1,Pa,B,D)=>n1>0?5*n1*Pa:null},
+  {id:'K2', g:'km',    short:'10·(N₁)₆₀·Pa',   note:'NC Clean Sand',  ntype:'(N₁)₆₀', app:['nc_sand','fine_med','coarse'],              fn:(N,N60,n1,Pa,B,D)=>n1>0?10*n1*Pa:null},
+  {id:'K3', g:'km',    short:'15·(N₁)₆₀·Pa',   note:'OC Clean Sand',  ntype:'(N₁)₆₀', app:['oc_sand'],                                  fn:(N,N60,n1,Pa,B,D)=>n1>0?15*n1*Pa:null},
+  {id:'W1', g:'webb',  short:'4.7·Pa·(N₆₀+15)', note:'Sand',           ntype:'N₆₀',    app:['nc_sand','fine_med','coarse','sand_fines'], fn:(N,N60,n1,Pa,B,D)=>N60>0?4.7*Pa*(N60+15):null},
+  {id:'W2', g:'webb',  short:'3.1·Pa·(N₆₀+15)', note:'Subm./Clay Sand',ntype:'N₆₀',   app:['sat_sand','clayey'],                        fn:(N,N60,n1,Pa,B,D)=>N60>0?3.1*Pa*(N60+15):null},
+  {id:'Bg1',g:'beg',   short:'Pa·3·(N₆₀+6)*',   note:'Silt w/Sand',   ntype:'N₆₀',    app:['silt_sand','silt'],                         fn:(N,N60,n1,Pa,B,D)=>N60>0?(N60<15?3*Pa*(N60+6):Pa*(39.5+3*(N60+6))):null},
+  {id:'Bg2',g:'beg',   short:'Pa·12·(N₆₀+6)*',  note:'Gravel w/Sand', ntype:'N₆₀',    app:['gravel_sand','gravelly'],                   fn:(N,N60,n1,Pa,B,D)=>N60>0?(N60<15?12*Pa*(N60+6):Pa*(39.5+12*(N60+6))):null},
+  {id:'U1', g:'usace', short:'9.4·N⁰·⁸⁷·√B·(1+0.4D/B)',note:'All Sands',ntype:'N',   app:['nc_sand','oc_sand','fine_med','coarse','gravelly','sand_fines','sat_sand','silt'],
+    fn:(N,N60,n1,Pa,B,D)=>B>0&&N>0?9.4*Math.pow(N,0.87)*Math.sqrt(B)*(1+0.4*D/B)*2:null},
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STRATUM COLORS  (8-color pastel cycle)
+// ═══════════════════════════════════════════════════════════════════════════
+const STRAT_COLORS = [
+  {bg:'#dbeafe',br:'#93c5fd'},  // blue
+  {bg:'#dcfce7',br:'#86efac'},  // green
+  {bg:'#fef9c3',br:'#fde047'},  // yellow
+  {bg:'#fed7aa',br:'#fdba74'},  // orange
+  {bg:'#ede9fe',br:'#c4b5fd'},  // purple
+  {bg:'#fce7f3',br:'#f9a8d4'},  // pink
+  {bg:'#cffafe',br:'#67e8f9'},  // cyan
+  {bg:'#d9f99d',br:'#bef264'},  // lime
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+const strata     = {};   // key → {label, soilType, gamma}
+const boringKeys = [];   // ordered
+let nextSK = 1, nextBK = 1;
+const designValues = {}; // stratKey → user-entered design value
+let _inCascade = false;  // prevents recursive σ'v profile cascade
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STRATA
+// ═══════════════════════════════════════════════════════════════════════════
+function soilOpts() {
+  return '<option value="">— select —</option>' +
+    SOIL_TYPES.map(s=>`<option value="${s.key}">${s.label}</option>`).join('');
+}
+
+function stratOptsHTML() {
+  return '<option value="">— select —</option>' +
+    Object.entries(strata).map(([k,s])=>`<option value="${k}">${s.label||k}</option>`).join('');
+}
+
+function addStratum() {
+  const key = 'ST' + nextSK++;
+  const colorIdx = Object.keys(strata).length;
+  strata[key] = {label:'', soilType:'', gamma:120, colorIdx};
+  const dotBg = STRAT_COLORS[colorIdx % STRAT_COLORS.length].bg;
+  const dotBr = STRAT_COLORS[colorIdx % STRAT_COLORS.length].br;
+  const so = soilOpts();
+  const tr = document.createElement('tr');
+  tr.id = 'stratrow-'+key;
+  tr.innerHTML = `
+    <td class="rownum">${Object.keys(strata).length}</td>
+    <td style="white-space:nowrap"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${dotBg};border:2px solid ${dotBr};margin-right:5px;vertical-align:middle"></span><input type="text" placeholder="e.g. SM-1" style="width:78px"
+      oninput="strata['${key}'].label=this.value;refreshStratDropdowns()"></td>
+    <td><select style="width:207px" onchange="strata['${key}'].soilType=this.value;refreshStratDropdowns()">${so}</select></td>
+    <td><input type="number" value="120" step="1" style="width:86px;text-align:center"
+      oninput="strata['${key}'].gamma=parseFloat(this.value)||120;recalcAllBorings()"></td>
+    <td><input type="text" placeholder="optional" style="width:240px"></td>
+    <td><button class="btn-del" onclick="deleteStratum('${key}')">×</button></td>`;
+  document.getElementById('stratBody').appendChild(tr);
+  refreshStratDropdowns();
+}
+
+function deleteStratum(key) {
+  delete strata[key];
+  document.getElementById('stratrow-'+key)?.remove();
+  refreshStratDropdowns();
+}
+
+function refreshStratDropdowns() {
+  const opts = stratOptsHTML();
+  document.querySelectorAll('select.stratsel').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = opts;
+    if (strata[cur]) sel.value = cur;
+  });
+  recalcAllBorings();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BORINGS / TABS
+// ═══════════════════════════════════════════════════════════════════════════
+function addBoring() {
+  const bkey = 'BR' + nextBK++;
+  const counter = boringKeys.length + 1;
+  boringKeys.push(bkey);
+
+  // Tab button (insert before Add button)
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn';
+  btn.id = 'tabbtn-' + bkey;
+  btn.textContent = 'B-' + counter;
+  btn.onclick = () => switchTab(bkey);
+  const addBtn = document.querySelector('.add-tab');
+  document.getElementById('tabBar').insertBefore(btn, addBtn);
+
+  // Panel
+  const panel = document.createElement('div');
+  panel.id = 'tabpanel-' + bkey;
+  panel.className = 'tab-panel';
+  panel.innerHTML = boringPanelHTML(bkey, counter);
+  document.getElementById('tabPanels').appendChild(panel);
+
+  switchTab(bkey);
+  updateSampleCount(bkey, 5); // default 5 rows
+}
+
+function boringPanelHTML(bkey, counter) {
+  return `
+  <div class="bor-hdr">
+    <div class="field-row">
+      <div class="field"><label>Boring ID</label>
+        <input type="text" id="blabel-${bkey}" value="B-${counter}" style="width:88px"
+          oninput="document.getElementById('tabbtn-${bkey}').textContent=this.value||'${bkey}'"></div>
+      <div class="field"><label>Energy Ratio ER (%)</label>
+        <input type="number" id="ber-${bkey}" value="60" step="1" min="1" max="100" style="width:90px"
+          oninput="onBorER('${bkey}',this.value)"></div>
+      <div class="field"><label>GWT Depth (ft)</label>
+        <input type="number" id="bgw-${bkey}" value="10" step="0.5" min="0" style="width:90px"
+          oninput="recalcBoring('${bkey}')"></div>
+      <div class="field"><label>Ground Surface El. (ft)</label>
+        <input type="number" id="bgse-${bkey}" step="0.1" style="width:100px" placeholder="e.g. 15.5"
+          title="Optional — enables elevation-based plot Y-axis"
+          oninput="rebuildBoringPlot('${bkey}')"></div>
+      <div class="field"><label># Samples</label>
+        <input type="number" id="bns-${bkey}" value="5" step="1" min="1" max="40" style="width:78px"
+          onchange="updateSampleCount('${bkey}',this.value)"></div>
+      <div class="field"><label>C<sub>E</sub></label>
+        <div class="ce-box" id="bce-${bkey}">1.00</div></div>
+      <div class="field" style="margin-left:auto;justify-content:flex-end">
+        <label style="visibility:hidden">x</label>
+        <button class="btn-sm" style="color:var(--red);border-color:#f5b8b8" onclick="deleteBoring('${bkey}')">Delete Boring</button>
+      </div>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="param-tbl">
+      <thead><tr>
+        <th style="width:30px">#</th>
+        <th style="width:90px" title="Supports column paste from gINT / Excel">Depth Top (ft) ⇩</th>
+        <th style="width:80px" title="Supports column paste from gINT / Excel">Length (in) ⇩</th>
+        <th style="width:95px">Stratum</th>
+        <th class="left" style="width:145px">Soil Type</th>
+        <th style="width:60px" title="Supports column paste from gINT / Excel">N ⇩</th>
+        <th style="width:68px;background:#d0e4f4" title="Effective vertical stress">σ′<sub>v</sub> (psf)</th>
+        <th style="width:52px;background:#d0e4f4" title="Combined correction factor = C_E × C_N">C<sub>N60</sub></th>
+        <th style="width:46px;background:#d0e4f4" title="Overburden correction factor">C<sub>N</sub></th>
+        <th style="width:50px;background:#d0e4f4" title="Energy correction factor = ER / 60">C<sub>E</sub></th>
+        <th style="width:52px;background:#d0e4f4" title="Energy-corrected blow count = N × C_E">N<sub>60</sub></th>
+        <th style="width:56px;background:#d0e4f4" title="Overburden + energy corrected = N × C_N60">(N<sub>1</sub>)<sub>60</sub></th>
+        <th style="width:40px" title="Exclude from Es calculations">Excl.</th>
+      </tr></thead>
+      <tbody id="sbody-${bkey}" data-count="0"></tbody>
+    </table>
+  </div>
+  <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <button class="btn-calc" onclick="calcBoring('${bkey}')">&#9654; Calculate E<sub>s</sub></button>
+    <button class="btn-sm" onclick="exportBoringCSV('${bkey}')">&#8595; Export CSV</button>
+    <button class="btn-sm" onclick="printBoringPage('${bkey}')" title="Print this boring — letter portrait">&#9113; Print Boring</button>
+  </div>
+  <div id="bres-${bkey}" class="hidden" style="margin-top:16px">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-head">
+        <div class="card-head-l"><div class="dot"></div>E<sub>s</sub> Results — <span id="breslbl-${bkey}"></span></div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:#7a9fc0;cursor:pointer">
+          <input type="checkbox" id="chkApp-${bkey}" onchange="calcBoring('${bkey}')"> Applicable only
+        </label>
+      </div>
+      <div class="card-body">
+        <div id="bpills-${bkey}" class="summary-row"></div>
+        <div id="btbl-${bkey}" class="res-wrap"></div>
+        <div id="bnote-${bkey}" class="tbl-note"></div>
+        <div id="bplot-${bkey}" class="plot-outer"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function deleteBoring(bkey) {
+  if (boringKeys.length <= 1) { alert('At least one boring is required.'); return; }
+  const idx = boringKeys.indexOf(bkey);
+  boringKeys.splice(idx, 1);
+  document.getElementById('tabbtn-'+bkey)?.remove();
+  document.getElementById('tabpanel-'+bkey)?.remove();
+  switchTab(boringKeys[Math.min(idx, boringKeys.length-1)]);
+}
+
+function switchTab(key) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.id && b.id.startsWith('tabbtn-')) b.classList.remove('active');
+  });
+  document.getElementById('tabpanel-'+key)?.classList.add('active');
+  document.getElementById('tabbtn-'+key)?.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SAMPLE ROWS
+// ═══════════════════════════════════════════════════════════════════════════
+function updateSampleCount(bkey, val) {
+  const n = Math.min(40, Math.max(1, parseInt(val) || 1));
+  const tbody = document.getElementById('sbody-'+bkey);
+  if (!tbody) return;
+  const cur = parseInt(tbody.dataset.count) || 0;
+  if (n > cur) {
+    for (let r = cur; r < n; r++) addSampleRow(bkey, r);
+  } else {
+    for (let r = cur - 1; r >= n; r--) document.getElementById(`sr-${bkey}-${r}`)?.remove();
+  }
+  tbody.dataset.count = n;
+  applyStratumCascade(bkey);
+}
+
+function addSampleRow(bkey, r) {
+  const opts = stratOptsHTML();
+  const tr = document.createElement('tr');
+  tr.id = `sr-${bkey}-${r}`;
+  tr.innerHTML = `
+    <td class="rownum">${r+1}</td>
+    <td>
+      <input type="number" id="dep-${bkey}-${r}" data-bkey="${bkey}" data-r="${r}" data-c="0"
+        step="0.1" placeholder="10.0" style="width:76px"
+        oninput="calcSamp('${bkey}',${r})" onkeydown="navKey(event,this)"
+      onpaste="handlePaste(event,'${bkey}',${r},0)">
+      <div class="depth-bot" id="bot-${bkey}-${r}"></div>
+    </td>
+    <td><input type="number" id="len-${bkey}-${r}" data-bkey="${bkey}" data-r="${r}" data-c="1"
+      step="0.5" placeholder="18" style="width:68px"
+      oninput="calcSamp('${bkey}',${r})" onkeydown="navKey(event,this)"
+      onpaste="handlePaste(event,'${bkey}',${r},1)"></td>
+    <td><select id="strat-${bkey}-${r}" class="stratsel" style="width:89px"
+      onchange="onStratChange('${bkey}',${r})">${opts}</select></td>
+    <td class="soil-disp" id="sdisp-${bkey}-${r}">—</td>
+    <td><input type="number" id="nval-${bkey}-${r}" data-bkey="${bkey}" data-r="${r}" data-c="2"
+      step="1" placeholder="20" style="width:56px;text-align:center"
+      oninput="calcSamp('${bkey}',${r})" onkeydown="navKey(event,this)"
+      onpaste="handlePaste(event,'${bkey}',${r},2)"></td>
+    <td class="auto-cell" id="sigv-${bkey}-${r}">—</td>
+    <td class="auto-cell" id="cn60-${bkey}-${r}">—</td>
+    <td class="auto-cell" id="cn-${bkey}-${r}">—</td>
+    <td class="auto-cell" id="ce-${bkey}-${r}">—</td>
+    <td class="auto-cell" id="n60-${bkey}-${r}">—</td>
+    <td class="auto-cell" id="n160-${bkey}-${r}">—</td>
+    <td style="text-align:center;border:1px solid #d8e4ee;padding:4px 2px"><input type="checkbox" id="excl-${bkey}-${r}"
+      title="Exclude from Es calculations" onchange="toggleExclude('${bkey}',${r})"></td>`;
+  document.getElementById('sbody-'+bkey).appendChild(tr);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CUMULATIVE EFFECTIVE STRESS  (layer-by-layer using sample stratum γ)
+// Each interval [prev_depth → current_depth] uses the current sample's γ,
+// consistent with the convention that the interval "belongs" to that sample.
+// ═══════════════════════════════════════════════════════════════════════════
+function computeCumulativeSigmaV(bkey, targetR) {
+  const n        = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+  const gw       = parseFloat(document.getElementById(`bgw-${bkey}`)?.value) || 100;
+  const gwV      = parseFloat(document.getElementById('inpGw')?.value) || 62.4;
+  const targetDep = parseFloat(document.getElementById(`dep-${bkey}-${targetR}`)?.value);
+  if (!(targetDep > 0)) return null;
+
+  // Build depth profile: all rows with a valid depth AND stratum, at or above targetDep
+  const profile = [];
+  for (let r = 0; r < n; r++) {
+    const dep = parseFloat(document.getElementById(`dep-${bkey}-${r}`)?.value);
+    const sk  = document.getElementById(`strat-${bkey}-${r}`)?.value;
+    const gma = strata[sk]?.gamma;
+    if (dep > 0 && gma && dep <= targetDep + 0.001) profile.push({dep, gma});
+  }
+  if (!profile.length) return null;
+  profile.sort((a, b) => a.dep - b.dep);
+
+  // Target must be represented (i.e., target row has a stratum with γ)
+  if (!profile.some(p => Math.abs(p.dep - targetDep) < 0.001)) return null;
+
+  // Sum incremental effective stress layer by layer
+  let sigV = 0, prevDep = 0;
+  for (const {dep, gma} of profile) {
+    const dTop = prevDep;
+    const dBot = Math.min(dep, targetDep);
+    if (dBot > dTop) {
+      // Above-GWT portion and below-GWT portion of this layer
+      const abvGWT = Math.max(0, Math.min(dBot, gw) - Math.max(dTop, 0));
+      const blwGWT = Math.max(0, dBot - Math.max(dTop, gw));
+      sigV += gma * abvGWT + Math.max(0, gma - gwV) * blwGWT;
+    }
+    prevDep = dep;
+    if (Math.abs(dep - targetDep) < 0.001) break;
+  }
+  return sigV >= 0 ? sigV : null;
+}
+
+function calcSamp(bkey, r) {
+  const N   = parseFloat(document.getElementById(`nval-${bkey}-${r}`)?.value);
+  const dep = parseFloat(document.getElementById(`dep-${bkey}-${r}`)?.value);
+  const len = parseFloat(document.getElementById(`len-${bkey}-${r}`)?.value);
+  const sk  = document.getElementById(`strat-${bkey}-${r}`)?.value;
+  const er  = parseFloat(document.getElementById(`ber-${bkey}`)?.value)  || 60;
+  const gw  = parseFloat(document.getElementById(`bgw-${bkey}`)?.value)  || 100;
+  const gwV = parseFloat(document.getElementById('inpGw')?.value)        || 62.4;
+  const strat = strata[sk] || {};
+  const CE  = er / 60;
+  const N60 = N > 0 ? N * CE : null;
+
+  let sigV=null, CN=null, N160=null;
+  if (sk && strata[sk]?.gamma && dep > 0) {
+    sigV = computeCumulativeSigmaV(bkey, r);
+    if (sigV !== null) {
+      CN   = sigV > 0 ? Math.min(2.0, Math.sqrt(2116.2 / sigV)) : 2.0;
+      N160 = N60 ? N60 * CN : null;
+    }
+  }
+
+  const bot = dep > 0 && len > 0 ? `bot: ${(dep+len/12).toFixed(2)} ft` : '';
+  const CN60 = (N60 && CN !== null) ? CE * CN : null;
+  const el  = id => document.getElementById(id);
+  const f   = (v, d) => v !== null && v !== undefined ? v.toFixed(d) : '—';
+  if (el(`bot-${bkey}-${r}`))   el(`bot-${bkey}-${r}`).textContent  = bot;
+  if (el(`sdisp-${bkey}-${r}`)) el(`sdisp-${bkey}-${r}`).textContent= strat.soilType ? (SOIL_LABEL[strat.soilType]||'—') : '—';
+  if (el(`sigv-${bkey}-${r}`))  el(`sigv-${bkey}-${r}`).textContent = sigV!==null ? Math.round(sigV) : '—';
+  if (el(`cn60-${bkey}-${r}`))  el(`cn60-${bkey}-${r}`).textContent = f(CN60,2);
+  if (el(`cn-${bkey}-${r}`))    el(`cn-${bkey}-${r}`).textContent   = f(CN,2);
+  if (el(`ce-${bkey}-${r}`))    el(`ce-${bkey}-${r}`).textContent   = f(CE,2);
+  if (el(`n60-${bkey}-${r}`))   el(`n60-${bkey}-${r}`).textContent  = f(N60,1);
+  if (el(`n160-${bkey}-${r}`))  el(`n160-${bkey}-${r}`).textContent = f(N160,1);
+  // Stratum color on auto-cells
+  const sc = (sk && strata[sk]) ? STRAT_COLORS[strata[sk].colorIdx % STRAT_COLORS.length] : null;
+  ['sigv','cn60','cn','ce','n60','n160'].forEach(col => {
+    const ae = document.getElementById(`${col}-${bkey}-${r}`);
+    if (ae) { ae.style.background = sc ? sc.bg : ''; ae.style.borderColor = sc ? sc.br : ''; }
+  });
+  // Depth/stratum changes affect σ'v of all deeper rows — cascade update
+  if (!_inCascade) { _inCascade = true; recalcBoring(bkey); _inCascade = false; }
+}
+
+function onBorER(bkey, val) {
+  const ce = (parseFloat(val)||60) / 60;
+  const el = document.getElementById(`bce-${bkey}`);
+  if (el) el.textContent = ce.toFixed(2);
+  recalcBoring(bkey);
+}
+
+function recalcBoring(bkey) {
+  const n = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+  for (let r = 0; r < n; r++) calcSamp(bkey, r);
+}
+
+function recalcAllBorings() { boringKeys.forEach(bk => recalcBoring(bk)); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STRATUM CASCADE
+// ═══════════════════════════════════════════════════════════════════════════
+function onStratChange(bkey, r) {
+  const sel = document.getElementById(`strat-${bkey}-${r}`);
+  if (!sel) return;
+  sel.dataset.manual = sel.value ? '1' : '';
+  applyStratumCascade(bkey);
+  calcSamp(bkey, r);
+}
+
+function applyStratumCascade(bkey) {
+  const n = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+  let cur = '';
+  for (let r = 0; r < n; r++) {
+    const sel = document.getElementById(`strat-${bkey}-${r}`);
+    if (!sel) continue;
+    if (sel.dataset.manual === '1') {
+      cur = sel.value;
+    } else if (sel.value !== cur) {
+      sel.value = cur;
+      calcSamp(bkey, r);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXCLUDE ROW
+// ═══════════════════════════════════════════════════════════════════════════
+function toggleExclude(bkey, r) {
+  const chk = document.getElementById(`excl-${bkey}-${r}`);
+  const tr  = document.getElementById(`sr-${bkey}-${r}`);
+  if (tr) tr.style.opacity = chk?.checked ? '0.3' : '1';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PASTE HANDLER  (fills a column from a copied gINT / Excel column)
+// ═══════════════════════════════════════════════════════════════════════════
+function handlePaste(e, bkey, r, c) {
+  const text = (e.clipboardData || window.clipboardData).getData('text');
+  const lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(l => l !== '');
+  if (lines.length <= 1) return; // single value — let browser handle normally
+  e.preventDefault();
+  // Auto-expand rows if paste exceeds current count (up to 40)
+  const needed = r + lines.length;
+  const cur = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+  if (needed > cur) {
+    const capped = Math.min(needed, 40);
+    const nsEl = document.getElementById(`bns-${bkey}`);
+    if (nsEl) nsEl.value = capped;
+    updateSampleCount(bkey, capped);
+  }
+  lines.forEach((val, i) => {
+    const targetR = r + i;
+    const el = document.querySelector(`[data-bkey="${bkey}"][data-r="${targetR}"][data-c="${c}"]`);
+    if (el) { el.value = val; calcSamp(bkey, targetR); }
+  });
+  applyStratumCascade(bkey);
+  const lastR = Math.min(r + lines.length - 1, 39);
+  const lastEl = document.querySelector(`[data-bkey="${bkey}"][data-r="${lastR}"][data-c="${c}"]`);
+  if (lastEl) lastEl.focus();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ARROW KEY NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════
+function navKey(e, el) {
+  const validKeys = ['ArrowDown','ArrowUp','Enter','ArrowLeft','ArrowRight'];
+  if (!validKeys.includes(e.key)) return;
+  const bkey = el.dataset.bkey;
+  const r    = parseInt(el.dataset.r);
+  const c    = parseInt(el.dataset.c);
+  let nr = r, nc = c;
+
+  if (e.key === 'ArrowUp')   { e.preventDefault(); nr = r - 1; }
+  else if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); nr = r + 1; }
+  else if (e.key === 'ArrowLeft') {
+    // Only intercept when cursor is at start of field
+    if (el.selectionStart !== 0 || el.selectionEnd !== 0) return;
+    e.preventDefault(); nc = c - 1;
+  }
+  else if (e.key === 'ArrowRight') {
+    // Only intercept when cursor is at end of field
+    if (el.selectionStart !== el.value.length || el.selectionEnd !== el.value.length) return;
+    e.preventDefault(); nc = c + 1;
+  }
+
+  const target = document.querySelector(`[data-bkey="${bkey}"][data-r="${nr}"][data-c="${nc}"]`);
+  if (target) target.focus();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CALCULATE (per boring)
+// ═══════════════════════════════════════════════════════════════════════════
+function readBoringRows(bkey) {
+  const Pa  = parseFloat(document.getElementById('inpPa')?.value) || 2.11622;
+  const er  = parseFloat(document.getElementById(`ber-${bkey}`)?.value) || 60;
+  const gw  = parseFloat(document.getElementById(`bgw-${bkey}`)?.value) || 100;
+  const gwV = parseFloat(document.getElementById('inpGw')?.value) || 62.4;
+  const n   = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+  const CE  = er / 60;
+  const rows = [];
+  for (let r = 0; r < n; r++) {
+    const N   = parseFloat(document.getElementById(`nval-${bkey}-${r}`)?.value);
+    const dep = parseFloat(document.getElementById(`dep-${bkey}-${r}`)?.value);
+    const len = parseFloat(document.getElementById(`len-${bkey}-${r}`)?.value);
+    const sk  = document.getElementById(`strat-${bkey}-${r}`)?.value;
+    const excl = document.getElementById(`excl-${bkey}-${r}`)?.checked;
+    if (!N || N <= 0 || excl) continue;
+    const strat = strata[sk] || {};
+    const N60 = N * CE;
+    let sigV=null, CN=null, N160=null;
+    if (strat.gamma && dep > 0) {
+      const zD = Math.min(dep, gw), zW = Math.max(0, dep - gw);
+      sigV = strat.gamma*zD + (strat.gamma-gwV)*zW;
+      CN   = sigV > 0 ? Math.min(2.0, Math.sqrt(2116.2/sigV)) : 2.0;
+      N160 = N60 * CN;
+    }
+    const CN60r = (N60 && CN !== null) ? CE * CN : null;
+    rows.push({rowNum:r+1, dep, len, soilType:strat.soilType||'', stratKey:sk, N, CE, N60, sigV, CN, CN60:CN60r, N160});
+  }
+  return rows;
+}
+
+function esCalc(row, c) {
+  const Pa = parseFloat(document.getElementById('inpPa')?.value) || 2.11622;
+  const B  = parseFloat(document.getElementById('inpB')?.value)  || 0;
+  const D  = parseFloat(document.getElementById('inpD')?.value)  || 0;
+  try {
+    const v = c.fn(row.N||0, row.N60||0, row.N160||0, Pa, B, D);
+    return (v!==null && isFinite(v) && v>0) ? v : null;
+  } catch(e) { return null; }
+}
+
+function buildResTable(rows, vis) {
+  const groups = [];
+  vis.forEach(c => {
+    const last = groups[groups.length-1];
+    if (last && last.g===c.g) last.span++;
+    else groups.push({g:c.g, span:1});
+  });
+  const fixH = [
+    {cls:'left sticky-l',w:65,l:'Sample',rs:3},
+    {cls:'',w:72,l:'Depth (ft)',rs:3},
+    {cls:'left',w:130,l:'Soil Type',rs:3},
+    {cls:'',w:44,l:'N',rs:3},
+    {cls:'',w:48,l:'N₆₀',rs:3},
+    {cls:'',w:50,l:'(N₁)₆₀',rs:3},
+  ];
+  let h = '<table class="res-tbl"><thead><tr>';
+  fixH.forEach(f => h+=`<th rowspan="3" class="${f.cls}" style="min-width:${f.w}px;background:#dce8f4;color:var(--navy)">${f.l}</th>`);
+  groups.forEach(({g,span}) => h+=`<th colspan="${span}" class="${GRP[g].gh}">${GRP[g].label}</th>`);
+  h+=`<th rowspan="3" style="background:var(--navy);color:#6db3f5;min-width:72px">App.<br>Range (ksf)</th></tr><tr>`;
+  vis.forEach(c => h+=`<th class="${GRP[c.g].sh}" style="min-width:56px;font-size:9px;line-height:1.3" title="${c.id}: ${c.short}&#10;${c.note}">${c.id}<br><span style="font-weight:400;font-size:8px">${c.note}</span></th>`);
+  h+='</tr><tr>';
+  vis.forEach(c => h+=`<th class="${GRP[c.g].sh}" style="font-size:8px;font-weight:500;font-style:italic;padding:2px 3px">${c.ntype}</th>`);
+  h+='</tr></thead><tbody>';
+
+  rows.forEach((row, ri) => {
+    const appV=[];
+    const cells = vis.map(c => {
+      const v=esCalc(row,c);
+      const isApp=row.soilType&&c.app.includes(row.soilType);
+      if(isApp&&v!==null) appV.push(v);
+      return `<td class="${v===null?'cell-na':(isApp?GRP[c.g].ca:'cell-dim')}">${v!==null?Math.round(v):'—'}</td>`;
+    });
+    const rng = appV.length ? `${Math.round(Math.min(...appV))} –<br>${Math.round(Math.max(...appV))}` : '—';
+    const dep = row.dep ? `${row.dep.toFixed(1)}${row.len?` – ${(row.dep+row.len/12).toFixed(2)}`:''}` : '—';
+    const bg  = ri%2===0?'#fff':'#f8fafc';
+    h+=`<tr>
+      <td class="left sticky-l" style="background:${bg}"><strong>${row.rowNum}</strong></td>
+      <td style="text-align:center;font-family:var(--mono);font-size:10px">${dep}</td>
+      <td class="left" style="font-size:10.5px">${SOIL_LABEL[row.soilType]||'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${row.N}</td>
+      <td style="text-align:center;font-family:var(--mono)">${row.N60?row.N60.toFixed(1):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);font-weight:600;color:var(--navy2)">${row.N160?row.N160.toFixed(1):'—'}</td>
+      ${cells.join('')}<td class="cell-range">${rng}</td></tr>`;
+  });
+
+  ['Min','Max','Avg'].forEach(stat => {
+    h+=`<tr class="row-sum"><td class="left sticky-l" style="background:#f0f4f8">${stat}</td><td></td><td></td><td></td><td></td><td></td>`;
+    vis.forEach(c => {
+      const vals=rows.map(r=>esCalc(r,c)).filter(v=>v!==null);
+      const v=vals.length?(stat==='Min'?Math.min(...vals):stat==='Max'?Math.max(...vals):vals.reduce((a,b)=>a+b)/vals.length):null;
+      h+=`<td style="color:var(--muted)">${v!==null?Math.round(v):'—'}</td>`;
+    });
+    h+='<td></td></tr>';
+  });
+  return h+'</tbody></table>';
+}
+
+function calcBoring(bkey) {
+  const rows = readBoringRows(bkey);
+  if (!rows.length) { alert(`No valid N values in this boring.`); return; }
+  const applyOnly = document.getElementById(`chkApp-${bkey}`)?.checked;
+  const vis = applyOnly
+    ? CORRS.filter(c => rows.some(r=>r.soilType&&c.app.includes(r.soilType)))
+    : CORRS;
+
+  let allApp=[];
+  rows.forEach(r=>{
+    if(!r.soilType) return;
+    CORRS.filter(c=>c.app.includes(r.soilType)).forEach(c=>{const v=esCalc(r,c);if(v!==null)allApp.push(v);});
+  });
+  const borLabel = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+  const Pa = parseFloat(document.getElementById('inpPa')?.value)||2.11622;
+  const B  = parseFloat(document.getElementById('inpB')?.value)||10;
+  const D  = parseFloat(document.getElementById('inpD')?.value)||5;
+
+  document.getElementById(`bpills-${bkey}`).innerHTML=`
+    <div class="pill"><div class="pill-label">Samples</div><div class="pill-value">${rows.length}</div><div class="pill-sub">with N data</div></div>
+    <div class="pill"><div class="pill-label">Correlations</div><div class="pill-value">${vis.length}</div><div class="pill-sub">of 21 shown</div></div>
+    ${allApp.length?`<div class="pill good"><div class="pill-label">Applicable E<sub>s</sub> Range</div>
+      <div class="pill-value" style="font-size:12px">${Math.round(Math.min(...allApp))} – ${Math.round(Math.max(...allApp))}</div>
+      <div class="pill-sub">ksf, applicable correlations</div></div>`:''}`;
+
+  document.getElementById(`btbl-${bkey}`).innerHTML = buildResTable(rows, vis);
+  document.getElementById(`bnote-${bkey}`).innerHTML =
+    `* Begemann bilinear at N₆₀=15. Pa=${Pa.toFixed(3)} ksf. ${B>0?`USACE: B=${B} ft, D=${D} ft`:'USACE U1: excluded (set B in Global Parameters to include)'}. C<sub>N</sub>=min(2.0,√(2116/σ′<sub>v,psf</sub>)) — Liao &amp; Whitman (1986).`;
+  document.getElementById(`breslbl-${bkey}`).textContent = borLabel;
+  document.getElementById(`bres-${bkey}`).classList.remove('hidden');
+  buildBoringPlot(bkey, rows);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUMMARY
+// ═══════════════════════════════════════════════════════════════════════════
+function generateSummary() {
+  if (!Object.keys(strata).length) { alert('No strata defined.'); return; }
+
+  // Collect all samples across borings
+  const all=[];
+  boringKeys.forEach(bkey => {
+    const blabel = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+    readBoringRows(bkey).forEach(r => all.push({...r, boringLabel:blabel, bkey}));
+  });
+
+  let html=`<div class="tbl-wrap"><table class="sum-tbl">
+    <thead><tr>
+      <th>Stratum</th><th>Soil Type</th><th style="text-align:center">γ (pcf)</th>
+      <th>Borings w/ Data</th><th style="text-align:center"># Samples</th>
+      <th style="text-align:center">N Range</th>
+      <th style="text-align:center">N₆₀ Avg</th>
+      <th style="text-align:center">(N₁)₆₀ Avg</th>
+      <th style="text-align:center">App. E<sub>s</sub> Min (ksf)</th>
+      <th style="text-align:center">App. E<sub>s</sub> Max (ksf)</th>
+      <th style="text-align:center">App. E<sub>s</sub> Mean (ksf)</th>
+      <th style="text-align:center;min-width:140px">Design Value (ksf)</th>
+    </tr></thead><tbody>`;
+
+  Object.entries(strata).forEach(([sk, st]) => {
+    const samps = all.filter(s => s.stratKey === sk);
+    const bors  = [...new Set(samps.map(s=>s.boringLabel))];
+    const Ns    = samps.map(s=>s.N).filter(Boolean);
+    const N60s  = samps.map(s=>s.N60).filter(v=>v!==null&&v!==undefined);
+    const N160s = samps.map(s=>s.N160).filter(v=>v!==null&&v!==undefined);
+    let appV=[];
+    samps.forEach(row=>{
+      if(!row.soilType) return;
+      CORRS.filter(c=>c.app.includes(row.soilType)).forEach(c=>{const v=esCalc(row,c);if(v!==null)appV.push(v);});
+    });
+    const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b)/arr.length).toFixed(1) : '—';
+    const dv = designValues[sk] || '';
+    html+=`<tr>
+      <td><strong>${st.label||sk}</strong></td>
+      <td style="font-size:11px">${SOIL_LABEL[st.soilType]||'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${st.gamma}</td>
+      <td style="font-size:11px">${bors.length?bors.join(', '):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${samps.length||'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${Ns.length?`${Math.min(...Ns)} – ${Math.max(...Ns)}`:'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${avg(N60s)}</td>
+      <td style="text-align:center;font-family:var(--mono);font-weight:600;color:var(--navy2)">${avg(N160s)}</td>
+      <td style="text-align:center;font-family:var(--mono);color:var(--gf)">${appV.length?Math.round(Math.min(...appV)):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);color:var(--gf)">${appV.length?Math.round(Math.max(...appV)):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${appV.length?Math.round(appV.reduce((a,b)=>a+b)/appV.length):'—'}</td>
+      <td style="text-align:center">
+        <input type="number" class="dv-input" step="1" value="${dv}" placeholder="enter value"
+          onchange="designValues['${sk}']=this.value">
+      </td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>
+    <div class="tbl-note" style="margin-top:10px">
+      Design values are user-defined — enter based on engineering judgment considering the applicable range, stratum variability, and project settlement method.
+      App. E<sub>s</sub> = min/max/mean of all applicable correlations across all samples assigned to each stratum.
+      Run <strong>Calculate E<sub>s</sub></strong> in each boring tab to ensure results reflect current inputs.
+    </div>`;
+
+  document.getElementById('summaryContent').innerHTML = html;
+  buildSummaryPlot(all);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════════════════════════
+function exportBoringCSV(bkey) {
+  const rows = readBoringRows(bkey);
+  if (!rows.length) { alert('No data to export.'); return; }
+  const blabel = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+  const hdrs = ['Boring','Sample #','Depth Top (ft)','Depth Bot (ft)','Soil Type',
+    'N','sigv_psf','C_N60','C_N','C_E','N60','(N1)60',
+    ...CORRS.map(c=>`${c.id} [${c.ntype}] ksf`),'App Min (ksf)','App Max (ksf)'];
+  const body = rows.map(r => {
+    const bot = (r.dep&&r.len)?(r.dep+r.len/12).toFixed(2):'';
+    const vals = CORRS.map(c=>{const v=esCalc(r,c);return v!==null?Math.round(v):''});
+    const appV = CORRS.filter(c=>r.soilType&&c.app.includes(r.soilType)).map(c=>esCalc(r,c)).filter(v=>v!==null);
+    return [blabel,r.rowNum,r.dep||'',bot,SOIL_LABEL[r.soilType]||'',
+      r.N,r.sigV?Math.round(r.sigV):'',r.CN60?r.CN60.toFixed(2):'',
+      r.CN?r.CN.toFixed(2):'',r.CE?r.CE.toFixed(2):'',r.N60?r.N60.toFixed(1):'',r.N160?r.N160.toFixed(1):'',
+      ...vals,
+      appV.length?Math.round(Math.min(...appV)):'',
+      appV.length?Math.round(Math.max(...appV)):''
+    ].join(',');
+  });
+  dl([hdrs.join(','),...body].join('\n'), `Es_${blabel.replace(/\s/g,'_')}.csv`);
+}
+
+function exportSummaryCSV() {
+  if (!Object.keys(strata).length) { alert('No strata defined.'); return; }
+  const all=[];
+  boringKeys.forEach(bkey=>{
+    const blabel=document.getElementById(`blabel-${bkey}`)?.value||bkey;
+    readBoringRows(bkey).forEach(r=>all.push({...r,boringLabel:blabel}));
+  });
+  const hdrs=['Stratum','Soil Type','gamma (pcf)','Borings','N Samples','N Min','N Max','N60 Avg','N160 Avg','App Es Min (ksf)','App Es Max (ksf)','App Es Mean (ksf)','Design Value (ksf)'];
+  const body=Object.entries(strata).map(([sk,st])=>{
+    const samps=all.filter(s=>s.stratKey===sk);
+    const bors=[...new Set(samps.map(s=>s.boringLabel))];
+    const Ns=samps.map(s=>s.N).filter(Boolean);
+    const N60s=samps.map(s=>s.N60).filter(v=>v!=null);
+    const N160s=samps.map(s=>s.N160).filter(v=>v!=null);
+    let appV=[];
+    samps.forEach(row=>{
+      if(!row.soilType) return;
+      CORRS.filter(c=>c.app.includes(row.soilType)).forEach(c=>{const v=esCalc(row,c);if(v!==null)appV.push(v);});
+    });
+    const avg=arr=>arr.length?(arr.reduce((a,b)=>a+b)/arr.length).toFixed(1):'';
+    return [st.label||sk,SOIL_LABEL[st.soilType]||'',st.gamma,bors.join('; '),samps.length,
+      Ns.length?Math.min(...Ns):'',Ns.length?Math.max(...Ns):'',avg(N60s),avg(N160s),
+      appV.length?Math.round(Math.min(...appV)):'',appV.length?Math.round(Math.max(...appV)):'',
+      appV.length?Math.round(appV.reduce((a,b)=>a+b)/appV.length):'',
+      designValues[sk]||''
+    ].join(',');
+  });
+  dl([hdrs.join(','),...body].join('\n'), 'Es_Summary.csv');
+}
+
+function dl(csv, fname) {
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=fname; a.click();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REFERENCES
+// ═══════════════════════════════════════════════════════════════════════════
+function toggleRef() {
+  const b=document.getElementById('refBody'),t=document.getElementById('refToggle');
+  if(b.classList.contains('hidden')){b.classList.remove('hidden');t.textContent='Hide ▴';if(!b.dataset.built)buildRef();}
+  else{b.classList.add('hidden');t.textContent='Show ▾';}
+}
+// ═══════════════════════════════════════════════════════════════════════════
+// SAVE / LOAD PROJECT
+// ═══════════════════════════════════════════════════════════════════════════
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function saveProject() {
+  const borData = boringKeys.map(bkey => {
+    const n = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+    return {
+      bkey,
+      label:    document.getElementById(`blabel-${bkey}`)?.value || '',
+      er:       document.getElementById(`ber-${bkey}`)?.value    || '60',
+      gw:       document.getElementById(`bgw-${bkey}`)?.value    || '10',
+      gse:      document.getElementById(`bgse-${bkey}`)?.value   || '',
+      nSamples: n,
+      samples:  Array.from({length: n}, (_, r) => ({
+        dep:         document.getElementById(`dep-${bkey}-${r}`)?.value   || '',
+        len:         document.getElementById(`len-${bkey}-${r}`)?.value   || '',
+        stratKey:    document.getElementById(`strat-${bkey}-${r}`)?.value || '',
+        stratManual: document.getElementById(`strat-${bkey}-${r}`)?.dataset?.manual || '',
+        N:           document.getElementById(`nval-${bkey}-${r}`)?.value  || '',
+        excl:        document.getElementById(`excl-${bkey}-${r}`)?.checked || false,
+      })),
+    };
+  });
+  const state = {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    globalParams: {
+      Pa: document.getElementById('inpPa')?.value || '2.11622',
+      B:  document.getElementById('inpB')?.value  || '',
+      D:  document.getElementById('inpD')?.value  || '',
+      gw: document.getElementById('inpGw')?.value || '62.4',
+    },
+    nextSK, nextBK,
+    strata:       JSON.parse(JSON.stringify(strata)),
+    borings:      borData,
+    designValues: JSON.parse(JSON.stringify(designValues)),
+  };
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Es_${(borData[0]?.label||'project').replace(/[^a-zA-Z0-9_-]/g,'_')}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadProject() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try { restoreState(JSON.parse(evt.target.result)); }
+      catch(err) { alert('Could not load project file:\n' + err.message); }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
+function restoreState(state) {
+  if (!state?.version) throw new Error('Unrecognized file format — missing version field.');
+
+  // ── Clear strata ──
+  Object.keys(strata).forEach(k => delete strata[k]);
+  document.getElementById('stratBody').innerHTML = '';
+
+  // ── Clear borings ──
+  [...boringKeys].forEach(bkey => {
+    document.getElementById('tabbtn-'+bkey)?.remove();
+    document.getElementById('tabpanel-'+bkey)?.remove();
+  });
+  boringKeys.length = 0;
+
+  // ── Clear design values + summary ──
+  Object.keys(designValues).forEach(k => delete designValues[k]);
+  document.getElementById('summaryContent').innerHTML = '';
+
+  // ── Restore counters ──
+  nextSK = state.nextSK || 1;
+  nextBK = state.nextBK || 1;
+
+  // ── Restore global params ──
+  const gp = state.globalParams || {};
+  const gmap = {Pa:'inpPa', B:'inpB', D:'inpD', gw:'inpGw'};
+  Object.entries(gmap).forEach(([k,id]) => {
+    const el = document.getElementById(id);
+    if (el && gp[k] !== undefined) el.value = gp[k];
+  });
+
+  // ── Restore strata (directly build DOM rows with saved values) ──
+  for (const [key, s] of Object.entries(state.strata || {})) {
+    strata[key] = s;
+    const ci   = s.colorIdx || 0;
+    const dotBg = STRAT_COLORS[ci % STRAT_COLORS.length].bg;
+    const dotBr = STRAT_COLORS[ci % STRAT_COLORS.length].br;
+    const so    = soilOpts();
+    const tbody = document.getElementById('stratBody');
+    const tr    = document.createElement('tr');
+    tr.id = 'stratrow-' + key;
+    tr.innerHTML = `
+      <td class="rownum">${tbody.children.length+1}</td>
+      <td style="white-space:nowrap"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${dotBg};border:2px solid ${dotBr};margin-right:5px;vertical-align:middle"></span>
+        <input type="text" value="${escHtml(s.label)}" placeholder="e.g. SM-1" style="width:78px"
+          oninput="strata['${key}'].label=this.value;refreshStratDropdowns()"></td>
+      <td><select style="width:207px" onchange="strata['${key}'].soilType=this.value;refreshStratDropdowns()">${so}</select></td>
+      <td><input type="number" value="${s.gamma||120}" step="1" style="width:86px;text-align:center"
+        oninput="strata['${key}'].gamma=parseFloat(this.value)||120;recalcAllBorings()"></td>
+      <td><input type="text" value="${escHtml(s.desc||'')}" placeholder="optional" style="width:240px"></td>
+      <td><button class="btn-del" onclick="deleteStratum('${key}')">×</button></td>`;
+    tbody.appendChild(tr);
+    tr.querySelector('select').value = s.soilType || '';
+  }
+  refreshStratDropdowns();
+
+  // ── Restore borings ──
+  for (const bdata of (state.borings || [])) {
+    const bkey   = bdata.bkey;
+    boringKeys.push(bkey);
+    const counter = boringKeys.length;
+
+    // Tab button
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn'; btn.id = 'tabbtn-' + bkey;
+    btn.textContent = bdata.label || ('B-' + counter);
+    btn.onclick = () => switchTab(bkey);
+    document.getElementById('tabBar').insertBefore(btn, document.querySelector('.add-tab'));
+
+    // Tab panel
+    const panel = document.createElement('div');
+    panel.id = 'tabpanel-' + bkey; panel.className = 'tab-panel';
+    panel.innerHTML = boringPanelHTML(bkey, counter);
+    document.getElementById('tabPanels').appendChild(panel);
+
+    // Set boring params
+    const sv = (id, v) => { const el=document.getElementById(id); if(el&&v!==undefined) el.value=v; };
+    sv(`blabel-${bkey}`, bdata.label);
+    sv(`ber-${bkey}`,    bdata.er);
+    sv(`bgw-${bkey}`,    bdata.gw);
+    sv(`bgse-${bkey}`,   bdata.gse);
+    sv(`bns-${bkey}`,    bdata.nSamples);
+    const ceEl = document.getElementById(`bce-${bkey}`);
+    if (ceEl) ceEl.textContent = ((parseFloat(bdata.er)||60)/60).toFixed(2);
+
+    // Create sample rows then populate
+    updateSampleCount(bkey, bdata.nSamples || 0);
+    (bdata.samples || []).forEach((s, r) => {
+      sv(`dep-${bkey}-${r}`,  s.dep);
+      sv(`len-${bkey}-${r}`,  s.len);
+      sv(`nval-${bkey}-${r}`, s.N);
+      const ss = document.getElementById(`strat-${bkey}-${r}`);
+      if (ss) { ss.value = s.stratKey||''; ss.dataset.manual = s.stratManual||''; }
+      const ex = document.getElementById(`excl-${bkey}-${r}`);
+      if (ex) { ex.checked = s.excl||false; if(s.excl) toggleExclude(bkey, r); }
+    });
+    recalcBoring(bkey);
+  }
+
+  // ── Restore design values ──
+  Object.assign(designValues, state.designValues || {});
+
+  // Switch to first boring, hide any open results
+  if (boringKeys.length) {
+    switchTab(boringKeys[0]);
+    boringKeys.forEach(bkey => document.getElementById(`bres-${bkey}`)?.classList.add('hidden'));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOLTIP (summary plot hover)
+// ═══════════════════════════════════════════════════════════════════════════
+function showPlotTip(el, evt) {
+  let tip = document.getElementById('plot-tip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = 'plot-tip';
+    document.body.appendChild(tip);
+  }
+  const parts = el.getAttribute('data-tip').split('||');
+  tip.innerHTML = `<strong style="font-size:12px;color:#93c5fd">${parts[0]}</strong>` +
+    parts.slice(1).map(l => `<div style="color:#c8ddf0">${l}</div>`).join('');
+  tip.style.display = 'block';
+  movePlotTip(evt);
+}
+function movePlotTip(evt) {
+  const tip = document.getElementById('plot-tip');
+  if (!tip || tip.style.display === 'none') return;
+  const x = evt.clientX + 15, y = evt.clientY - 12;
+  tip.style.left = Math.min(x, window.innerWidth  - tip.offsetWidth  - 8) + 'px';
+  tip.style.top  = Math.max(4, Math.min(y, window.innerHeight - tip.offsetHeight - 8)) + 'px';
+}
+function hidePlotTip() {
+  const tip = document.getElementById('plot-tip');
+  if (tip) tip.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PLOT HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+const BOR_COLORS = ['#1d5fa8','#166534','#991b1b','#7c3aed','#d97706','#0369a1','#065f46','#9f1239','#4b5563','#134e4a'];
+
+function getApplicableEs(row) {
+  const vals = CORRS
+    .filter(c => row.soilType && c.app.includes(row.soilType))
+    .map(c => esCalc(row, c))
+    .filter(v => v !== null);
+  if (!vals.length) return null;
+  return { min: Math.min(...vals), max: Math.max(...vals), mean: vals.reduce((a,b) => a+b) / vals.length };
+}
+
+function niceStep(range, nTicks) {
+  const raw = range / nTicks;
+  const pow = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+  const m   = raw/pow < 2 ? 1 : raw/pow < 5 ? 2 : 5;
+  return pow * m;
+}
+
+function makeSvgBase(VW, VH, ML, MR, MT, MB, esMax, yLo, yHi, useElev) {
+  const PW = VW - ML - MR, PH = VH - MT - MB;
+  const sx = v => ML + (v / esMax) * PW;
+  const sy = v => useElev
+    ? MT + (yHi - v) / (yHi - yLo) * PH
+    : MT + (v - yLo) / (yHi - yLo) * PH;
+
+  const esStep  = niceStep(esMax, 8);
+  const esTicks = [];
+  for (let e = 0; e <= esMax + 0.001; e += esStep) esTicks.push(e);
+
+  const yStep  = niceStep(yHi - yLo || 10, 8);
+  const yStart = Math.ceil(yLo / yStep) * yStep;
+  const yTicks = [];
+  for (let y = yStart; y <= yHi + 0.001; y += yStep) yTicks.push(parseFloat(y.toFixed(4)));
+
+  let s = `<rect x="${ML}" y="${MT}" width="${PW}" height="${PH}" fill="#f8fafc" stroke="#c8d6e5" stroke-width="1"/>`;
+
+  esTicks.forEach(e => {
+    const x = sx(e);
+    s += `<line x1="${x}" y1="${MT}" x2="${x}" y2="${MT+PH}" stroke="${e===0?'#8ba9c0':'#dde6ef'}" stroke-width="${e===0?1.5:.7}" stroke-dasharray="${e===0?'none':'3,3'}"/>`;
+    s += `<text x="${x}" y="${MT+PH+18}" text-anchor="middle" font-size="11" fill="#5a738a">${Math.round(e)}</text>`;
+  });
+
+  yTicks.forEach(y => {
+    const yp = sy(y);
+    if (yp < MT - 1 || yp > MT + PH + 1) return;
+    s += `<line x1="${ML}" y1="${yp}" x2="${ML+PW}" y2="${yp}" stroke="#dde6ef" stroke-width=".7"/>`;
+    s += `<text x="${ML-10}" y="${yp+4}" text-anchor="end" font-size="11" fill="#5a738a">${y.toFixed(useElev ? 1 : 0)}</text>`;
+  });
+
+  s += `<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${MT+PH}" stroke="#4a7daa" stroke-width="2"/>`;
+  s += `<line x1="${ML}" y1="${MT+PH}" x2="${ML+PW}" y2="${MT+PH}" stroke="#4a7daa" stroke-width="2"/>`;
+
+  return { s, sx, sy, PW, PH };
+}
+
+// ─── BORING PLOT ─────────────────────────────────────────────────────────────
+function buildBoringPlot(bkey, rows) {
+  const container = document.getElementById(`bplot-${bkey}`);
+  if (!container) return;
+
+  const gseRaw  = document.getElementById(`bgse-${bkey}`)?.value ?? '';
+  const gse     = parseFloat(gseRaw);
+  const hasElev = gseRaw !== '' && !isNaN(gse);
+
+  const pts = rows.map(row => {
+    const es = getApplicableEs(row);
+    if (!es) return null;
+    const yVal = hasElev ? gse - row.dep : row.dep;
+    const ci   = row.stratKey && strata[row.stratKey] ? strata[row.stratKey].colorIdx : 0;
+    const sc   = STRAT_COLORS[ci % STRAT_COLORS.length];
+    return { dep: row.dep, yVal, ...es, sc, stratKey: row.stratKey };
+  }).filter(Boolean);
+
+  if (!pts.length) {
+    container.innerHTML = '<div class="plot-note">No applicable E<sub>s</sub> data — assign soil types to strata and re-run Calculate E<sub>s</sub>.</div>';
+    return;
+  }
+
+  const VW=1100, VH=750, ML=80, MR=28, MT=36, MB=70;
+  const allEs  = pts.flatMap(p => [p.min, p.max]);
+  const esMax  = Math.ceil(Math.max(...allEs) / 200) * 200 || 1000;
+  const allY   = pts.map(p => p.yVal);
+  let yLo = Math.min(...allY), yHi = Math.max(...allY);
+  const yPad = (yHi - yLo || 10) * 0.14;
+  if (hasElev) { yLo -= yPad; yHi += yPad; }
+  else { yLo = Math.max(0, yLo - yPad); yHi += yPad; }
+
+  const { s: grid, sx, sy, PH } = makeSvgBase(VW, VH, ML, MR, MT, MB, esMax, yLo, yHi, hasElev);
+  let data = '';
+
+  // range bars
+  pts.forEach(p => {
+    const x1=sx(p.min), x2=sx(p.max), yp=sy(p.yVal);
+    data += `<line x1="${x1}" y1="${yp}" x2="${x2}" y2="${yp}" stroke="${p.sc.br}" stroke-width="2.5" opacity="0.5"/>`;
+    data += `<line x1="${x1}" y1="${yp-5}" x2="${x1}" y2="${yp+5}" stroke="${p.sc.br}" stroke-width="1.5" opacity="0.65"/>`;
+    data += `<line x1="${x2}" y1="${yp-5}" x2="${x2}" y2="${yp+5}" stroke="${p.sc.br}" stroke-width="1.5" opacity="0.65"/>`;
+  });
+
+  // connecting mean line (segment color = "from" point's stratum)
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i-1], b = pts[i];
+    data += `<line x1="${sx(a.mean)}" y1="${sy(a.yVal)}" x2="${sx(b.mean)}" y2="${sy(b.yVal)}" stroke="${a.sc.br}" stroke-width="2" opacity="0.8"/>`;
+  }
+
+  const borLabel = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+  const yLabel   = hasElev ? 'Elevation (ft)' : 'Depth (ft bgs)';
+
+  let svg = `<svg viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<style>text{font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif}</style>`;
+  svg += grid + data;
+  svg += `<text x="${ML+(VW-ML-MR)/2}" y="${VH-10}" text-anchor="middle" font-size="13" font-weight="600" fill="#1a2b3c">Es (ksf)</text>`;
+  svg += `<text transform="translate(13,${MT+PH/2}) rotate(-90)" text-anchor="middle" font-size="13" font-weight="600" fill="#1a2b3c">${yLabel}</text>`;
+  svg += `<text x="${ML+(VW-ML-MR)/2}" y="${MT-12}" text-anchor="middle" font-size="14" font-weight="700" fill="#0c1f35">${escHtml(borLabel)} \u2014 Es vs. ${hasElev?'Elevation':'Depth'}</text>`;
+  svg += '</svg>';
+
+  const seen = new Set();
+  const legendPts = pts.filter(p => { if (seen.has(p.stratKey)) return false; seen.add(p.stratKey); return true; });
+  let legend = '<div class="plot-legend">';
+  legendPts.forEach(p => {
+    const lbl = (p.stratKey && strata[p.stratKey]?.label) ? escHtml(strata[p.stratKey].label) : (p.stratKey || '?');
+    legend += `<div class="plot-legend-item"><div class="plot-legend-swatch" style="background:${p.sc.bg};border-color:${p.sc.br}"></div><span>${lbl}</span></div>`;
+  });
+  legend += `<span class="plot-hint">\u2014 mean line &nbsp;|&nbsp; \u27f5\u27f6 applicable Es range</span></div>`;
+
+  container.innerHTML = '<div class="plot-wrap">' + svg + '</div>' + legend;
+}
+
+function rebuildBoringPlot(bkey) {
+  if (!document.getElementById(`bres-${bkey}`)?.classList.contains('hidden')) {
+    buildBoringPlot(bkey, readBoringRows(bkey));
+  }
+}
+
+// ─── SUMMARY PLOT ────────────────────────────────────────────────────────────
+function buildSummaryPlot(allSamples) {
+  const container = document.getElementById('splot');
+  if (!container) return;
+
+  const gseVals = boringKeys.map(bkey => {
+    const v = document.getElementById(`bgse-${bkey}`)?.value ?? '';
+    const f = parseFloat(v);
+    return v !== '' && !isNaN(f) ? f : null;
+  });
+  const useElev = gseVals.every(v => v !== null);
+
+  // Build per-boring arrays with stratum color + tooltip data
+  const borGroups = boringKeys.map((bkey, bi) => {
+    const blabel = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+    const gse    = gseVals[bi];
+    const rows   = allSamples.filter(s => s.bkey === bkey);
+    const pts = rows.map(row => {
+      const es = getApplicableEs(row);
+      if (!es) return null;
+      const yVal = (useElev && gse !== null) ? gse - row.dep : row.dep;
+      const ci   = row.stratKey && strata[row.stratKey] ? strata[row.stratKey].colorIdx : 0;
+      const sc   = STRAT_COLORS[ci % STRAT_COLORS.length];
+      const elev = (useElev && gse !== null) ? gse - row.dep : null;
+      return { dep: row.dep, yVal, elev, ...es, sc, stratKey: row.stratKey, blabel,
+               N: row.N, N60: row.N60, N160: row.N160, soilType: row.soilType };
+    }).filter(Boolean);
+    pts.sort((a, b) => useElev ? b.yVal - a.yVal : a.yVal - b.yVal);
+    return { bkey, blabel, pts };
+  }).filter(g => g.pts.length > 0);
+
+  if (!borGroups.length) {
+    container.innerHTML = '<div class="plot-note" style="margin-top:10px">Run <strong>Calculate Es</strong> in each boring tab before generating the summary plot.</div>';
+    return;
+  }
+
+  const VW=1100, VH=750, ML=80, MR=28, MT=36, MB=70;
+  const allPts = borGroups.flatMap(g => g.pts);
+  const allEs  = allPts.flatMap(p => [p.min, p.max]);
+  const esMax  = Math.ceil(Math.max(...allEs) / 200) * 200 || 1000;
+  const allY   = allPts.map(p => p.yVal);
+  let yLo = Math.min(...allY), yHi = Math.max(...allY);
+  const yPad = (yHi - yLo || 10) * 0.14;
+  if (useElev) { yLo -= yPad; yHi += yPad; }
+  else { yLo = Math.max(0, yLo - yPad); yHi += yPad; }
+
+  const { s: grid, sx, sy, PW, PH } = makeSvgBase(VW, VH, ML, MR, MT, MB, esMax, yLo, yHi, useElev);
+  let data = '';
+
+  // Draw each boring: range bars + connecting mean lines, both colored by stratum
+  borGroups.forEach(g => {
+    // range bars (behind lines)
+    g.pts.forEach(p => {
+      const yp = sy(p.yVal);
+      data += `<line x1="${sx(p.min)}" y1="${yp}" x2="${sx(p.max)}" y2="${yp}" stroke="${p.sc.br}" stroke-width="2" opacity="0.4"/>`;
+      data += `<line x1="${sx(p.min)}" y1="${yp-4}" x2="${sx(p.min)}" y2="${yp+4}" stroke="${p.sc.br}" stroke-width="1.2" opacity="0.55"/>`;
+      data += `<line x1="${sx(p.max)}" y1="${yp-4}" x2="${sx(p.max)}" y2="${yp+4}" stroke="${p.sc.br}" stroke-width="1.2" opacity="0.55"/>`;
+    });
+    // connecting mean lines (segment color = "from" pt's stratum)
+    for (let i = 1; i < g.pts.length; i++) {
+      const a = g.pts[i-1], b = g.pts[i];
+      data += `<line x1="${sx(a.mean)}" y1="${sy(a.yVal)}" x2="${sx(b.mean)}" y2="${sy(b.yVal)}" stroke="${a.sc.br}" stroke-width="2" opacity="0.85"/>`;
+    }
+    // invisible hit rects for tooltips (full width strip at each sample's y)
+    g.pts.forEach(p => {
+      const yp   = sy(p.yVal);
+      const depStr  = `${p.dep.toFixed(1)} ft${p.elev !== null ? ` (El. ${p.elev.toFixed(1)} ft)` : ''}`;
+      const soilStr = SOIL_LABEL[p.soilType] || '\u2014';
+      const n60s    = p.N60  ? p.N60.toFixed(1)  : '\u2014';
+      const n160s   = p.N160 ? p.N160.toFixed(1) : '\u2014';
+      const esStr   = `${Math.round(p.min)}\u2013${Math.round(p.max)} ksf (mean ${Math.round(p.mean)})`;
+      const tip = escHtml([
+        p.blabel,
+        `Depth: ${depStr}`,
+        `Soil type: ${soilStr}`,
+        `N = ${p.N}   N\u2086\u2080 = ${n60s}   (N\u2081)\u2086\u2080 = ${n160s}`,
+        `App. Es: ${esStr}`
+      ].join('||'));
+      data += `<rect x="${ML}" y="${yp-8}" width="${PW}" height="16" fill="transparent" style="cursor:crosshair" data-tip="${tip}" onmouseover="showPlotTip(this,event)" onmousemove="movePlotTip(event)" onmouseout="hidePlotTip()"/>`;
+    });
+  });
+
+  const yLabel = useElev ? 'Elevation (ft)' : 'Depth (ft bgs)';
+  const depNote = useElev ? '' : '  \u2014 depth from surface (enter GSE per boring for elevation mode)';
+
+  let svg = `<svg viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<style>text{font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif}</style>`;
+  svg += grid + data;
+  svg += `<text x="${ML+(VW-ML-MR)/2}" y="${VH-10}" text-anchor="middle" font-size="13" font-weight="600" fill="#1a2b3c">Es (ksf)</text>`;
+  svg += `<text transform="translate(13,${MT+PH/2}) rotate(-90)" text-anchor="middle" font-size="13" font-weight="600" fill="#1a2b3c">${yLabel}</text>`;
+  svg += `<text x="${ML+(VW-ML-MR)/2}" y="${MT-12}" text-anchor="middle" font-size="14" font-weight="700" fill="#0c1f35">Es vs. ${useElev?'Elevation':'Depth'} \u2014 All Borings</text>`;
+  svg += '</svg>';
+
+  // Legend: unique strata (not borings)
+  const seenStrat = new Set();
+  const legendPts = allPts.filter(p => { if (seenStrat.has(p.stratKey)) return false; seenStrat.add(p.stratKey); return true; });
+  let legend = '<div class="plot-legend">';
+  legendPts.forEach(p => {
+    const lbl = (p.stratKey && strata[p.stratKey]?.label) ? escHtml(strata[p.stratKey].label) : (p.stratKey || '?');
+    legend += `<div class="plot-legend-item"><div class="plot-legend-swatch" style="background:${p.sc.bg};border-color:${p.sc.br}"></div><span>${lbl}</span></div>`;
+  });
+  legend += `<span class="plot-hint">\u2014 mean line &nbsp;|&nbsp; \u27f5\u27f6 applicable Es range &nbsp;|&nbsp; hover for sample info${depNote}</span></div>`;
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.marginTop = '16px';
+  card.innerHTML = `<div class="card-head"><div class="card-head-l"><div class="dot"></div>Es Profile \u2014 All Borings</div></div>
+    <div class="card-body"><div class="plot-wrap">${svg}</div>${legend}</div>`;
+  container.innerHTML = '';
+  container.appendChild(card);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PRINT
+// ═══════════════════════════════════════════════════════════════════════════
+function syncInputAttrs() {
+  // Sync .value property → value attribute so innerHTML copies carry current values
+  document.querySelectorAll('input[type=number], input[type=text]').forEach(el => el.setAttribute('value', el.value));
+}
+
+function openPrintWindow(html) {
+  const w = window.open('', '_blank');
+  if (!w) { alert('Popup blocked — please allow popups for this page and try again.'); return; }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => { w.focus(); w.print(); }, 900);
+}
+
+function printAll() {
+  syncInputAttrs();
+  let body = printHeaderBar();
+  boringKeys.forEach((bk, i) => { if (i > 0) body += '<div class="pg"></div>'; body += boringPrintSection(bk); });
+  body += '<div class="pg"></div>' + summaryPrintSection() + '<div class="pg"></div>' + refPrintSection();
+  openPrintWindow(printWrap(body));
+}
+
+function printSummaryPage() {
+  syncInputAttrs();
+  openPrintWindow(printWrap(printHeaderBar() + summaryPrintSection() + '<div class="pg"></div>' + refPrintSection()));
+}
+
+function printBoringPage(bkey) {
+  syncInputAttrs();
+  openPrintWindow(printWrap(printHeaderBar() + boringPrintSection(bkey)));
+}
+
+function printHeaderBar() {
+  const d = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  return `<div class="doc-hdr"><span>Elastic Modulus Correlation Calculator</span><span style="font-size:9pt;color:#5a738a">${d}</span></div>`;
+}
+
+function boringPrintSection(bkey) {
+  const rows    = readBoringRows(bkey);
+  const blabel  = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+  const er      = document.getElementById(`ber-${bkey}`)?.value || '60';
+  const gw      = document.getElementById(`bgw-${bkey}`)?.value || '—';
+  const gseRaw  = document.getElementById(`bgse-${bkey}`)?.value ?? '';
+  const gse     = gseRaw !== '' ? parseFloat(gseRaw) : null;
+  const Pa      = parseFloat(document.getElementById('inpPa')?.value) || 2.11622;
+  const Bv      = document.getElementById('inpB')?.value;
+  const Dv      = document.getElementById('inpD')?.value;
+  const elevCol = gse !== null;
+
+  // get SVG from DOM
+  const svgEl = document.getElementById(`bplot-${bkey}`)?.querySelector('svg');
+  const plotSVG = svgEl ? svgEl.outerHTML : '<p class="no-data">Run Calculate Es in the app to generate the plot before printing.</p>';
+
+  let trows = '';
+  rows.forEach(row => {
+    const es  = getApplicableEs(row);
+    const dep = row.dep != null ? row.dep.toFixed(1) : '—';
+    const bot = (row.dep != null && row.len) ? (row.dep + row.len/12).toFixed(2) : '';
+    const depFmt = dep + (bot ? ` – ${bot}` : '');
+    const elStr  = (gse !== null && row.dep != null) ? (gse - row.dep).toFixed(1) : '';
+    trows += `<tr>
+      <td class="c">${row.rowNum}</td>
+      <td class="c mono">${depFmt}</td>
+      ${elevCol ? `<td class="c mono">${elStr}</td>` : ''}
+      <td>${SOIL_LABEL[row.soilType] || '—'}</td>
+      <td class="c mono">${row.N}</td>
+      <td class="c mono">${row.N60 ? row.N60.toFixed(1) : '—'}</td>
+      <td class="c mono fw">${row.N160 ? row.N160.toFixed(1) : '—'}</td>
+      <td class="c mono grn">${es ? Math.round(es.min) : '—'}</td>
+      <td class="c mono grn">${es ? Math.round(es.max) : '—'}</td>
+      <td class="c mono">${es ? Math.round(es.mean) : '—'}</td>
+    </tr>`;
+  });
+
+  const elevTh = elevCol ? '<th>Elev. (ft)</th>' : '';
+  const paramStr = `ER = ${er}%  |  GWT = ${gw} ft bgs${gse !== null ? `  |  GSE = ${gse.toFixed(1)} ft` : ''}`;
+  const calcStr  = `Pa = ${Pa.toFixed(3)} ksf${Bv ? `  |  B = ${Bv} ft` : ''}${Dv ? `,  D = ${Dv} ft` : ''}  |  CN = min(2.0, √(2116/σ'v,psf))`;
+
+  return `<div class="section">
+    <div class="bor-hdr-print">
+      <span class="bor-id">${escHtml(blabel)}</span>
+      <span class="bor-params">${paramStr}</span>
+    </div>
+    <p class="calc-params">${calcStr}</p>
+    <table>
+      <thead><tr><th>#</th><th>Depth (ft)</th>${elevTh}<th>Soil Type</th><th>N</th><th>N₆₀</th><th>(N₁)₆₀</th><th>App Es Min (ksf)</th><th>App Es Max (ksf)</th><th>App Es Mean (ksf)</th></tr></thead>
+      <tbody>${trows || '<tr><td colspan="10" class="c" style="color:#888">No data — check that samples have N values and strata assigned.</td></tr>'}</tbody>
+    </table>
+    <div class="plot-print">${plotSVG}</div>
+  </div>`;
+}
+
+function summaryPrintSection() {
+  const sumEl = document.getElementById('summaryContent');
+  const splotEl = document.getElementById('splot')?.querySelector('svg');
+  const sumHTML = sumEl?.innerHTML || '<p class="no-data">Run Generate Summary before printing.</p>';
+  const plotSVG = splotEl ? splotEl.outerHTML : '';
+  return `<div class="section"><h2>Es Summary — All Borings</h2>${sumHTML}${plotSVG ? '<div class="plot-print" style="margin-top:14pt">' + plotSVG + '</div>' : ''}</div>`;
+}
+
+function refPrintSection() {
+  return `<div class="section"><h2>Es Correlation Formulas</h2>${formulasHTML()}<h2 style="margin-top:18pt">References</h2>${bibRefHTML()}<div class="tbl-note" style="margin-top:10pt">${assumptionsNote()}</div></div>`;
+}
+
+function printWrap(body) {
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Es Calculator</title><style>${printCSS()}</style></head><body>${body}</body></html>`;
+}
+
+function printCSS() {
+  return `
+    @page{size:letter portrait;margin:.75in}
+    :root{--navy:#0c1f35;--navy2:#152d4a;--gf:#166534;--mono:'IBM Plex Mono',monospace;--muted:#5a738a;--border:#c8d6e5}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;font-size:10pt;color:#1a2b3c;line-height:1.5}
+    h2{font-size:12pt;font-weight:700;color:var(--navy);border-bottom:2pt solid var(--navy);padding-bottom:3pt;margin:14pt 0 8pt}
+    table{border-collapse:collapse;width:100%;font-size:8pt;margin-bottom:10pt}
+    th{background:#152d4a;color:#fff;padding:4pt 5pt;text-align:center;font-size:7.5pt;font-weight:600;border:1pt solid #4a6a8a}
+    td{padding:3pt 5pt;border:1pt solid var(--border);vertical-align:middle}
+    tr:nth-child(even) td{background:#f8fafc}
+    .pg{page-break-before:always}
+    .section{page-break-inside:avoid}
+    .doc-hdr{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:5pt;border-bottom:2pt solid var(--navy);margin-bottom:12pt;font-size:13pt;font-weight:700;color:var(--navy)}
+    .bor-hdr-print{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4pt}
+    .bor-id{font-size:14pt;font-weight:700;color:var(--navy)}
+    .bor-params{font-family:var(--mono);font-size:8.5pt;color:var(--muted)}
+    .calc-params{font-size:8pt;color:var(--muted);margin-bottom:8pt}
+    .c{text-align:center}.mono{font-family:var(--mono)}.fw{font-weight:600}.grn{color:var(--gf)}
+    .plot-print{page-break-before:always;display:block}.plot-print svg{width:100%;height:9in;display:block}
+    .no-data{color:#888;font-style:italic;font-size:9pt;margin:8pt 0}
+    .tbl-note{font-size:8pt;color:var(--muted);padding:4pt 8pt;border-left:2pt solid var(--border);line-height:1.6}
+    /* preserve summary table classes */
+    .sum-tbl{border-collapse:collapse;width:100%}
+    .sum-tbl th{background:#152d4a;color:#fff;padding:5pt 6pt;border:1pt solid #4a6a8a;font-size:7.5pt}
+    .sum-tbl td{padding:3pt 6pt;border:1pt solid var(--border);font-size:8pt}
+    .sum-tbl tr:nth-child(even) td{background:#f8fafc}
+    .dv-input{font-family:var(--mono);font-size:8pt;border:1pt solid #ccc;padding:2pt 4pt;width:72pt}
+    .res-wrap,.res-tbl{display:none} /* hide the wide results table in print — use boring section table instead */
+  `;
+}
+
+// ─── FORMULA + REFERENCE CONTENT (shared between screen References card and print) ─────
+function formulasHTML() {
+  let h = `<table><thead><tr><th style="width:36pt">ID</th><th style="width:120pt">Source</th><th>Formula</th><th>Applicable Soil Type(s)</th><th style="width:62pt">N-Type</th></tr></thead><tbody>`;
+  let prevG = '';
+  CORRS.forEach(c => {
+    const sep = prevG && prevG !== c.g ? ' style="border-top:2px solid #c8d6e5"' : '';
+    prevG = c.g;
+    const appLabels = c.app.map(k => SOIL_LABEL[k] || k).join('; ');
+    h += `<tr${sep}><td class="c" style="font-weight:700">${c.id}</td><td>${GRP[c.g]?.label || c.g}</td><td style="font-family:monospace;font-size:8.5pt">${c.short}</td><td style="font-size:8pt">${appLabels}</td><td class="c">${c.ntype}</td></tr>`;
+  });
+  return h + '</tbody></table>';
+}
+
+function bibRefHTML() {
+  return `<table><thead><tr><th style="width:28pt">#</th><th style="width:90pt">Used For</th><th>Full Citation</th><th style="width:160pt">N-Type / Notes</th></tr></thead><tbody>
+<tr><td class="c">1</td><td>B1–B9</td><td><strong>Bowles, J.E. (1996).</strong> <em>Foundation Analysis and Design,</em> 5th Ed. McGraw-Hill, New York. Chapter 5.</td><td>Applied to N₆₀ per Skempton (1986).</td></tr>
+<tr><td class="c">2</td><td>F1–F4</td><td><strong>Sabatini, P.J. et al. (2002).</strong> <em>Geotechnical Engineering Circular No. 5.</em> FHWA-IF-02-034. Federal Highway Administration.</td><td>Explicitly specifies N₆₀. Table 5-10.</td></tr>
+<tr><td class="c">3</td><td>K1–K3</td><td><strong>Kulhawy, F.H. and Mayne, P.W. (1990).</strong> <em>Manual on Estimating Soil Properties for Foundation Design.</em> Report EL-6800. EPRI, Palo Alto, CA.</td><td>Explicitly specifies (N₁)₆₀. Table 4-6.</td></tr>
+<tr><td class="c">4</td><td>W1–W2</td><td><strong>Webb, D.L. (1969).</strong> Settlement of Structures on Deep Alluvial Sandy Sediments in Durban. <em>Proc. Conf. In Situ Investigations in Soils and Rocks,</em> BGS, London, pp. 181–188.</td><td>Applied to N₆₀ per Skempton (1986).</td></tr>
+<tr><td class="c">5</td><td>Bg1–Bg2</td><td><strong>Begemann, H.K.S. (1974).</strong> General Report for Central and Western Europe. <em>Proc. ESOPT,</em> Stockholm, Vol. 1, pp. 32–44.</td><td>C=3 silt w/sand; C=12 gravel w/sand. Applied to N₆₀. Bilinear at N₆₀=15.</td></tr>
+<tr><td class="c">6</td><td>U1</td><td><strong>U.S. Army Corps of Engineers (1990).</strong> <em>Settlement Analysis.</em> EM 1110-1-1904. Department of the Army, Washington, DC.</td><td>Uncorrected field N. Footing-geometry dependent (B, D).</td></tr>
+<tr><td class="c">7</td><td>CN correction</td><td><strong>Liao, S.S.C. and Whitman, R.V. (1986).</strong> Overburden Correction Factors for SPT in Sand. <em>J. Geotech. Eng.,</em> ASCE, 112(3), 373–377.</td><td>CN = min(2.0, √(Pa/σ'v,psf)), Pa = 2116 psf.</td></tr>
+<tr><td class="c">8</td><td>N₆₀, CE</td><td><strong>Skempton, A.W. (1986).</strong> Standard Penetration Test Procedures. <em>Géotechnique,</em> 36(3), 425–447.</td><td>N₆₀ = N × CE; CE = ER/60. 60% energy reference baseline.</td></tr>
+<tr><td class="c">9</td><td>UFC reference</td><td><strong>U.S. Army Corps of Engineers (2022).</strong> <em>Soil Mechanics.</em> UFC 3-220-10. Department of Defense.</td><td>Tabulates K&M, Webb, and Begemann in UFC Table 3-6.</td></tr>
+<tr><td class="c">10</td><td>General</td><td><strong>Peck, R.B., Hanson, W.E., and Thornburn, T.H. (1974).</strong> <em>Foundation Engineering,</em> 2nd Ed. Wiley.</td><td>Alt. CN: 0.77·log(20/σ'v,tsf). Not used here; cited for comparison.</td></tr>
+</tbody></table>`;
+}
+
+function assumptionsNote() {
+  return `<strong>Assumptions and limitations:</strong>
+  (1) σ′v uses cumulative layer-by-layer calculation; γ treated as γsat below GWT.
+  (2) CN capped at 2.0 per Liao &amp; Whitman (1986); governs for z &lt; ~4–6 ft.
+  (3) All Es correlations are empirical; typical scatter 2–5×. The applicable range should guide design value selection, not replace engineering judgment.
+  (4) "App. Es" in print tables = min/max/mean of all correlations applicable to the assigned soil type for each sample.`;
+}
+
+// Update the existing buildRef() to use shared content builders
+function buildRef() {
+  document.getElementById('refBody').innerHTML = `
+<p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+  The following references support the E<sub>s</sub> correlations, N-value correction procedures, and σ′<sub>v</sub>-based overburden correction implemented in this calculator.
+  Cite as applicable in geotechnical reports and calculation packages.
+</p>
+<h3 style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Correlation Formulas</h3>
+<div class="tbl-wrap">${formulasHTML().replace(/class="c"/g,'style="text-align:center"')}</div>
+<h3 style="font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.5px">Bibliographic References</h3>
+<table class="ref-tbl"><thead><tr>
+  <th style="width:34px">#</th><th style="width:125px">Used For</th>
+  <th>Full Citation</th><th style="width:195px">N-Type / Notes</th>
+</tr></thead><tbody>
+<tr><td>1</td><td>B1–B9</td>
+  <td><strong>Bowles, J.E. (1996).</strong> <em>Foundation Analysis and Design</em>, 5th Ed. McGraw-Hill, New York. Chapter 5.</td>
+  <td>Applied to N₆₀ per Skempton (1986). Original text uses "N" — assumed ≈ N₆₀ for hammer systems of that era.</td></tr>
+<tr><td>2</td><td>F1–F4</td>
+  <td><strong>Sabatini, P.J., Bachus, R.C., Mayne, P.W., Schneider, J.A., and Zettler, T.E. (2002).</strong> <em>Geotechnical Engineering Circular No. 5 — Evaluation of Soil and Rock Properties.</em> FHWA-IF-02-034. Federal Highway Administration, Washington, DC.</td>
+  <td>Explicitly specifies N₆₀. Table 5-10.</td></tr>
+<tr><td>3</td><td>K1–K3</td>
+  <td><strong>Kulhawy, F.H. and Mayne, P.W. (1990).</strong> <em>Manual on Estimating Soil Properties for Foundation Design.</em> Report EL-6800. Electric Power Research Institute, Palo Alto, CA.</td>
+  <td>Explicitly specifies (N₁)₆₀. See Section 4.4 and Table 4-6.</td></tr>
+<tr><td>4</td><td>W1–W2</td>
+  <td><strong>Webb, D.L. (1969).</strong> Settlement of Structures on Deep Alluvial Sandy Sediments in Durban, South Africa. <em>Proceedings, Conference on In Situ Investigations in Soils and Rocks,</em> British Geotechnical Society, London, pp. 181–188.</td>
+  <td>Original uses field N. Applied to N₆₀ per modern practice (Skempton 1986).</td></tr>
+<tr><td>5</td><td>Bg1–Bg2</td>
+  <td><strong>Begemann, H.K.S. (1974).</strong> General Report for Central and Western Europe. <em>Proceedings, European Symposium on Penetration Testing (ESOPT),</em> Stockholm, Vol. 1, pp. 32–44.</td>
+  <td>C=3 for silt w/sand (Bg1); C=12 for gravel w/sand (Bg2). Applied to N₆₀. Bilinear breakpoint at N₆₀=15.</td></tr>
+<tr><td>6</td><td>U1</td>
+  <td><strong>U.S. Army Corps of Engineers (1990).</strong> <em>Settlement Analysis.</em> Engineer Manual EM 1110-1-1904. Department of the Army, Washington, DC.</td>
+  <td>Uses uncorrected field N per manual. Footing-geometry dependent (B, D inputs in Global Parameters).</td></tr>
+<tr><td>7</td><td>C<sub>N</sub> correction</td>
+  <td><strong>Liao, S.S.C. and Whitman, R.V. (1986).</strong> Overburden Correction Factors for SPT in Sand. <em>Journal of Geotechnical Engineering,</em> ASCE, 112(3), pp. 373–377. DOI: 10.1061/(ASCE)0733-9410(1986)112:3(373)</td>
+  <td><code>C<sub>N</sub> = min(2.0, √(P<sub>a</sub>/σ′<sub>v</sub>))</code> with σ′<sub>v</sub> in psf, P<sub>a</sub> = 2116 psf. Standard US practice.</td></tr>
+<tr><td>8</td><td>N₆₀, C<sub>E</sub></td>
+  <td><strong>Skempton, A.W. (1986).</strong> Standard Penetration Test Procedures and the Effects in Sands of Overburden Pressure, Relative Density, Particle Size, Ageing and Overconsolidation. <em>Géotechnique,</em> 36(3), pp. 425–447. DOI: 10.1680/geot.1986.36.3.425</td>
+  <td><code>N₆₀ = N × C<sub>E</sub></code>, <code>C<sub>E</sub> = ER/60</code>. Defines the 60% energy reference baseline. Typical ER: donut 45–60%, safety 60–80%, auto 85–100%.</td></tr>
+<tr><td>9</td><td>UFC reference</td>
+  <td><strong>U.S. Army Corps of Engineers (2022).</strong> <em>Soil Mechanics.</em> UFC 3-220-10. Department of Defense, Washington, DC. Available: wbdg.org/FFC/DOD/UFC/ufc_3_220_10_2022.pdf</td>
+  <td>Tabulates Kulhawy &amp; Mayne, Webb, and Begemann correlations in UFC Table 3-6.</td></tr>
+<tr><td>10</td><td>General reference</td>
+  <td><strong>Peck, R.B., Hanson, W.E., and Thornburn, T.H. (1974).</strong> <em>Foundation Engineering,</em> 2nd Ed. Wiley, New York.</td>
+  <td>Alternative C<sub>N</sub>: <code>0.77·log(20/σ′<sub>v,tsf</sub>)</code>. Not used here; cited for comparison.</td></tr>
+</tbody></table>
+<div class="tbl-note" style="margin-top:12px">${assumptionsNote()}</div>`;
+  document.getElementById('refBody').dataset.built = '1';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+function init() {
+  addStratum(); addStratum();
+  addBoring();
+}
+init();
+</script>
+</body>
+</html>

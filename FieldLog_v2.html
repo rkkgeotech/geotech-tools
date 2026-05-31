@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1b4f8a">
+<title>FieldLog v2</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #f0f2f5;
+  --surface:   #ffffff;
+  --card:      #ffffff;
+  --border:    #d0d5de;
+  --border2:   #b8bfcc;
+  --accent:    #1b4f8a;
+  --accent-lt: #e8eef7;
+  --accent2:   #1a7a5e;
+  --accent2-lt:#e6f4ef;
+  --warn:      #c0392b;
+  --warn-lt:   #fdecea;
+  --amber:     #b45309;
+  --amber-lt:  #fef3c7;
+  --text:      #1a1f2e;
+  --text2:     #3d4562;
+  --muted:     #6b7490;
+  --label:     #4a5270;
+  --mono:      'IBM Plex Mono', monospace;
+  --sans:      'IBM Plex Sans', sans-serif;
+  --cond:      'IBM Plex Sans Condensed', sans-serif;
+  --shadow:    0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+}
+* { box-sizing: border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; min-height: 100vh; }
+
+/* ── HEADER ── */
+header {
+  background: var(--accent);
+  color: white;
+  padding: 11px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: var(--shadow-md);
+}
+.logo { font-family: var(--cond); font-weight: 700; font-size: 20px; letter-spacing: 1.5px; color: white; }
+.logo span { font-weight: 300; opacity: .8; }
+.logo-sub { font-size: 11px; opacity: .7; font-family: var(--mono); letter-spacing: .5px; margin-top: 1px; }
+.header-right { display:flex; gap:8px; align-items:center; }
+
+/* ── NAV TABS ── */
+.tabs {
+  display: flex; background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+  position: sticky; top: 50px; z-index: 190;
+  box-shadow: var(--shadow);
+}
+.tabs::-webkit-scrollbar { display:none; }
+.tab {
+  flex: 0 0 auto; padding: 10px 16px;
+  font-family: var(--cond); font-weight: 600; font-size: 12px;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+  cursor: pointer; border-bottom: 3px solid transparent;
+  margin-bottom: -2px; white-space: nowrap; transition: all .15s;
+  user-select: none;
+}
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-lt); }
+.tab:hover:not(.active) { color: var(--text2); }
+
+/* ── SECTION ── */
+.section { display:none; padding: 14px; padding-bottom: 64px; }
+.section.active { display:block; }
+
+/* ── CARD ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-family: var(--cond); font-weight: 700; font-size: 11px;
+  letter-spacing: 1.8px; text-transform: uppercase; color: var(--accent);
+  margin-bottom: 12px; display:flex; align-items:center; gap:8px;
+}
+.card-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* ── FORM ── */
+.field { margin-bottom: 11px; }
+.field label {
+  display:block; font-size:11px; font-family: var(--cond);
+  letter-spacing:1px; text-transform:uppercase; color: var(--label);
+  font-weight:600; margin-bottom:4px;
+}
+.field input, .field select, .field textarea {
+  width:100%; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); font-family: var(--sans);
+  font-size:15px; padding: 8px 11px; transition: border-color .15s, box-shadow .15s;
+  -webkit-appearance:none; appearance:none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline:none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(27,79,138,.12);
+}
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7490'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 11px center; padding-right:30px;
+}
+.field input[type="number"] { font-family: var(--mono); }
+.field textarea { resize:vertical; min-height:66px; }
+.field input[type="datetime-local"] { font-family: var(--mono); font-size:13px; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:5px;
+  padding:9px 16px; border-radius:5px; border:none;
+  font-family:var(--cond); font-weight:700; font-size:12px;
+  letter-spacing:1.2px; text-transform:uppercase; cursor:pointer; transition:all .15s;
+}
+.btn-primary  { background:var(--accent); color:white; }
+.btn-primary:active { background:#153d6b; }
+.btn-green    { background:var(--accent2); color:white; }
+.btn-green:active { background:#145f49; }
+.btn-outline  { background:transparent; color:var(--accent); border:1.5px solid var(--accent); }
+.btn-outline:active { background:var(--accent-lt); }
+.btn-ghost    { background:var(--bg); color:var(--text2); border:1px solid var(--border); }
+.btn-ghost:active { background:var(--border); }
+.btn-danger   { background:transparent; color:var(--warn); border:1.5px solid var(--warn); }
+.btn-danger:active { background:var(--warn-lt); }
+.btn-amber    { background:var(--amber-lt); color:var(--amber); border:1px solid #f59e0b; }
+.btn-sm       { padding:5px 11px; font-size:11px; }
+.btn-xs       { padding:3px 8px; font-size:10px; }
+.btn-full     { width:100%; }
+
+/* ── BORING SELECTOR ── */
+.boring-selector {
+  background: var(--accent-lt); border: 1.5px solid var(--accent);
+  border-radius:6px; padding:10px 12px; margin-bottom:12px;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+.boring-selector select {
+  flex:1; border:none; background:transparent; font-family:var(--sans);
+  font-size:14px; font-weight:600; color:var(--accent);
+  -webkit-appearance:none; appearance:none; cursor:pointer;
+}
+.boring-selector select:focus { outline:none; }
+
+/* ── RUN / ENTRY CARDS ── */
+.entry-card {
+  background:var(--card); border:1px solid var(--border);
+  border-left:4px solid var(--border2);
+  border-radius:6px; padding:0; margin-bottom:10px;
+  box-shadow: var(--shadow); overflow:hidden; transition: border-left-color .2s;
+}
+.entry-card.expanded { border-left-color: var(--accent); }
+.entry-card.rock-card.expanded { border-left-color: #7c3aed; }
+.entry-card.lith-card.expanded { border-left-color: var(--accent2); }
+.entry-card.gw-card.expanded   { border-left-color: #0284c7; }
+
+.entry-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 13px; cursor:pointer; user-select:none;
+}
+.entry-header:active { background: var(--bg); }
+.entry-depth { font-family:var(--mono); font-size:15px; color:var(--accent); font-weight:500; }
+.entry-meta  { font-size:12px; color:var(--muted); margin-top:2px; }
+.entry-badge {
+  font-family:var(--cond); font-size:12px; font-weight:700;
+  padding:3px 8px; border-radius:3px; letter-spacing:.8px;
+  background:var(--bg); border:1px solid var(--border); color:var(--text2);
+}
+.entry-badge.n-badge { background:var(--accent-lt); color:var(--accent); border-color:var(--accent); }
+.entry-chevron { color:var(--muted); font-size:16px; margin-left:6px; transition: transform .2s; }
+.entry-card.expanded .entry-chevron { transform: rotate(90deg); }
+
+.entry-body { display:none; padding:13px; border-top:1px solid var(--border); }
+.entry-card.expanded .entry-body { display:block; }
+
+/* ── BLOW COUNT ROW ── */
+.blow-row { display:flex; align-items:center; gap:5px; }
+.blow-input {
+  flex:1; text-align:center; font-family:var(--mono); font-size:17px;
+  padding:9px 3px; border:1.5px solid var(--border); border-radius:5px;
+  background:var(--bg); color:var(--text); -webkit-appearance:none;
+}
+.blow-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(27,79,138,.12); }
+.blow-sep { color:var(--muted); font-family:var(--mono); font-size:16px; user-select:none; }
+.n-display {
+  font-family:var(--mono); font-size:21px; font-weight:500;
+  text-align:center; min-width:50px; padding:8px 4px;
+  background:var(--accent-lt); border:2px solid var(--accent);
+  border-radius:5px; color:var(--accent);
+}
+.blow-labels { display:flex; gap:5px; margin-bottom:4px; }
+.blow-labels span {
+  flex:1; text-align:center; font-size:10px; font-family:var(--cond);
+  letter-spacing:.8px; text-transform:uppercase; color:var(--muted);
+}
+.blow-labels .nl { min-width:50px; color:var(--accent); font-weight:700; }
+
+/* ── RECOVERY BAR ── */
+.rec-bar-bg { height:5px; background:var(--border); border-radius:3px; margin-top:6px; overflow:hidden; }
+.rec-bar-fill { height:100%; background:var(--accent2); border-radius:3px; transition:width .4s; }
+.rec-pct { font-size:11px; color:var(--muted); text-align:right; margin-top:2px; font-family:var(--mono); }
+
+/* ── TOGGLE ── */
+.toggle-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; }
+.toggle-label { font-size:14px; color:var(--text); }
+.toggle { position:relative; width:42px; height:22px; flex-shrink:0; }
+.toggle input { display:none; }
+.toggle-track {
+  position:absolute; inset:0; background:var(--border);
+  border-radius:11px; transition:background .2s; cursor:pointer;
+}
+.toggle input:checked + .toggle-track { background:var(--accent2); }
+.toggle-thumb {
+  position:absolute; top:3px; left:3px; width:16px; height:16px;
+  background:white; border-radius:50%; transition:left .2s; pointer-events:none;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.toggle input:checked ~ .toggle-thumb { left:23px; }
+
+/* ── DIVIDER ── */
+.divider { height:1px; background:var(--border); margin:12px 0; }
+
+/* ── INFO PILL ── */
+.pill {
+  display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px;
+  font-family:var(--cond); font-weight:700; letter-spacing:.8px; text-transform:uppercase;
+}
+.pill-blue  { background:var(--accent-lt); color:var(--accent); }
+.pill-green { background:var(--accent2-lt); color:var(--accent2); }
+.pill-amber { background:var(--amber-lt); color:var(--amber); }
+.pill-red   { background:var(--warn-lt); color:var(--warn); }
+
+/* ── EMPTY STATE ── */
+.empty { text-align:center; padding:44px 16px; color:var(--muted); }
+.empty-icon { font-size:40px; margin-bottom:10px; opacity:.4; }
+.empty-text { font-family:var(--cond); font-size:14px; letter-spacing:.8px; text-transform:uppercase; }
+
+/* ── STATUS BAR ── */
+.status-bar {
+  position:fixed; bottom:0; left:0; right:0; background:var(--surface);
+  border-top:1px solid var(--border); padding:6px 14px;
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:11px; color:var(--muted); font-family:var(--mono); z-index:200;
+  box-shadow: 0 -1px 3px rgba(0,0,0,.05);
+}
+.status-dot {
+  display:inline-block; width:7px; height:7px; border-radius:50%;
+  background:var(--accent2); margin-right:5px; animation:pulse 2.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+/* ── TOAST ── */
+.toast {
+  position:fixed; bottom:48px; left:50%;
+  transform:translateX(-50%) translateY(8px);
+  background:var(--accent); color:white;
+  font-family:var(--cond); font-weight:700; font-size:12px; letter-spacing:1px;
+  padding:9px 18px; border-radius:5px; opacity:0; transition:all .25s; z-index:300;
+  white-space:nowrap; box-shadow:var(--shadow-md);
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.success { background:var(--accent2); }
+.toast.warn    { background:var(--amber); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:400;
+  display:flex; align-items:flex-end; justify-content:center;
+}
+.modal-overlay.hidden { display:none; }
+.modal {
+  background:var(--surface); border-radius:12px 12px 0 0; padding:20px 16px 32px;
+  width:100%; max-width:480px; max-height:85vh; overflow-y:auto;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.15);
+}
+.modal-title { font-family:var(--cond); font-weight:700; font-size:17px; letter-spacing:.8px; margin-bottom:16px; }
+
+/* ── SECTION HEADERS ── */
+.section-head {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
+}
+.section-head h3 { font-family:var(--cond); font-weight:700; font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--text2); }
+
+/* ── PROJECT SWITCHER ── */
+.project-bar {
+  background: var(--accent); color:white; padding:6px 14px;
+  font-size:12px; font-family:var(--mono); display:flex; align-items:center; gap:8px;
+}
+.project-bar .proj-name { font-weight:500; opacity:.9; }
+.project-bar .proj-num  { opacity:.6; }
+
+/* ── COMPLETION BADGE ── */
+.completion-badge {
+  padding:8px 12px; border-radius:6px; margin-bottom:12px;
+  font-family:var(--cond); font-size:13px; font-weight:600; letter-spacing:.5px;
+  display:flex; align-items:center; gap:8px;
+}
+.completion-badge.completed { background:var(--accent2-lt); color:var(--accent2); border:1px solid var(--accent2); }
+.completion-badge.terminated { background:var(--warn-lt); color:var(--warn); border:1px solid var(--warn); }
+
+/* ── RQD/RECOVERY TABLE ── */
+.metrics-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.metric-box {
+  background:var(--bg); border:1px solid var(--border); border-radius:5px;
+  padding:8px 10px; text-align:center;
+}
+.metric-val { font-family:var(--mono); font-size:22px; font-weight:500; }
+.metric-lbl { font-family:var(--cond); font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-top:2px; }
+.metric-desc { font-size:11px; color:var(--muted); margin-top:3px; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Field<span>Log</span></div>
+    <div class="logo-sub" id="hdr-proj">No project loaded</div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-ghost btn-sm" onclick="switchTabById('tab-boring')" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">+ Boring</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportGINT()" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">gINT</button>
+    <button class="btn btn-ghost btn-sm" onclick="saveJSON()" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">&#8659; JSON</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-section="tab-project" onclick="switchTab(this)">Project</div>
+  <div class="tab" data-section="tab-boring" onclick="switchTab(this)">Boring Info</div>
+  <div class="tab" data-section="tab-spt" onclick="switchTab(this)">SPT Runs</div>
+  <div class="tab" data-section="tab-lith" onclick="switchTab(this)">Lithology</div>
+  <div class="tab" data-section="tab-gw" onclick="switchTab(this)">Groundwater</div>
+  <div class="tab" data-section="tab-rock" onclick="switchTab(this)">Rock Coring</div>
+  <div class="tab" data-section="tab-saved" onclick="switchTab(this)">Saved</div>
+</div>
+
+<!-- ══ ACTIVE BORING INDICATOR ══ -->
+<div style="background:var(--accent-lt);border-bottom:1px solid var(--border);padding:6px 14px;display:flex;align-items:center;gap:8px;" id="boring-bar">
+  <span style="font-size:11px;font-family:var(--cond);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--label)">Active:</span>
+  <select id="boring-select" onchange="selectBoring(this.value)" style="flex:1;border:none;background:transparent;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent);-webkit-appearance:none;appearance:none;cursor:pointer">
+    <option value="">— Add a boring in Boring Info tab —</option>
+  </select>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!--  TAB: PROJECT                        -->
+<!-- ════════════════════════════════════ -->
+<div id="tab-project" class="section active">
+
+  <div class="card">
+    <div class="card-title">Project Information</div>
+    <div class="field">
+      <label>Project Name</label>
+      <input type="text" id="proj-name" placeholder="e.g. Fishing Creek Dam Safety Study" oninput="updateHdr()">
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label>RKK Commission No.</label>
+        <input type="text" id="proj-num" placeholder="e.g. 23-0142">
+      </div>
+      <div class="field">
+        <label>Client</label>
+        <input type="text" id="proj-client" placeholder="e.g. MES">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label>State</label>
+        <select id="proj-state">
+          <option value="">—</option>
+          <option>Maryland</option><option>Virginia</option><option>DC</option>
+          <option>Delaware</option><option>Pennsylvania</option><option>West Virginia</option>
+          <option>North Carolina</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>County / Locale</label>
+        <input type="text" id="proj-county" placeholder="e.g. Frederick">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Input Units</label>
+        <select id="proj-units">
+          <option value="E">English (ft, psi)</option>
+          <option value="SI">SI (m, kPa)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>SPT Interval Default</label>
+        <select id="proj-spt-intervals">
+          <option value="3">3-Interval (seating + 2)</option>
+          <option value="4">4-Interval (seating + 3)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-primary" style="flex:1" onclick="saveToCurrent();showToast('Project saved','success')">Save Project</button>
+    <button class="btn btn-outline" style="flex:1" onclick="switchTabById('tab-boring')">→ Boring Info</button>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!--  TAB: BORING INFO                   -->
+<!-- ════════════════════════════════════ -->
+<div id="tab-boring" class="section">
+
+  <!-- List of borings -->
+  <div id="boring-cards-list"></div>
+
+  <button class="btn btn-outline btn-full" onclick="promptAddBoring()">+ Add Boring</button>
+
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!--  TAB: SPT RUNS                      -->
+<!-- ════════════════════════════════════ -->
+<div id="tab-spt" class="section">
+  <div id="spt-list"></div>
+  <button class="btn btn-outline btn-full" onclick="addSPT()">+ Add Sample</button>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!--  TAB: LITHOLOGY                     -->
+<!-- ════════════════════════════════════ -->
+<div id="tab-lith" class="section">
+  <div id="lith-list"></div>
+  <button class="btn btn-outline btn-full" style="color:var(--accent2);border-color:var(--accent2)" onclick="addLith()">+ Add Stratum</button>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!--  TAB: GROUNDWATER                   -->
+<!-- ════════════════════════════════════ -->
+<div id="tab-gw" class="section">
+  <div id="gw-list"></div>
+  <button class="btn btn-outline btn-full" style="color:#0284c7;border-color:#0284c7" onclick="addGW()">+ Add Groundwater Reading</button>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!--  TAB: ROCK CORING                   -->
+<!-- ════════════════════════════════════ -->
+<div id="tab-rock" class="section">
+  <div id="rock-list"></div>
+  <button class="btn btn-outline btn-full" style="color:#7c3aed;border-color:#7c3aed" onclick="addRock()">+ Add Rock Core Run</button>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!--  TAB: SAVED LOGS                    -->
+<!-- ════════════════════════════════════ -->
+<div id="tab-saved" class="section">
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <button class="btn btn-primary" style="flex:1" onclick="saveCurrentLog()">Save Current Project</button>
+    <button class="btn btn-green" style="flex:1" onclick="exportGINT()">Export gINT XLSX</button>
+    <button class="btn btn-outline" style="flex:1" onclick="saveJSON()">&#8659; Save JSON</button>
+    <button class="btn btn-ghost" style="flex:1" onclick="loadJSON()">&#8657; Load JSON</button>
+  </div>
+  <div id="saved-list"></div>
+</div>
+
+<!-- (boring modal removed - add boring is now inline in Boring Info tab) -->
+
+<!-- ── STATUS BAR ── -->
+<div class="status-bar">
+  <div><span class="status-dot"></span>OFFLINE READY</div>
+  <div id="stat-boring" style="font-weight:500">—</div>
+  <div id="stat-counts">0S · 0L · 0R</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════════ -->
+<!--  JAVASCRIPT                                  -->
+<!-- ════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ── DATA MODEL ───────────────────────────────────────────────────
+let state = {
+  project: { name:'', num:'', client:'', state:'', county:'', units:'E', sptIntervals:'3' },
+  borings: [],        // array of boring objects
+  activeBoring: null  // index into borings
+};
+let savedLogs = JSON.parse(localStorage.getItem('fieldlog_v2_saves') || '[]');
+let nextId = 1; // for unique entry IDs
+
+function newBoring(id) {
+  return {
+    id, loc:'', start:'', complete:'', completionStatus:'', holeDepth:'',
+    inspector:'', co:'', driller:'', rig:'', method:'', hammer:'', samplerID:'1.375',
+    hamWt:140, hamDrop:30, hamCal:'', coreMethod:'', coreDia:'',
+    lat:'', lon:'', north:'', east:'', coordSys:'MD State Plane', elev:'', notes:'',
+    spt:[], lith:[], gw:[], rock:[]
+  };
+}
+
+// ── USCS LIST ────────────────────────────────────────────────────
+const USCS_COARSE = ['GW','GP','GM','GC','GW-GM','GW-GC','GP-GM','GP-GC',
+                     'SW','SP','SM','SC','SW-SM','SW-SC','SP-SM','SP-SC'];
+const USCS_FINE   = ['CL','ML','OL','CL-ML','CH','MH','OH'];
+const USCS_ORG    = ['PT'];
+const USCS_SPEC   = ['CWR','FILL-SM','FILL-ML','FILL-GM','FILL-GC','FILL-CL','FILL-SC',
+                     'TOPSOIL','BLANK AUGER','METAMORPHIC ROCK','FILL'];
+
+function buildUSCS(sel) {
+  let h = '<option value="">— Select —</option>';
+  const grp = (label, arr) => {
+    h += `<optgroup label="${label}">`;
+    arr.forEach(c => h += `<option${sel===c?' selected':''}>${c}</option>`);
+    h += '</optgroup>';
+  };
+  grp('Coarse-Grained', USCS_COARSE);
+  grp('Fine-Grained', USCS_FINE);
+  grp('Highly Organic', USCS_ORG);
+  grp('Special / gINT', USCS_SPEC);
+  return h;
+}
+
+function isFineUSCS(uscs) {
+  if (!uscs) return false;
+  // Direct fine-grained codes
+  if (USCS_FINE.includes(uscs)) return true;
+  // FILL- variants: FILL-CL, FILL-ML, FILL-CH, FILL-MH, FILL-OL, FILL-OH, FILL-CL-ML
+  const stripped = uscs.replace(/^FILL-/,'').replace(/^FILL /,'');
+  return USCS_FINE.includes(stripped);
+}
+
+const AASHTO_OPTS = ['','A-1-a','A-1-b','A-2-4','A-2-5','A-2-6','A-2-7','A-3',
+                     'A-4','A-5','A-6','A-7-5','A-7-6'];
+
+const MOISTURE_OPTS  = ['','Dry','Moist','Wet','Very Wet'];
+const DENSITY_COARSE = ['','Very Loose','Loose','Medium Dense','Dense','Very Dense','Refusal'];
+const CONSIST_FINE   = ['','Very Soft','Soft','Medium Stiff','Stiff','Very Stiff','Hard'];
+
+const COARSE_MODS = ['','Coarse','Coarse to Fine','Coarse to Medium','Medium','Medium to Fine','Fine',
+                     'Coarse to Fine Sub-Rounded','Coarse to Fine Sub-Angular','Fine to Coarse'];
+const FINE_MODS   = ['','Low Plasticity','Medium Plasticity','High Plasticity'];
+const PARTICLES   = ['','Gravel','Sand','Silt','Clay','Gravel-Sized Rock Fragments',
+                     'Cobbles','Organics','Root Fragments'];
+const PROPS       = ['','And (36-50%)','Some (21-35%)','Little (11-20%)','Trace (1-10%)'];
+
+// ── ROCK CORING LOOKUPS ──────────────────────────────────────────
+const HARDNESS_OPTS = ['','Very Hard','Hard','Medium Hard','Medium','Soft','Very Soft'];
+const WEATHER_OPTS  = ['','Very Slightly','Slightly','Moderately','Severely','Very Severely','Completely'];
+const FRAC_OPTS     = ['','Sound','Slightly Fractured','Moderately Fractured','Extremely Fractured'];
+const JOINT_OPTS    = ['','Very Wide','Wide','Moderately Close','Close','Very Close'];
+const BED_OPTS      = ['','Very Thick','Thick','Medium','Thin','Very Thin','Fissile'];
+const ATTIT_OPTS    = ['','Vertical','Steep or High Angle','Moderately Dipping','Shallow to Low Angle','Horizontal'];
+
+function recoveryDesc(pct) {
+  if (pct === null || pct === undefined || isNaN(pct)) return '';
+  if (pct < 40)  return 'Incompetent';
+  if (pct < 70)  return 'Competent';
+  if (pct < 90)  return 'Fairly Continuous';
+  return 'Continuous';
+}
+function rqdDesc(pct) {
+  if (pct === null || pct === undefined || isNaN(pct)) return '';
+  if (pct < 25)  return 'Very Poor';
+  if (pct < 50)  return 'Poor';
+  if (pct < 75)  return 'Fair';
+  if (pct < 90)  return 'Good';
+  return 'Excellent';
+}
+
+// ── ACTIVE BORING HELPERS ────────────────────────────────────────
+function ab() {
+  return state.activeBoring !== null ? state.borings[state.activeBoring] : null;
+}
+
+function requireBoring() {
+  if (!ab()) { showToast('Add or select a boring first','warn'); return false; }
+  return true;
+}
+
+// ── BORING MANAGEMENT ────────────────────────────────────────────
+function promptAddBoring() {
+  const id = prompt('Enter Boring ID (e.g. B-01):');
+  if (!id || !id.trim()) return;
+  const trimmed = id.trim();
+  if (state.borings.find(b => b.id === trimmed)) { showToast('ID already exists','warn'); return; }
+  state.borings.push(newBoring(trimmed));
+  state.activeBoring = state.borings.length - 1;
+  renderBoringCards();
+  renderBoringSelect();
+  showToast('Boring ' + trimmed + ' added', 'success');
+  // Auto-expand the new card
+  setTimeout(() => {
+    const card = document.getElementById(`bc-${trimmed.replace(/[^a-zA-Z0-9]/g,'_')}`);
+    if (card) { card.classList.add('expanded'); card.scrollIntoView({behavior:'smooth',block:'start'}); }
+  }, 60);
+}
+
+function addBoring() { promptAddBoring(); } // keep old ref working
+
+function selectBoring(id) {
+  const idx = state.borings.findIndex(b => b.id === id);
+  if (idx === -1) return;
+  state.activeBoring = idx;
+  renderAll();
+  updateStatusBar();
+}
+
+function deleteBoring(id) {
+  if (!confirm(`Delete boring ${id} and all its data?`)) return;
+  const idx = state.borings.findIndex(b => b.id === id);
+  if (idx === -1) return;
+  state.borings.splice(idx, 1);
+  if (state.activeBoring >= state.borings.length) state.activeBoring = state.borings.length - 1;
+  if (state.borings.length === 0) state.activeBoring = null;
+  renderBoringCards();
+  renderBoringSelect();
+  renderAll();
+  updateStatusBar();
+}
+
+function saveBoring(id) {
+  const b = state.borings.find(b => b.id === id);
+  if (!b) return;
+  const pfx = `bf-${id.replace(/[^a-zA-Z0-9]/g,'_')}-`;
+  const gv = f => document.getElementById(pfx+f)?.value || '';
+  Object.assign(b, {
+    id:        document.getElementById(pfx+'id')?.value || b.id,
+    loc:       gv('loc'), start: gv('start'), inspector: gv('inspector'),
+    co:        gv('co'), driller: gv('driller'), rig: gv('rig'),
+    method:    gv('method'), hammer: gv('hammer'), samplerID: gv('sampler-id'),
+    hamWt:     gv('ham-wt'), hamDrop: gv('ham-drop'), hamCal: gv('ham-cal'),
+    coreMethod:gv('core-method'), coreDia: gv('core-dia'),
+    north:     gv('north'), east: gv('east'), coordSys: gv('coord-sys'),
+    lat:       gv('lat'), lon: gv('lon'), elev: gv('elev'),
+    holeDepth: gv('hole-depth'), complete: gv('complete-date'), notes: gv('notes')
+  });
+  // Update active boring if this is the one
+  state.activeBoring = state.borings.findIndex(b2 => b2.id === b.id);
+  renderBoringCards();
+  renderBoringSelect();
+  updateStatusBar();
+  showToast('Boring ' + b.id + ' saved','success');
+}
+
+function setCompletionInline(boringId, status) {
+  const b = state.borings.find(b => b.id === boringId);
+  if (!b) return;
+  b.completionStatus = status;
+  const pfx = `bf-${boringId.replace(/[^a-zA-Z0-9]/g,'_')}-`;
+  if (!b.complete) {
+    b.complete = new Date().toISOString().split('T')[0];
+    const el = document.getElementById(pfx+'complete-date');
+    if (el) el.value = b.complete;
+  }
+  // Update badge
+  const badge = document.getElementById(`cb-badge-${boringId.replace(/[^a-zA-Z0-9]/g,'_')}`);
+  if (badge) {
+    const cls = status==='Completed'?'completed':'terminated';
+    const ico = status==='Completed'?'✓':'⚠';
+    badge.className = `completion-badge ${cls}`;
+    badge.textContent = `${ico} ${status}`;
+    badge.style.display = 'flex';
+  }
+  showToast('Marked as ' + status, 'success');
+}
+
+function renderBoringCards() {
+  const el = document.getElementById('boring-cards-list');
+  if (!el) return;
+  if (!state.borings.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📍</div><div class="empty-text">No borings yet — tap Add Boring</div></div>`;
+    return;
+  }
+  el.innerHTML = state.borings.map(b => {
+    const uid = b.id.replace(/[^a-zA-Z0-9]/g,'_');
+    const pfx = `bf-${uid}-`;
+    const isActive = state.activeBoring !== null && state.borings[state.activeBoring]?.id === b.id;
+    const compCls = b.completionStatus==='Completed'?'completed':b.completionStatus==='Terminated'?'terminated':'';
+    const compIco = b.completionStatus==='Completed'?'✓':b.completionStatus==='Terminated'?'⚠':'';
+    return `
+    <div class="entry-card${isActive?' expanded':''}" id="bc-${uid}" style="${isActive?'border-left-color:var(--accent)':''}">
+      <div class="entry-header" onclick="toggleBorCard('${uid}','${b.id}')">
+        <div>
+          <div class="entry-depth">${b.id}</div>
+          <div class="entry-meta">${b.loc||'No location'} · ${b.holeDepth?b.holeDepth+' ft':'depth TBD'} ${b.completionStatus?'· '+b.completionStatus:''}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${b.completionStatus ? `<span class="pill ${compCls==='completed'?'pill-green':'pill-red'}">${compIco} ${b.completionStatus}</span>` : ''}
+          <span class="entry-chevron">›</span>
+        </div>
+      </div>
+      <div class="entry-body">
+
+        <div id="cb-badge-${uid}" class="completion-badge ${compCls}" style="display:${b.completionStatus?'flex':'none'};margin-bottom:10px">
+          ${compIco} ${b.completionStatus||''}
+        </div>
+
+        <div class="card-title">Identification</div>
+        <div class="grid-2">
+          <div class="field"><label>Boring No. (PointID)</label>
+            <input type="text" id="${pfx}id" value="${b.id}" placeholder="e.g. B-01"></div>
+          <div class="field"><label>Location</label>
+            <input type="text" id="${pfx}loc" value="${b.loc}" placeholder="e.g. Crest of Dam"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Start Date</label>
+            <input type="date" id="${pfx}start" value="${b.start}"></div>
+          <div class="field"><label>Inspector</label>
+            <input type="text" id="${pfx}inspector" value="${b.inspector}" placeholder="Initials"></div>
+        </div>
+
+        <div class="card-title" style="margin-top:12px">Coordinates &amp; Elevation</div>
+        <div class="field"><label>Coordinate System</label>
+          <select id="${pfx}coord-sys">
+            ${['MD State Plane','VA State Plane (N)','VA State Plane (S)','PA State Plane (N)','PA State Plane (S)',
+               'DC State Plane','WV State Plane','NC State Plane','UTM Zone 17N','UTM Zone 18N','Geographic (Lat/Lon)','Other']
+              .map(o=>`<option${b.coordSys===o?' selected':''}>${o}</option>`).join('')}
+          </select></div>
+        <div class="grid-2">
+          <div class="field"><label>Northing (Y)</label>
+            <input type="number" id="${pfx}north" value="${b.north}" step="0.01" placeholder="—"></div>
+          <div class="field"><label>Easting (X)</label>
+            <input type="number" id="${pfx}east" value="${b.east}" step="0.01" placeholder="—"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Latitude</label>
+            <input type="number" id="${pfx}lat" value="${b.lat}" step="0.000001" placeholder="e.g. 39.5254"></div>
+          <div class="field"><label>Longitude</label>
+            <input type="number" id="${pfx}lon" value="${b.lon}" step="0.000001" placeholder="e.g. -77.4631"></div>
+        </div>
+        <div class="field"><label>Surface Elevation (ft)</label>
+          <input type="number" id="${pfx}elev" value="${b.elev}" step="0.1" placeholder="e.g. 728"></div>
+
+        <div class="card-title" style="margin-top:12px">Drill Setup</div>
+        <div class="field"><label>Drilling Company</label>
+          <input type="text" id="${pfx}co" value="${b.co}" placeholder="e.g. SaLUT"></div>
+        <div class="grid-2">
+          <div class="field"><label>Driller</label>
+            <input type="text" id="${pfx}driller" value="${b.driller}" placeholder="Name or initials"></div>
+          <div class="field"><label>Rig</label>
+            <input type="text" id="${pfx}rig" value="${b.rig}" placeholder="e.g. CME 45"></div>
+        </div>
+        <div class="field"><label>Advancement Method</label>
+          <select id="${pfx}method">
+            ${['','Hollow Stem Auger (2.25")','Hollow Stem Auger (3.25")','Hollow Stem Auger (4.25")',
+               'Mud Rotary','Air Rotary','Wireline NQ Double-Tube','Wireline HQ Double-Tube',
+               'Casing Advance','Direct Push','Other']
+              .map(o=>`<option value="${o}"${b.method===o?' selected':''}>${o||'— Select —'}</option>`).join('')}
+          </select></div>
+        <div class="grid-2">
+          <div class="field"><label>SPT Hammer Type</label>
+            <select id="${pfx}hammer">
+              ${['','Automatic','Safety','Donut','Trip','CME Auto']
+                .map(o=>`<option value="${o}"${b.hammer===o?' selected':''}>${o||'— Select —'}</option>`).join('')}
+            </select></div>
+          <div class="field"><label>Sampler Inner Dia. (in)</label>
+            <select id="${pfx}sampler-id">
+              ${[['1.375','1.375 (Standard SS)'],['1.5','1.5'],['1.875','1.875 (Modified CS)'],['2.0','2.0'],['other','Other']]
+                .map(([v,l])=>`<option value="${v}"${b.samplerID===v?' selected':''}>${l}</option>`).join('')}
+            </select></div>
+        </div>
+        <div class="grid-3">
+          <div class="field"><label>Hammer Wt. (lbs)</label>
+            <input type="number" id="${pfx}ham-wt" value="${b.hamWt||140}" step="1"></div>
+          <div class="field"><label>Drop (in)</label>
+            <input type="number" id="${pfx}ham-drop" value="${b.hamDrop||30}" step="1"></div>
+          <div class="field"><label>Cal. Date</label>
+            <input type="date" id="${pfx}ham-cal" value="${b.hamCal}"></div>
+        </div>
+        <div class="field"><label>Rock Coring Method</label>
+          <select id="${pfx}core-method">
+            ${['','Wireline NQ Double-Tube','Wireline HQ Double-Tube','Wireline NQ Single-Tube',
+               'Wireline HQ Single-Tube','NX Double-Tube','BQ Double-Tube']
+              .map(o=>`<option value="${o}"${b.coreMethod===o?' selected':''}>${o||'— N/A —'}</option>`).join('')}
+          </select></div>
+        <div class="field"><label>Core Diameter (in)</label>
+          <select id="${pfx}core-dia">
+            ${[['','—'],['1.875','1.875 (NQ)'],['2.5','2.5 (HQ)'],['1.625','1.625 (BQ)'],['2.156','2.156 (NX)']]
+              .map(([v,l])=>`<option value="${v}"${b.coreDia===v?' selected':''}>${l}</option>`).join('')}
+          </select></div>
+
+        <div class="card-title" style="margin-top:12px">Completion / Termination</div>
+        <div class="grid-2" style="margin-bottom:10px">
+          <button class="btn btn-green btn-full" onclick="setCompletionInline('${b.id}','Completed')">✓ Completed</button>
+          <button class="btn btn-danger btn-full" onclick="setCompletionInline('${b.id}','Terminated')">⚠ Terminated</button>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>End Depth (ft)</label>
+            <input type="number" id="${pfx}hole-depth" value="${b.holeDepth}" step="0.5" placeholder="e.g. 72"></div>
+          <div class="field"><label>Completion Date</label>
+            <input type="date" id="${pfx}complete-date" value="${b.complete}"></div>
+        </div>
+        <div class="field"><label>Boring Notes</label>
+          <textarea id="${pfx}notes" placeholder="General observations, installation, grout details…">${b.notes}</textarea></div>
+
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary" style="flex:1" onclick="saveBoring('${b.id}')">Save Boring</button>
+          <button class="btn btn-outline" style="flex:1" onclick="activateBoring('${b.id}');switchTabById('tab-spt')">→ SPT Runs</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteBoring('${b.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleBorCard(uid, boringId) {
+  const card = document.getElementById(`bc-${uid}`);
+  if (!card) return;
+  card.classList.toggle('expanded');
+  // Also set as active boring when expanded
+  if (card.classList.contains('expanded')) activateBoring(boringId);
+}
+
+function activateBoring(id) {
+  const idx = state.borings.findIndex(b => b.id === id);
+  if (idx !== -1) {
+    state.activeBoring = idx;
+    renderBoringSelect();
+    renderAll();
+    updateStatusBar();
+  }
+}
+
+function renderBoringSelect() {
+  const sel = document.getElementById('boring-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Select active boring —</option>';
+  state.borings.forEach(b => {
+    const o = document.createElement('option');
+    o.value = b.id; o.textContent = b.id + (b.loc ? ' — '+b.loc : '');
+    if (state.activeBoring !== null && state.borings[state.activeBoring]?.id === b.id) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+// ── FORM → STATE SYNC ────────────────────────────────────────────
+function saveToCurrent() {
+  state.project = {
+    name:    v('proj-name'), num: v('proj-num'), client: v('proj-client'),
+    state:   v('proj-state'), county: v('proj-county'),
+    units:   v('proj-units'), sptIntervals: v('proj-spt-intervals')
+  };
+  updateHdr();
+}
+
+function loadBoringToForm() { renderBoringCards(); }
+function setBorCompletion(status) { if (ab()) setCompletionInline(ab().id, status); }
+function renderCompletionBadge() {}
+function updateBoring() {}
+function updateBoringSel() { renderBoringCards(); renderBoringSelect(); }
+
+// ── SPT RUNS ─────────────────────────────────────────────────────
+let sptId = 0;
+function addSPT() {
+  if (!requireBoring()) return;
+  const id = ++sptId;
+  const intervals = state.project.sptIntervals || '3';
+  ab().spt.push({ id, type:'S', num:'', topDepth:'', length:'', intervalLen:'',
+    b1:'', b2:'', b3:'', b4:'', recovery:'', refusal:false, notes:'' });
+  renderSPT();
+  setTimeout(() => {
+    const card = document.getElementById(`spt-${id}`);
+    if (card) { card.classList.add('expanded'); card.scrollIntoView({behavior:'smooth',block:'center'}); }
+  }, 50);
+  updateStatusBar();
+}
+
+function delSPT(id) {
+  if (!ab()) return;
+  ab().spt = ab().spt.filter(r => r.id !== id);
+  renderSPT(); updateStatusBar();
+}
+
+function calcN(r) {
+  const intervals = state.project.sptIntervals || '3';
+  const b1=parseInt(r.b1), b2=parseInt(r.b2), b3=parseInt(r.b3), b4=parseInt(r.b4);
+
+  if (r.refusal) {
+    // Refusal: find which interval hit 50 and compute N from the last two valid intervals
+    // Seating (b1) refusal: N = 50 (report as seating refusal)
+    if (!isNaN(b1) && b1 >= 50) return '50*';
+    // 2nd interval refusal
+    if (!isNaN(b2) && b2 >= 50) return (isNaN(b1)?50:50) + '*'; // N = 50 by convention
+    // 3rd interval refusal — N = b2 + b3 (even if b3 is partial/50)
+    if (!isNaN(b2) && !isNaN(b3)) {
+      if (intervals === '4' && !isNaN(b4)) {
+        return (b2 + b3 + b4) + '*';
+      }
+      return (b2 + b3) + '*';
+    }
+    // Fallback: show 50*
+    return '50*';
+  }
+
+  if (intervals === '4') {
+    if (isNaN(b2)||isNaN(b3)||isNaN(b4)) return '—';
+    return b2+b3+b4;
+  } else {
+    if (isNaN(b2)||isNaN(b3)) return '—';
+    return b2+b3;
+  }
+}
+
+function calcBottom(r) {
+  const top = parseFloat(r.topDepth);
+  const len = parseFloat(r.intervalLen || r.length);
+  if (!isNaN(top) && !isNaN(len)) return (top + len/12).toFixed(2);
+  return '?';
+}
+
+function recPct(r) {
+  const len = parseFloat(r.intervalLen || r.length) || 0;
+  const rec = parseFloat(r.recovery) || 0;
+  if (!len) return 0;
+  return Math.min(100, Math.round((rec / len) * 100));
+}
+
+function sptTypeLabel(r) {
+  if (r.type==='T') return 'T-'+r.num;
+  if (r.type==='B') return 'B-'+r.num;
+  if (r.type==='G') return 'G-'+r.num;
+  return 'S-'+r.num;
+}
+
+function renderSPT() {
+  const el = document.getElementById('spt-list');
+  const b = ab();
+  if (!b || !b.spt.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🔨</div><div class="empty-text">No samples — tap Add Sample</div></div>`;
+    return;
+  }
+  const intervals = state.project.sptIntervals || '3';
+  el.innerHTML = b.spt.map(r => {
+    const n = (r.type==='S') ? calcN(r) : '—';
+    const bot = calcBottom(r);
+    const isSPT = r.type === 'S';
+    const isTube = r.type === 'T';
+    const isDepthDefined = r.type === 'B' || r.type === 'G';
+
+    return `
+    <div class="entry-card" id="spt-${r.id}">
+      <div class="entry-header" onclick="toggleEntry('spt-${r.id}')">
+        <div>
+          <div class="entry-depth">${sptTypeLabel(r)} &nbsp; ${r.topDepth || '?'} – ${bot} ft</div>
+          <div class="entry-meta">${r.type==='S'?'Split Spoon':r.type==='T'?'Shelby Tube':r.type==='B'?'Bulk':'Grab'}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${isSPT ? `<div class="entry-badge n-badge" id="nb-${r.id}">N=${n}</div>` : ''}
+          <span class="entry-chevron">›</span>
+        </div>
+      </div>
+      <div class="entry-body">
+        <!-- Sample type & number -->
+        <div class="grid-2">
+          <div class="field">
+            <label>Sample Type</label>
+            <select onchange="updSPT(${r.id},'type',this.value);renderSPT()">
+              <option${r.type==='S'?' selected':''} value="S">S — Split Spoon (SPT)</option>
+              <option${r.type==='T'?' selected':''} value="T">T — Shelby Tube</option>
+              <option${r.type==='B'?' selected':''} value="B">B — Bulk</option>
+              <option${r.type==='G'?' selected':''} value="G">G — Grab</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Sample No.</label>
+            <input type="text" value="${r.num}" placeholder="e.g. 1" oninput="updSPT(${r.id},'num',this.value)">
+          </div>
+        </div>
+
+        <!-- Depths -->
+        <div class="grid-2">
+          <div class="field">
+            <label>Top Depth (ft)</label>
+            <input type="number" step="0.5" value="${r.topDepth}" placeholder="e.g. 5.0"
+              oninput="updSPT(${r.id},'topDepth',this.value);updBot(${r.id})">
+          </div>
+          ${isDepthDefined ? `
+          <div class="field">
+            <label>Bottom Depth (ft)</label>
+            <input type="number" step="0.5" value="${r.length}" placeholder="e.g. 6.5"
+              oninput="updSPT(${r.id},'length',this.value)">
+          </div>` : `
+          <div class="field">
+            <label>Interval Length (in) → <span style="color:var(--accent);font-family:var(--mono)" id="bot-${r.id}">${bot} ft</span></label>
+            <input type="number" step="1" value="${r.intervalLen}" placeholder="e.g. 24"
+              oninput="updSPT(${r.id},'intervalLen',this.value);updBot(${r.id})">
+          </div>`}
+        </div>
+
+        ${isSPT ? `
+        <!-- Blow counts -->
+        <div class="divider"></div>
+        <div class="blow-labels">
+          <span>Seat.</span><span>2nd 6"</span><span>3rd 6"</span>
+          ${intervals==='4'?'<span>4th 6"</span>':''}
+          <span class="nl">N</span>
+        </div>
+        <div class="blow-row">
+          <input class="blow-input" type="number" min="0" max="99" value="${r.b1}" placeholder="—"
+            oninput="updSPT(${r.id},'b1',this.value);updN(${r.id})">
+          <span class="blow-sep">·</span>
+          <input class="blow-input" type="number" min="0" max="99" value="${r.b2}" placeholder="—"
+            oninput="updSPT(${r.id},'b2',this.value);updN(${r.id})">
+          <span class="blow-sep">+</span>
+          <input class="blow-input" type="number" min="0" max="99" value="${r.b3}" placeholder="—"
+            oninput="updSPT(${r.id},'b3',this.value);updN(${r.id})">
+          ${intervals==='4'?`
+          <span class="blow-sep">+</span>
+          <input class="blow-input" type="number" min="0" max="99" value="${r.b4}" placeholder="—"
+            oninput="updSPT(${r.id},'b4',this.value);updN(${r.id})">
+          `:''}
+          <span class="blow-sep">=</span>
+          <div class="n-display" id="nd-${r.id}">${n}</div>
+        </div>
+        <div style="margin-top:6px;text-align:right">
+          <label style="font-size:12px;color:var(--muted);cursor:pointer">
+            <input type="checkbox" ${r.refusal?'checked':''} onchange="updSPT(${r.id},'refusal',this.checked);updN(${r.id})">
+            Refusal / Partial Drive
+          </label>
+        </div>` : ''}
+
+        ${(isSPT||isTube) ? `
+        <!-- Recovery -->
+        <div class="divider"></div>
+        <div class="field">
+          <label>Recovery (in)</label>
+          <input type="number" step="0.5" value="${r.recovery}" placeholder="e.g. 18"
+            oninput="updSPT(${r.id},'recovery',this.value);updRec(${r.id})">
+        </div>
+        <div class="rec-bar-bg"><div class="rec-bar-fill" id="rbar-${r.id}" style="width:${recPct(r)}%"></div></div>
+        <div class="rec-pct" id="rpct-${r.id}">${recPct(r)}% recovery</div>
+        ` : ''}
+
+        <div class="field" style="margin-top:10px">
+          <label>Notes</label>
+          <textarea placeholder="Sample quality, odor, condition…" oninput="updSPT(${r.id},'notes',this.value)">${r.notes}</textarea>
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn btn-danger btn-sm" onclick="delSPT(${r.id})">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updSPT(id, field, val) {
+  const r = ab()?.spt.find(r => r.id === id);
+  if (r) r[field] = (field === 'refusal') ? val : val;
+}
+function updN(id) {
+  const r = ab()?.spt.find(r => r.id === id);
+  if (!r) return;
+  const n = calcN(r);
+  const nd = document.getElementById('nd-'+id);
+  const nb = document.getElementById('nb-'+id);
+  if (nd) nd.textContent = n;
+  if (nb) nb.textContent = 'N='+n;
+}
+function updBot(id) {
+  const r = ab()?.spt.find(r => r.id === id);
+  if (!r) return;
+  const el = document.getElementById('bot-'+id);
+  if (el) el.textContent = calcBottom(r) + ' ft';
+}
+function updRec(id) {
+  const r = ab()?.spt.find(r => r.id === id);
+  if (!r) return;
+  const pct = recPct(r);
+  const bar = document.getElementById('rbar-'+id);
+  const lbl = document.getElementById('rpct-'+id);
+  if (bar) bar.style.width = pct + '%';
+  if (lbl) lbl.textContent = pct + '% recovery';
+}
+
+// ── LITHOLOGY ────────────────────────────────────────────────────
+let lithId = 0;
+function addLith() {
+  if (!requireBoring()) return;
+  const id = ++lithId;
+  ab().lith.push({ id, lineType:'Dash', stratum:'', topDepth:'', botDepth:'',
+    uscs:'', aashto:'', moisture:'', densityConsist:'',
+    color:'', c1desc:'', c1part:'',
+    c2pct:'', c2desc:'', c2part:'',
+    c3pct:'', c3desc:'', c3part:'',
+    other:'' });
+  renderLith();
+  setTimeout(() => {
+    const card = document.getElementById(`lith-${id}`);
+    if (card) { card.classList.add('expanded'); card.scrollIntoView({behavior:'smooth',block:'center'}); }
+  }, 50);
+  updateStatusBar();
+}
+
+function delLith(id) {
+  if (!ab()) return;
+  ab().lith = ab().lith.filter(l => l.id !== id);
+  renderLith(); updateStatusBar();
+}
+
+function updLith(id, field, val) {
+  const l = ab()?.lith.find(l => l.id === id);
+  if (l) {
+    l[field] = val;
+    if (field === 'uscs') {
+      const fine = isFineUSCS(val);
+      // Update density/consistency dropdown
+      const dc = document.getElementById(`dc-${id}`);
+      if (dc) dc.innerHTML = (fine ? CONSIST_FINE : DENSITY_COARSE)
+        .map(o => `<option${l.densityConsist===o?' selected':''}>${o}</option>`).join('');
+      // Update primary constituent descriptor dropdown
+      const c1 = document.getElementById(`c1desc-${id}`);
+      if (c1) c1.innerHTML = buildSelect(fine ? FINE_MODS : COARSE_MODS, l.c1desc);
+      // Update secondary and tertiary descriptor dropdowns too
+      const c2 = document.getElementById(`c2desc-${id}`);
+      if (c2) c2.innerHTML = buildSelect(fine ? FINE_MODS : COARSE_MODS, l.c2desc);
+      const c3 = document.getElementById(`c3desc-${id}`);
+      if (c3) c3.innerHTML = buildSelect(fine ? FINE_MODS : COARSE_MODS, l.c3desc);
+    }
+  }
+}
+
+function buildDCOptions(uscs, sel) {
+  const fine = isFineUSCS(uscs);
+  return (fine ? CONSIST_FINE : DENSITY_COARSE)
+    .map(o => `<option${sel===o?' selected':''}>${o}</option>`).join('');
+}
+
+function buildSelect(opts, sel, id='') {
+  return opts.map(o => `<option${sel===o?' selected':''}>${o}</option>`).join('');
+}
+
+function renderLith() {
+  const el = document.getElementById('lith-list');
+  const b = ab();
+  if (!b || !b.lith.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🗺️</div><div class="empty-text">No strata — tap Add Stratum</div></div>`;
+    return;
+  }
+  el.innerHTML = b.lith.map(l => `
+    <div class="entry-card lith-card" id="lith-${l.id}">
+      <div class="entry-header" onclick="toggleEntry('lith-${l.id}')">
+        <div>
+          <div class="entry-depth" style="color:var(--accent2)">${l.topDepth||'?'} – ${l.botDepth||'?'} ft</div>
+          <div class="entry-meta">${l.uscs||'No classification'} ${l.lineType==='Solid'?'[Solid]':'[Dashed]'}${l.color?' · '+l.color:''}</div>
+        </div>
+        <span class="entry-chevron">›</span>
+      </div>
+      <div class="entry-body">
+        <div class="grid-2">
+          <div class="field">
+            <label>Line Type (Stratum Break)</label>
+            <select onchange="updLith(${l.id},'lineType',this.value)">
+              <option${l.lineType==='Dash'?' selected':''} value="Dash">Dashed — Inferred</option>
+              <option${l.lineType==='Solid'?' selected':''} value="Solid">Solid — Observed</option>
+              <option${l.lineType==='None'?' selected':''} value="None">None — Mid-Stratum Change</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Stratum No.</label>
+            <input type="text" value="${l.stratum}" placeholder="e.g. 1"
+              oninput="updLith(${l.id},'stratum',this.value)">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Top Depth (ft)</label>
+            <input type="number" step="0.1" value="${l.topDepth}" oninput="updLith(${l.id},'topDepth',this.value)">
+          </div>
+          <div class="field">
+            <label>Bottom Depth (ft)</label>
+            <input type="number" step="0.1" value="${l.botDepth}" oninput="updLith(${l.id},'botDepth',this.value)">
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="grid-2">
+          <div class="field">
+            <label>USCS Classification</label>
+            <select onchange="updLith(${l.id},'uscs',this.value)">${buildUSCS(l.uscs)}</select>
+          </div>
+          <div class="field">
+            <label>AASHTO</label>
+            <select onchange="updLith(${l.id},'aashto',this.value)">
+              ${buildSelect(AASHTO_OPTS, l.aashto)}
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Moisture</label>
+            <select onchange="updLith(${l.id},'moisture',this.value)">
+              ${buildSelect(MOISTURE_OPTS, l.moisture)}
+            </select>
+          </div>
+          <div class="field">
+            <label>Density / Consistency</label>
+            <select id="dc-${l.id}" onchange="updLith(${l.id},'densityConsist',this.value)">
+              ${buildDCOptions(l.uscs, l.densityConsist)}
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Color</label>
+          <input type="text" value="${l.color}" placeholder="e.g. Brown, Orange" oninput="updLith(${l.id},'color',this.value)">
+        </div>
+        <div class="divider"></div>
+        <!-- PRIMARY -->
+        <div style="font-size:11px;font-family:var(--cond);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--label);margin-bottom:6px">Primary Constituent</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Descriptor</label>
+            <select id="c1desc-${l.id}" onchange="updLith(${l.id},'c1desc',this.value)">
+              ${buildSelect(isFineUSCS(l.uscs) ? FINE_MODS : COARSE_MODS, l.c1desc)}
+            </select>
+          </div>
+          <div class="field">
+            <label>Particle / Material</label>
+            <select onchange="updLith(${l.id},'c1part',this.value)">
+              ${buildSelect(PARTICLES, l.c1part)}
+            </select>
+          </div>
+        </div>
+        <!-- SECONDARY -->
+        <div style="font-size:11px;font-family:var(--cond);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--label);margin-bottom:6px">Secondary Constituent</div>
+        <div class="grid-3">
+          <div class="field">
+            <label>Proportion</label>
+            <select onchange="updLith(${l.id},'c2pct',this.value)">
+              ${buildSelect(PROPS, l.c2pct)}
+            </select>
+          </div>
+          <div class="field">
+            <label>Descriptor</label>
+            <select id="c2desc-${l.id}" onchange="updLith(${l.id},'c2desc',this.value)">
+              ${buildSelect(isFineUSCS(l.uscs) ? FINE_MODS : COARSE_MODS, l.c2desc)}
+            </select>
+          </div>
+          <div class="field">
+            <label>Particle</label>
+            <select onchange="updLith(${l.id},'c2part',this.value)">
+              ${buildSelect(PARTICLES, l.c2part)}
+            </select>
+          </div>
+        </div>
+        <!-- TERTIARY -->
+        <div style="font-size:11px;font-family:var(--cond);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--label);margin-bottom:6px">Tertiary Constituent</div>
+        <div class="grid-3">
+          <div class="field">
+            <label>Proportion</label>
+            <select onchange="updLith(${l.id},'c3pct',this.value)">
+              ${buildSelect(PROPS, l.c3pct)}
+            </select>
+          </div>
+          <div class="field">
+            <label>Descriptor</label>
+            <select id="c3desc-${l.id}" onchange="updLith(${l.id},'c3desc',this.value)">
+              ${buildSelect(isFineUSCS(l.uscs) ? FINE_MODS : COARSE_MODS, l.c3desc)}
+            </select>
+          </div>
+          <div class="field">
+            <label>Particle</label>
+            <select onchange="updLith(${l.id},'c3part',this.value)">
+              ${buildSelect(PARTICLES, l.c3part)}
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-top:6px">
+          <label>Other / Comments</label>
+          <textarea placeholder="e.g. Residual Soil, Contains Root Fragments…" oninput="updLith(${l.id},'other',this.value)">${l.other}</textarea>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn btn-danger btn-sm" onclick="delLith(${l.id})">Delete</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── GROUNDWATER ──────────────────────────────────────────────────
+let gwId = 0;
+function addGW() {
+  if (!requireBoring()) return;
+  const id = ++gwId;
+  ab().gw.push({ id, readingType:'During Drilling', customType:'',
+    depth:'', cave:'', timestamp:'', notes:'' });
+  renderGW();
+  setTimeout(() => {
+    const card = document.getElementById(`gw-${id}`);
+    if (card) { card.classList.add('expanded'); card.scrollIntoView({behavior:'smooth',block:'center'}); }
+  }, 50);
+}
+
+function delGW(id) {
+  if (!ab()) return;
+  ab().gw = ab().gw.filter(g => g.id !== id);
+  renderGW();
+}
+
+function updGW(id, field, val) {
+  const g = ab()?.gw.find(g => g.id === id);
+  if (g) g[field] = val;
+}
+
+const GW_TYPES = ['During Drilling','End of Drilling','24-Hour','48-Hour','72-Hour','Other'];
+
+function renderGW() {
+  const el = document.getElementById('gw-list');
+  const b = ab();
+  if (!b || !b.gw.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">💧</div><div class="empty-text">No readings — tap Add Groundwater Reading</div></div>`;
+    return;
+  }
+  el.innerHTML = b.gw.map(g => `
+    <div class="entry-card gw-card" id="gw-${g.id}">
+      <div class="entry-header" onclick="toggleEntry('gw-${g.id}')">
+        <div>
+          <div class="entry-depth" style="color:#0284c7">${g.readingType === 'Other' ? (g.customType||'Other') : g.readingType}</div>
+          <div class="entry-meta">${g.depth ? 'Water @ ' + g.depth + ' ft' : 'No depth entered'} ${g.cave ? '· Cave/Casing: '+g.cave+' ft':''}</div>
+        </div>
+        <span class="entry-chevron">›</span>
+      </div>
+      <div class="entry-body">
+        <div class="field">
+          <label>Reading Type</label>
+          <select onchange="updGW(${g.id},'readingType',this.value);renderGW()">
+            ${GW_TYPES.map(t => `<option${g.readingType===t?' selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        ${g.readingType==='Other' ? `
+        <div class="field">
+          <label>Describe Reading Type</label>
+          <input type="text" value="${g.customType}" placeholder="e.g. 7-Day" oninput="updGW(${g.id},'customType',this.value)">
+        </div>` : ''}
+        <div class="grid-2">
+          <div class="field">
+            <label>Water Depth (ft)</label>
+            <input type="number" step="0.1" value="${g.depth}" placeholder="e.g. 24.3" oninput="updGW(${g.id},'depth',this.value)">
+          </div>
+          <div class="field">
+            <label>Casing / Cave Depth (ft)</label>
+            <input type="number" step="0.1" value="${g.cave}" placeholder="e.g. Cased" oninput="updGW(${g.id},'cave',this.value)">
+          </div>
+        </div>
+        <div class="field">
+          <label>Timestamp</label>
+          <input type="datetime-local" value="${g.timestamp}" onchange="updGW(${g.id},'timestamp',this.value)">
+        </div>
+        <div class="field">
+          <label>Observations</label>
+          <textarea placeholder="Caving, lost circulation, seepage notes…" oninput="updGW(${g.id},'notes',this.value)">${g.notes}</textarea>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn btn-danger btn-sm" onclick="delGW(${g.id})">Delete</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── ROCK CORING ──────────────────────────────────────────────────
+let rockId = 0;
+function addRock() {
+  if (!requireBoring()) return;
+  const id = ++rockId;
+  const num = ab().rock.length + 1;
+  ab().rock.push({ id, num, topDepth:'', runLength:'',
+    recoveryLen:'', rqdLen:'',
+    color:'', rockType:'',
+    hardness:'', weathering:'', fracFreq:'', jointSpacing:'', bedding:'', attitude:'',
+    notes:'' });
+  renderRock();
+  setTimeout(() => {
+    const card = document.getElementById(`rock-${id}`);
+    if (card) { card.classList.add('expanded'); card.scrollIntoView({behavior:'smooth',block:'center'}); }
+  }, 50);
+  updateStatusBar();
+}
+
+function delRock(id) {
+  if (!ab()) return;
+  ab().rock = ab().rock.filter(r => r.id !== id);
+  renderRock(); updateStatusBar();
+}
+
+function updRock(id, field, val) {
+  const r = ab()?.rock.find(r => r.id === id);
+  if (r) {
+    r[field] = val;
+    if (['runLength','recoveryLen','rqdLen'].includes(field)) {
+      updRockMetrics(id);
+    }
+  }
+}
+
+function rockBottom(r) {
+  const top = parseFloat(r.topDepth);
+  const len = parseFloat(r.runLength);
+  if (!isNaN(top) && !isNaN(len)) return (top+len).toFixed(1);
+  return '?';
+}
+
+function rockRecPct(r) {
+  const run = parseFloat(r.runLength)*12 || 0;
+  const rec = parseFloat(r.recoveryLen) || 0;
+  if (!run) return null;
+  return Math.min(100, Math.round((rec/run)*100));
+}
+
+function rockRqdPct(r) {
+  const run = parseFloat(r.runLength)*12 || 0;
+  const rqd = parseFloat(r.rqdLen) || 0;
+  if (!run) return null;
+  return Math.min(100, Math.round((rqd/run)*100));
+}
+
+function updRockMetrics(id) {
+  const r = ab()?.rock.find(r => r.id === id);
+  if (!r) return;
+  const recP = rockRecPct(r);
+  const rqdP = rockRqdPct(r);
+  const rv = document.getElementById(`rrv-${id}`);
+  const rd = document.getElementById(`rrd-${id}`);
+  const qv = document.getElementById(`rqv-${id}`);
+  const qd = document.getElementById(`rqd-${id}`);
+  if (rv) rv.textContent = recP !== null ? recP+'%' : '—';
+  if (rd) rd.textContent = recoveryDesc(recP);
+  if (qv) qv.textContent = rqdP !== null ? rqdP+'%' : '—';
+  if (qd) qd.textContent = rqdDesc(rqdP);
+  const botEl = document.getElementById(`rbot-${id}`);
+  if (botEl) botEl.textContent = rockBottom(r)+' ft';
+}
+
+function renderRock() {
+  const el = document.getElementById('rock-list');
+  const b = ab();
+  if (!b || !b.rock.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🪨</div><div class="empty-text">No core runs — tap Add Rock Core Run</div></div>`;
+    return;
+  }
+  el.innerHTML = b.rock.map(r => {
+    const recP = rockRecPct(r);
+    const rqdP = rockRqdPct(r);
+    return `
+    <div class="entry-card rock-card" id="rock-${r.id}">
+      <div class="entry-header" onclick="toggleEntry('rock-${r.id}')">
+        <div>
+          <div class="entry-depth" style="color:#7c3aed">R-${r.num} &nbsp; ${r.topDepth||'?'} – <span id="rbot-${r.id}">${rockBottom(r)} ft</span></div>
+          <div class="entry-meta">${r.rockType||'Rock type TBD'} ${r.color?'· '+r.color:''}</div>
+        </div>
+        <div style="display:flex;gap:5px;align-items:center">
+          ${recP !== null ? `<div class="entry-badge" style="background:#f5f3ff;color:#7c3aed;border-color:#a78bfa">Rec ${recP}%</div>` : ''}
+          ${rqdP !== null ? `<div class="entry-badge" style="background:#f0fdf4;color:var(--accent2);border-color:var(--accent2)">RQD ${rqdP}%</div>` : ''}
+          <span class="entry-chevron">›</span>
+        </div>
+      </div>
+      <div class="entry-body">
+        <div class="grid-3">
+          <div class="field">
+            <label>Run No.</label>
+            <input type="number" value="${r.num}" min="1" oninput="updRock(${r.id},'num',this.value)">
+          </div>
+          <div class="field">
+            <label>Top Depth (ft)</label>
+            <input type="number" step="0.1" value="${r.topDepth}" oninput="updRock(${r.id},'topDepth',this.value);updRockMetrics(${r.id})">
+          </div>
+          <div class="field">
+            <label>Run Length (ft) → <span style="color:#7c3aed;font-family:var(--mono)" id="rbot-lbl-${r.id}">${rockBottom(r)} ft</span></label>
+            <input type="number" step="0.1" value="${r.runLength}" oninput="updRock(${r.id},'runLength',this.value);updRockMetrics(${r.id})">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label>Rock Color</label>
+            <input type="text" value="${r.color}" placeholder="e.g. Gray, Brown" oninput="updRock(${r.id},'color',this.value)">
+          </div>
+          <div class="field">
+            <label>Rock Type</label>
+            <input type="text" value="${r.rockType}" placeholder="e.g. Quartzite" oninput="updRock(${r.id},'rockType',this.value)">
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Recovery Length (in)</label>
+            <input type="number" step="0.5" value="${r.recoveryLen}" oninput="updRock(${r.id},'recoveryLen',this.value);updRockMetrics(${r.id})">
+          </div>
+          <div class="field">
+            <label>RQD Length (in)</label>
+            <input type="number" step="0.5" value="${r.rqdLen}" oninput="updRock(${r.id},'rqdLen',this.value);updRockMetrics(${r.id})">
+          </div>
+        </div>
+        <div class="metrics-row" style="margin-bottom:10px">
+          <div class="metric-box">
+            <div class="metric-val" style="color:#7c3aed" id="rrv-${r.id}">${recP !== null ? recP+'%' : '—'}</div>
+            <div class="metric-lbl">Recovery</div>
+            <div class="metric-desc" id="rrd-${r.id}">${recoveryDesc(recP)}</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val" style="color:var(--accent2)" id="rqv-${r.id}">${rqdP !== null ? rqdP+'%' : '—'}</div>
+            <div class="metric-lbl">RQD</div>
+            <div class="metric-desc" id="rqd-${r.id}">${rqdDesc(rqdP)}</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Field Hardness</label>
+            <select onchange="updRock(${r.id},'hardness',this.value)">
+              ${buildSelect(HARDNESS_OPTS, r.hardness)}
+            </select>
+          </div>
+          <div class="field">
+            <label>Weathering</label>
+            <select onchange="updRock(${r.id},'weathering',this.value)">
+              ${buildSelect(WEATHER_OPTS, r.weathering)}
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Fracture Frequency</label>
+            <select onchange="updRock(${r.id},'fracFreq',this.value)">
+              ${buildSelect(FRAC_OPTS, r.fracFreq)}
+            </select>
+          </div>
+          <div class="field">
+            <label>Joint Spacing</label>
+            <select onchange="updRock(${r.id},'jointSpacing',this.value)">
+              ${buildSelect(JOINT_OPTS, r.jointSpacing)}
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Core Run Notes</label>
+          <textarea placeholder="Fracture zone, drilling conditions, additional observations…" oninput="updRock(${r.id},'notes',this.value)">${r.notes}</textarea>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn btn-danger btn-sm" onclick="delRock(${r.id})">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER ALL ───────────────────────────────────────────────────
+function renderAll() {
+  renderBoringCards();
+  renderSPT(); renderLith(); renderGW(); renderRock();
+  renderBoringSelect();
+}
+
+// ── EXPORT gINT XLSX ─────────────────────────────────────────────
+function exportGINT() {
+  saveToCurrent();
+  if (!state.borings.length) { showToast('No borings to export','warn'); return; }
+
+  const wb = XLSX.utils.book_new();
+
+  // ── PROJECT sheet ──
+  const projRows = [
+    ['Project Info','Project Info','Project Info','Project Info','Project Info','Assumed','Assumed'],
+    ['Project Name','Client','RKK Commission Number','State','County or Locale','Input_Units','Output_Units'],
+    [state.project.name, state.project.client, state.project.num,
+     state.project.state, state.project.county,
+     state.project.units, state.project.units]
+  ];
+  const wsPROJ = XLSX.utils.aoa_to_sheet(projRows);
+  XLSX.utils.book_append_sheet(wb, wsPROJ, 'PROJECT');
+
+  // ── POINT sheet ──
+  const ptHdr1 = ['Boring Info','Boring Info','','Boring Info','Boring Info','','','','','Boring Info','Boring Info','Boring Info','','','Boring Info','Boring Info','Boring Info','Boring Info','Boring Info','Boring Info','Boring Info','Boring Info','','','','Rock Coring','Rock Coring','','Groundwater','Groundwater','Groundwater','Groundwater','Groundwater','Groundwater','Groundwater','Groundwater','Groundwater'];
+  const ptHdr2 = ['PointID','HoleDepth','Location','Start','Complete','Baseline','Station','Offset Distance','Offset Direction','North','East','Coordinate System','Latitude','Longitude','Elevation','Inspector','Drilling Company','Driller','Rig','Advancement Method','Soil Sampler Inner Diameter','SPT Hammer Type','HamCalDate','SPT Hammer Weight','SPT Hammer Fall','Rock Coring Method','Rock Core Diameter','Notes','GW 1 Date and Time','GW 1 Depth','GW 1 Cave','GW 2 Date and Time','GW 2 Depth','GW 2 Cave','GW 3 Date and Time','GW 3 Depth','GW 3 Cave'];
+  const ptRows = [ptHdr1, ptHdr2];
+
+  state.borings.forEach(b => {
+    const gwArr = b.gw || [];
+    const row = [
+      b.id, b.holeDepth, b.loc,
+      b.start ? excelDate(b.start) : '',
+      b.complete ? excelDate(b.complete) : '',
+      '','','','',
+      b.north, b.east, b.coordSys, b.lat, b.lon, b.elev,
+      b.inspector, b.co, b.driller, b.rig, b.method,
+      b.samplerID, b.hammer, b.hamCal ? excelDate(b.hamCal) : '',
+      b.hamWt, b.hamDrop,
+      b.coreMethod, b.coreDia, b.notes,
+      gwArr[0]?.timestamp ? excelDate(gwArr[0].timestamp) : '',
+      gwArr[0]?.depth||'', gwArr[0]?.cave||'',
+      gwArr[1]?.timestamp ? excelDate(gwArr[1].timestamp) : '',
+      gwArr[1]?.depth||'', gwArr[1]?.cave||'',
+      gwArr[2]?.timestamp ? excelDate(gwArr[2].timestamp) : '',
+      gwArr[2]?.depth||'', gwArr[2]?.cave||''
+    ];
+    ptRows.push(row);
+  });
+  const wsPOINT = XLSX.utils.aoa_to_sheet(ptRows);
+  XLSX.utils.book_append_sheet(wb, wsPOINT, 'POINT');
+
+  // ── LITHOLOGY sheet ──
+  const liHdr1 = ['','Lithology','','Lithology','','','Lithology','Lithology','Lithology','Lithology','Lithology','Lithology','Lithology','Lithology','Lithology','Lithology','Lithology','Lithology','Lithology','','Lithology'];
+  const liHdr2 = ['PointID','Depth','Bottom','Line_Type','Stratum','Moisture','Density / Consistency','Color','Constituent 1: Descriptor','Constituent 1: Particle','Constituent 2: Percentage','Constituent 2: Descriptor','Constituent 2: Particle','Constituent 3: Percentage','Constituent 3: Descriptor','Constituent 3: Particle','Other','USCS','AASHTO','Lab-Tested?','Graphic','Manual Override'];
+  const liRows = [liHdr1, liHdr2];
+  state.borings.forEach(b => {
+    (b.lith||[]).forEach(l => {
+      liRows.push([
+        b.id, l.topDepth, l.botDepth, l.lineType, l.stratum,
+        l.moisture, l.densityConsist, l.color,
+        l.c1desc, l.c1part,
+        l.c2pct, l.c2desc, l.c2part,
+        l.c3pct, l.c3desc, l.c3part,
+        l.other, l.uscs, l.aashto, 0, l.uscs, ''
+      ]);
+    });
+  });
+  const wsLITH = XLSX.utils.aoa_to_sheet(liRows);
+  XLSX.utils.book_append_sheet(wb, wsLITH, 'LITHOLOGY');
+
+  // ── SAMPLE sheet ──
+  const smHdr1 = ['','SPT Runs','SPT Runs','SPT Runs','SPT Runs','','SPT Runs','SPT Runs','SPT Runs','SPT Runs','','','SPT Runs'];
+  const smHdr2 = ['PointID','Depth','Sample Type','Sample No','Length','Hide Symbol','Blows_1st','Blows_2nd','Blows_3rd','Blows_4th','SPTN Calculated','SPTN Override','Recovery','RQD','NMC','LL','PL','Fines','Lab USCS','Lab AASHTO','GroupIndex','Total Unit Weight','OMC','MDD','CBR','UCS','PLT','StrTestType','C','Phi','e0','Pc','Cc','Cr','pH','Minimum Resistivity','Chloride Content','Sulfate Content','Other Test and Result','Hide Result','Photos','Depth Override'];
+  const smRows = [smHdr1, smHdr2];
+  state.borings.forEach(b => {
+    (b.spt||[]).forEach(r => {
+      const n = (r.type==='S') ? calcN(r) : '';
+      const botDepth = (r.type==='B'||r.type==='G') ? r.length : calcBottom(r);
+      const sampleLen = (r.type==='B'||r.type==='G')
+        ? ((parseFloat(r.length)-parseFloat(r.topDepth))*12||'')
+        : (r.intervalLen||r.length||24);
+      smRows.push([
+        b.id, r.topDepth, r.type, r.num, sampleLen, 0,
+        r.b1||'', r.b2||'', r.b3||'', r.b4||'',
+        n, '',
+        r.recovery||'', '',
+        '','','','','','','','','','','','','','','','','','','','','','','','','',
+        0,'','',''
+      ]);
+    });
+  });
+  const wsSAMPLE = XLSX.utils.aoa_to_sheet(smRows);
+  XLSX.utils.book_append_sheet(wb, wsSAMPLE, 'SAMPLE');
+
+  // ── ROCK CORING sheet ──
+  const rcHdr = ['PointID','Depth','Bottom','Run_No','Recovery_Length','Recovery_Pct','Recovery_Desc','RQD_Length','RQD_Pct','RQD_Desc','Color','Rock_Type','Hardness','Weathering','Fracture_Frequency','Joint_Spacing','Bedding_Foliation','Attitude','Notes'];
+  const rcRows = [rcHdr];
+  state.borings.forEach(b => {
+    (b.rock||[]).forEach(r => {
+      const recP = rockRecPct(r);
+      const rqdP = rockRqdPct(r);
+      rcRows.push([
+        b.id, r.topDepth, rockBottom(r), r.num,
+        r.recoveryLen, recP !== null ? recP/100 : '', recoveryDesc(recP),
+        r.rqdLen, rqdP !== null ? rqdP/100 : '', rqdDesc(rqdP),
+        r.color, r.rockType, r.hardness, r.weathering,
+        r.fracFreq, r.jointSpacing, r.bedding, r.attitude, r.notes
+      ]);
+    });
+  });
+  const wsROCK = XLSX.utils.aoa_to_sheet(rcRows);
+  XLSX.utils.book_append_sheet(wb, wsROCK, 'ROCK_CORING');
+
+  // ── Write ──
+  const projName = (state.project.name || 'FieldLog').replace(/[^a-zA-Z0-9_-]/g,'_');
+  XLSX.writeFile(wb, `${projName}_gINT_Import.xlsx`);
+  showToast('gINT XLSX exported ✓','success');
+}
+
+function excelDate(str) {
+  if (!str) return '';
+  try {
+    const d = new Date(str);
+    return d.toLocaleDateString('en-US');
+  } catch(e) { return str; }
+}
+
+// ── SAVE LOGS ────────────────────────────────────────────────────
+function saveCurrentLog() {
+  saveToCurrent();
+  const entry = {
+    id: Date.now(),
+    project: state.project.name,
+    date: new Date().toLocaleString('en-US', {month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit'}),
+    borings: state.borings.length,
+    data: JSON.parse(JSON.stringify(state))
+  };
+  savedLogs.unshift(entry);
+  try { localStorage.setItem('fieldlog_v2_saves', JSON.stringify(savedLogs)); } catch(e){}
+  renderSaved();
+  showToast('Log saved ✓','success');
+}
+
+function renderSaved() {
+  const el = document.getElementById('saved-list');
+  if (!savedLogs.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No saved logs yet</div></div>`;
+    return;
+  }
+  el.innerHTML = savedLogs.map(log => `
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div>
+        <div style="font-family:var(--cond);font-weight:700;font-size:15px">${log.project||'Unnamed'}</div>
+        <div style="font-size:12px;color:var(--muted)">${log.date} · ${log.borings} boring(s)</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="loadLog(${log.id})">Load</button>
+        <button class="btn btn-green btn-sm" onclick="exportFromSaved(${log.id})">XLSX</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSaved(${log.id})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function loadLog(id) {
+  const log = savedLogs.find(l => l.id === id);
+  if (!log) return;
+  state = JSON.parse(JSON.stringify(log.data));
+  // restore project form
+  setv('proj-name', state.project.name); setv('proj-num', state.project.num);
+  setv('proj-client', state.project.client); setv('proj-state', state.project.state);
+  setv('proj-county', state.project.county); setv('proj-units', state.project.units);
+  setv('proj-spt-intervals', state.project.sptIntervals);
+  renderBoringCards();
+  renderBoringSelect();
+  renderAll();
+  updateHdr();
+  updateStatusBar();
+  showToast('Log loaded ✓','success');
+}
+
+function exportFromSaved(id) {
+  const log = savedLogs.find(l => l.id === id);
+  if (!log) return;
+  const prev = JSON.parse(JSON.stringify(state));
+  state = JSON.parse(JSON.stringify(log.data));
+  exportGINT();
+  state = prev;
+}
+
+function deleteSaved(id) {
+  savedLogs = savedLogs.filter(l => l.id !== id);
+  try { localStorage.setItem('fieldlog_v2_saves', JSON.stringify(savedLogs)); } catch(e){}
+  renderSaved();
+}
+
+// ── UI HELPERS ───────────────────────────────────────────────────
+function switchTab(el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(el.dataset.section).classList.add('active');
+}
+function switchTabById(id) {
+  const el = document.querySelector(`.tab[data-section="${id}"]`);
+  if (el) switchTab(el);
+}
+
+function toggleEntry(id) {
+  document.getElementById(id)?.classList.toggle('expanded');
+}
+
+function openModal(id) {
+  renderBoringSelect();
+  document.getElementById(id)?.classList.remove('hidden');
+}
+function closeModal(id) {
+  document.getElementById(id)?.classList.add('hidden');
+}
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast' + (type ? ' '+type : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function updateHdr() {
+  const pn = v('proj-name') || state.project.name;
+  document.getElementById('hdr-proj').textContent = pn || 'No project loaded';
+}
+
+function updateStatusBar() {
+  const b = ab();
+  document.getElementById('stat-boring').textContent = b ? b.id : '—';
+  document.getElementById('stat-counts').textContent = b
+    ? `${b.spt.length}S · ${b.lith.length}L · ${b.rock.length}R`
+    : '0S · 0L · 0R';
+}
+
+function v(id)   { return document.getElementById(id)?.value || ''; }
+function setv(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = (val === null || val === undefined) ? '' : val;
+}
+
+// ── JSON SNAPSHOT ─────────────────────────────────────────────────
+function saveJSON() {
+  saveToCurrent();
+  const snap = {
+    _tool:    'FieldLog v2',
+    _version: '2.0',
+    _saved:   new Date().toISOString(),
+    state:    JSON.parse(JSON.stringify(state))
+  };
+  const projName = (state.project.name || 'FieldLog').replace(/[^a-zA-Z0-9_-]/g,'_');
+  const date = new Date().toISOString().slice(0,10);
+  const fname = `${projName}_${date}.json`;
+  const blob = new Blob([JSON.stringify(snap, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fname;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('JSON snapshot saved ✓', 'success');
+}
+
+function loadJSON() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = evt => {
+    const file = evt.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const snap = JSON.parse(e.target.result);
+        if (snap._tool !== 'FieldLog v2') {
+          alert('This file is not a FieldLog v2 snapshot.');
+          return;
+        }
+        state = snap.state;
+        // Restore project form
+        setv('proj-name', state.project.name);
+        setv('proj-num', state.project.num);
+        setv('proj-client', state.project.client);
+        setv('proj-state', state.project.state);
+        setv('proj-county', state.project.county);
+        setv('proj-units', state.project.units);
+        setv('proj-spt-intervals', state.project.sptIntervals);
+        if (state.borings.length) state.activeBoring = 0;
+        renderBoringCards();
+        renderBoringSelect();
+        renderAll();
+        updateHdr();
+        updateStatusBar();
+        showToast('JSON snapshot loaded ✓', 'success');
+      } catch(err) {
+        alert('Could not read snapshot: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+renderBoringCards();
+renderSaved();
+updateStatusBar();
+
+// ── SERVICE WORKER REGISTRATION ──────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(() => console.log('FieldLog: service worker registered'))
+    .catch(e => console.warn('FieldLog: SW registration failed', e));
+}
+</script>
+</body>
+</html>

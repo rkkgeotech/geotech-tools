@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pile Section Corrosion Loss Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:   #0c1f35;
+    --navy2:  #152d4a;
+    --blue:   #1d5fa8;
+    --blue2:  #2471c9;
+    --steel:  #4a7daa;
+    --amber:  #d97706;
+    --green:  #166534;
+    --red:    #991b1b;
+    --bg:     #f0f4f8;
+    --bg2:    #ffffff;
+    --border: #c8d6e5;
+    --text:   #1a2b3c;
+    --muted:  #5a738a;
+    --mono: 'IBM Plex Mono', 'Courier New', monospace;
+    --sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); font-size: 13px; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--navy);
+    color: #fff;
+    padding: 0;
+    border-bottom: 3px solid var(--blue2);
+  }
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 18px 24px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+  }
+  .header h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .header h1 span { color: #6db3f5; }
+  .header-sub { font-size: 10.5px; color: #7a9fc0; margin-top: 3px; font-family: var(--mono); }
+  .header-tag { font-family: var(--mono); font-size: 10px; color: #5a8ab0; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); padding: 3px 8px; border-radius: 2px; white-space: nowrap; }
+  .hdr-actions { display: flex; gap: 8px; align-items: center; }
+  .hdr-btn { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #c8ddf0; cursor: pointer; transition: background .15s, border-color .15s; white-space: nowrap; }
+  .hdr-btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.35); }
+  .hdr-btn.save { border-color: #4ade80aa; color: #4ade80; }
+  .hdr-btn.save:hover { background: rgba(74,222,128,0.12); }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1280px; margin: 20px auto; padding: 0 20px 40px; }
+
+  /* ── CARD ── */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 3px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .card-head {
+    background: var(--navy2);
+    color: #fff;
+    padding: 9px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-head .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue2); }
+  .card-body { padding: 18px 20px; }
+
+  /* ── MODE TOGGLE ── */
+  .mode-wrap { margin-bottom: 18px; }
+  .mode-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 6px; }
+  .mode-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+  .mode-btn {
+    padding: 8px 20px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    background: #fff;
+    color: var(--steel);
+    transition: background 0.12s, color 0.12s;
+    border-right: 1px solid var(--border);
+  }
+  .mode-btn:last-child { border-right: none; }
+  .mode-btn.active { background: var(--blue); color: #fff; }
+  .mode-btn:hover:not(.active) { background: #eaf2fc; }
+  .mode-btn strong { font-family: var(--mono); font-size: 11px; margin-right: 6px; }
+
+  /* ── INPUTS ── */
+  .input-row { display: grid; grid-template-columns: 2.5fr 1.5fr 1fr; gap: 14px; align-items: end; }
+  .input-row-2 { display: grid; grid-template-columns: 2.5fr 1fr 1fr; gap: 14px; align-items: end; margin-top: 14px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+  }
+  select, input[type="number"] {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: var(--sans);
+    color: var(--text);
+    background: #fff;
+    appearance: auto;
+  }
+  select:focus, input[type="number"]:focus {
+    outline: none;
+    border-color: var(--blue2);
+    box-shadow: 0 0 0 3px rgba(36,113,201,0.12);
+  }
+  .cl-row { display: flex; gap: 0; }
+  .cl-row input { border-right: none; border-radius: 3px 0 0 3px; flex: 1; }
+  .unit-toggle { display: flex; border: 1px solid var(--border); border-radius: 0 3px 3px 0; overflow: hidden; }
+  .unit-btn { padding: 7px 11px; font-size: 11px; font-weight: 600; font-family: var(--mono); cursor: pointer; border: none; background: #f5f7fa; color: var(--muted); }
+  .unit-btn.active { background: var(--navy2); color: #fff; }
+  .unit-btn:first-child { border-right: 1px solid var(--border); }
+
+  .btn-calc {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 26px;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 16px;
+    letter-spacing: 0.2px;
+    transition: background 0.12s;
+  }
+  .btn-calc:hover { background: var(--navy2); }
+
+  /* ── NOTE BOX ── */
+  .note-box {
+    font-size: 11.5px;
+    color: var(--muted);
+    background: #f4f8fc;
+    border-left: 3px solid var(--steel);
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .note-box strong { color: var(--text); }
+
+  /* ── SUMMARY PILLS ── */
+  .summary-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .pill {
+    background: #f0f6ff;
+    border: 1px solid #c0d8f0;
+    border-radius: 3px;
+    padding: 8px 14px;
+    min-width: 130px;
+  }
+  .pill-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+  .pill-value { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--navy); margin: 2px 0 1px; }
+  .pill-sub { font-size: 10px; color: var(--muted); }
+  .pill.warn .pill-value { color: var(--amber); }
+  .pill.danger .pill-value { color: var(--red); }
+  .pill.good .pill-value { color: var(--green); }
+
+  /* ── TABLES ── */
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    background: #dce8f4;
+    color: var(--navy);
+    padding: 7px 10px;
+    text-align: center;
+    border: 1px solid var(--border);
+    font-size: 10.5px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  th.left { text-align: left; }
+  td {
+    padding: 6px 10px;
+    border: 1px solid #d8e4ee;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    white-space: nowrap;
+  }
+  td.left { text-align: left; font-family: var(--sans); font-weight: 600; font-size: 12px; }
+  tr.row-nominal { background: #fff; }
+  tr.row-nominal-calc { background: #fafafa; }
+  tr.row-nominal-calc td { color: var(--muted); font-style: italic; font-size: 11px; }
+  tr.row-corr { background: #fff8f0; }
+  tr.row-corr td { font-weight: 600; }
+  tr.row-delta { background: #f5f7fa; }
+  tr.row-delta td { font-size: 11px; color: var(--muted); }
+  tr.row-equiv { background: #e8f4ec; }
+  tr.row-equiv td { font-weight: 600; border-top: 2px solid #4a9e6a; }
+  tr.row-equiv td.left::before { content: '▶ '; color: #2d7a4f; }
+  .pct-good  { color: var(--green); font-weight: 700; }
+  .pct-warn  { color: var(--amber); font-weight: 700; }
+  .pct-bad   { color: var(--red);   font-weight: 700; }
+
+  /* Mode B table */
+  tr.row-hp { background: #f4f8ff; }
+  tr.row-w  { background: #fff; }
+  tr:hover { filter: brightness(0.97); }
+  .badge { display: inline-block; padding: 1px 6px; border-radius: 2px; font-size: 10px; font-family: var(--mono); font-weight: 700; }
+  .badge-hp { background: #dbeafe; color: #1e3a8a; }
+  .badge-w  { background: #d1fae5; color: #064e3b; }
+  .excess-hi { color: var(--steel); }
+  .excess-lo { color: var(--green); font-weight: 700; }
+
+  .tbl-note { font-size: 10.5px; color: var(--muted); margin-top: 10px; padding: 6px 10px; background: #f5f7fa; border-left: 2px solid var(--border); line-height: 1.6; }
+  .tbl-note code { font-family: var(--mono); font-size: 10px; background: #e8eef5; padding: 1px 4px; border-radius: 2px; }
+
+  .hidden { display: none; }
+  .section-divider { border-bottom: 2px solid var(--border); margin: 6px 0 14px; }
+
+  /* Corrosion formula reference */
+  .formula-ref {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: var(--navy);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #6db3f5;
+  }
+  .formula-ref span { white-space: nowrap; }
+  .formula-ref span em { color: #a0c8f0; font-style: normal; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <h1>Pile Section <span>Corrosion Loss</span> Calculator</h1>
+      <div class="header-sub">HP &amp; W Sections — Nucor Skyline / AISC 16th Ed. &nbsp;·&nbsp; Strong Axis (X-X)</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="hdr-btn save" onclick="saveSnapshot()" title="Save inputs to a JSON file">&#8659; Save Snapshot</button>
+      <button class="hdr-btn"      onclick="loadSnapshot()" title="Load a previously saved snapshot">&#8657; Load Snapshot</button>
+      <div class="header-tag">v1.0 &nbsp;|&nbsp; Rectangular Decomp.</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- INPUT CARD -->
+  <div class="card">
+    <div class="card-head"><div class="dot"></div>Calculator Inputs</div>
+    <div class="card-body">
+
+      <div class="mode-wrap">
+        <div class="mode-label">Calculation Mode</div>
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="btnA" onclick="setMode('A')">
+            <strong>A</strong> Recommended Pile Size (Nominal) → Design Pile Size (Corroded)
+          </button>
+          <button class="mode-btn" id="btnB" onclick="setMode('B')">
+            <strong>B</strong> Design Pile Size (Corroded) → Recommended Pile Size (Nominal)
+          </button>
+        </div>
+      </div>
+
+      <!-- Mode A description -->
+      <div id="descA" class="note-box">
+        <strong>Mode A:</strong> Select a <strong>recommended (nominal) pile section</strong> and corrosion loss. The calculator applies loss to all exposed surfaces and reports the reduced I<sub>x</sub> and S<sub>x</sub>, plus the closest standard section whose tabulated properties fit within the corroded capacity.
+      </div>
+      <!-- Mode B description -->
+      <div id="descB" class="note-box hidden">
+        <strong>Mode B:</strong> Specify the <strong>required design properties</strong> (S<sub>x</sub> and I<sub>x</sub> your structural analysis demands after corrosion). The calculator returns all nominal pile sections that, when corroded, still meet or exceed those requirements — sorted by closest match.
+      </div>
+
+      <!-- SECTION + CL inputs -->
+      <div class="input-row">
+        <div class="field" id="fieldSectionA">
+          <label>Pile Section</label>
+          <select id="selSection"></select>
+        </div>
+        <div class="field">
+          <label>Corrosion Loss per Side</label>
+          <div class="cl-row">
+            <input type="number" id="inpCL" value="0.089" min="0" step="0.001">
+            <div class="unit-toggle">
+              <button class="unit-btn active" id="btnIn" onclick="setUnit('in')">in</button>
+              <button class="unit-btn" id="btnMm" onclick="setUnit('mm')">mm</button>
+            </div>
+          </div>
+        </div>
+        <div class="field" id="fieldBlank"></div>
+      </div>
+
+      <!-- Mode B required props -->
+      <div id="rowModeB" class="hidden">
+        <div class="section-divider"></div>
+        <div class="input-row-2">
+          <div class="field">
+            <label>Reference Section (auto-fills S &amp; I below)</label>
+            <select id="selRef" onchange="refChanged()"></select>
+          </div>
+          <div class="field">
+            <label>Required S<sub>x</sub> (in³) after corrosion</label>
+            <input type="number" id="inpReqS" placeholder="e.g. 150" min="0" step="1">
+          </div>
+          <div class="field">
+            <label>Required I<sub>x</sub> (in⁴) after corrosion</label>
+            <input type="number" id="inpReqI" placeholder="e.g. 1050" min="0" step="1">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button class="btn-calc" onclick="calc()">&#9654; Calculate</button>
+      </div>
+
+      <!-- Corrosion loss formula reference -->
+      <div class="formula-ref" style="margin-top:16px;">
+        <span><em>Corrosion applied (2 × CL per dimension):</em></span>
+        <span>d<sub>c</sub> = d − 2·CL</span>
+        <span>b<sub>f,c</sub> = b<sub>f</sub> − 2·CL</span>
+        <span>t<sub>f,c</sub> = t<sub>f</sub> − 2·CL</span>
+        <span>t<sub>w,c</sub> = t<sub>w</sub> − 2·CL</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="divResults" class="hidden">
+
+    <!-- Mode A -->
+    <div id="resA" class="card hidden">
+      <div class="card-head"><div class="dot"></div>Mode A — Section Property Reduction</div>
+      <div class="card-body">
+        <div class="summary-row" id="pillRow"></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="left">Condition</th>
+                <th>d (in)</th>
+                <th>b<sub>f</sub> (in)</th>
+                <th>t<sub>f</sub> (in)</th>
+                <th>t<sub>w</sub> (in)</th>
+                <th>S<sub>x</sub> tab (in³)</th>
+                <th>S<sub>x</sub> calc (in³)</th>
+                <th>I<sub>x</sub> tab (in⁴)</th>
+                <th>I<sub>x</sub> calc (in⁴)</th>
+                <th>Area* (in²)</th>
+                <th>Equiv. Dia.† (in)</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyA"></tbody>
+          </table>
+        </div>
+        <div class="tbl-note">
+          * Area from rectangular decomposition (no fillet). Calculated S<sub>x</sub> and I<sub>x</sub> will be slightly less than tabulated due to excluded fillet area — this is the conservative side and consistent with corroded-section calculations.<br>
+          Δ% values in the delta row compare <strong>calculated corroded</strong> vs <strong>calculated nominal</strong> (apples-to-apples — both exclude fillet).<br>
+          † Equivalent pile diameter = √(d² + b<sub>f</sub>²) — used for drilled shaft sizing.
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode B -->
+    <div id="resB" class="card hidden">
+      <div class="card-head"><div class="dot"></div>Mode B — Nominal Sections Meeting Design Requirements After Corrosion</div>
+      <div class="card-body">
+        <div id="pillB" class="summary-row"></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="left">Section</th>
+                <th>Type</th>
+                <th>d (in)</th>
+                <th>b<sub>f</sub> (in)</th>
+                <th>t<sub>f</sub> (in)</th>
+                <th>t<sub>w</sub> (in)</th>
+                <th>S<sub>x</sub> nom tab (in³)</th>
+                <th>S<sub>x</sub> corr calc (in³)</th>
+                <th>Excess S vs Req.</th>
+                <th>I<sub>x</sub> nom tab (in⁴)</th>
+                <th>I<sub>x</sub> corr calc (in⁴)</th>
+                <th>Excess I vs Req.</th>
+                <th>Area corr (in²)</th>
+                <th>Equiv. Dia.† (in)</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyB"></tbody>
+          </table>
+        </div>
+        <div class="tbl-note">
+          Sorted by minimum excess over the required properties (closest match first). All sections shown satisfy both S<sub>x,corr</sub> ≥ S<sub>x,req</sub> AND I<sub>x,corr</sub> ≥ I<sub>x,req</sub> simultaneously.
+          <br>Nominal tabulated S<sub>x</sub>/I<sub>x</sub> shown for reference only; corrosion calculations use rectangular decomposition.
+          <br>† Equivalent pile diameter = √(d² + b<sub>f</sub>²) — corroded dimensions used.
+        </div>
+      </div>
+    </div>
+
+    <div id="resErr" class="card hidden">
+      <div class="card-head" style="background:#7f1d1d;"><div class="dot" style="background:#fca5a5;"></div>Error</div>
+      <div class="card-body"><p id="errMsg" style="color:#991b1b; font-weight:600;"></p></div>
+    </div>
+
+  </div><!-- /divResults -->
+
+</div><!-- /container -->
+
+<script>
+// ==========================================
+//  SECTION DATABASE
+//  d, bf, tf, tw in inches
+//  Sx (in³), Ix (in⁴) = AISC/Nucor tabulated X-X axis
+//  A (in²) = tabulated area
+// ==========================================
+const DB = {
+  HP: [
+    // HP 8
+    {n:'HP8x36',   d:8.02,  bf:8.16,  tf:0.445,tw:0.445,Sx:29.8, Ix:119,  A:10.6},
+    // HP 10
+    {n:'HP10x42',  d:9.70,  bf:10.10, tf:0.420,tw:0.415,Sx:43.4, Ix:210,  A:12.4},
+    {n:'HP10x57',  d:9.99,  bf:10.20, tf:0.565,tw:0.565,Sx:58.8, Ix:294,  A:16.7},
+    // HP 12
+    {n:'HP12x53',  d:11.80, bf:12.00, tf:0.435,tw:0.435,Sx:66.7, Ix:393,  A:15.5},
+    {n:'HP12x63',  d:11.90, bf:12.10, tf:0.515,tw:0.515,Sx:79.1, Ix:472,  A:18.4},
+    {n:'HP12x74',  d:12.10, bf:12.20, tf:0.610,tw:0.605,Sx:93.8, Ix:569,  A:21.8},
+    {n:'HP12x84',  d:12.30, bf:12.30, tf:0.685,tw:0.685,Sx:106,  Ix:650,  A:24.6},
+    {n:'HP12x89',  d:12.36, bf:12.32, tf:0.720,tw:0.720,Sx:111.6,Ix:689,  A:25.9},
+    {n:'HP12x102', d:12.56, bf:12.64, tf:0.819,tw:0.819,Sx:129.3,Ix:811,  A:29.9},
+    {n:'HP12x117', d:12.76, bf:12.87, tf:0.929,tw:0.929,Sx:148.2,Ix:946,  A:34.4},
+    // HP 14
+    {n:'HP14x73',  d:13.60, bf:14.60, tf:0.505,tw:0.505,Sx:107,  Ix:729,  A:21.4},
+    {n:'HP14x89',  d:13.80, bf:14.70, tf:0.615,tw:0.615,Sx:131,  Ix:904,  A:26.1},
+    {n:'HP14x102', d:14.00, bf:14.80, tf:0.705,tw:0.705,Sx:150,  Ix:1050, A:30.1},
+    {n:'HP14x117', d:14.20, bf:14.90, tf:0.805,tw:0.805,Sx:172,  Ix:1220, A:34.4},
+    // HP 16
+    {n:'HP16x88',  d:15.30, bf:15.70, tf:0.540,tw:0.540,Sx:145,  Ix:1110, A:25.8},
+    {n:'HP16x101', d:15.50, bf:15.80, tf:0.625,tw:0.625,Sx:168,  Ix:1300, A:29.9},
+    {n:'HP16x121', d:15.80, bf:15.90, tf:0.750,tw:0.750,Sx:201,  Ix:1590, A:35.8},
+    {n:'HP16x141', d:16.00, bf:16.00, tf:0.875,tw:0.875,Sx:234,  Ix:1870, A:41.7},
+    {n:'HP16x162', d:16.30, bf:16.10, tf:1.000,tw:1.000,Sx:269,  Ix:2190, A:47.7},
+    {n:'HP16x183', d:16.50, bf:16.30, tf:1.130,tw:1.130,Sx:304,  Ix:2510, A:54.1},
+    // HP 18
+    {n:'HP18x135', d:17.50, bf:17.80, tf:0.750,tw:0.750,Sx:251,  Ix:2200, A:39.9},
+    {n:'HP18x157', d:17.70, bf:17.90, tf:0.870,tw:0.870,Sx:290,  Ix:2570, A:46.2},
+    {n:'HP18x181', d:18.00, bf:18.00, tf:1.000,tw:1.000,Sx:336,  Ix:3020, A:53.2},
+    {n:'HP18x204', d:18.30, bf:18.10, tf:1.130,tw:1.130,Sx:380,  Ix:3480, A:60.2},
+  ],
+  W: [
+    // W14 — soldier pile / bearing pile workhorse
+    {n:'W14x22',  d:13.74,bf:5.000, tf:0.335,tw:0.230,Sx:29.0, Ix:199,  A:6.49},
+    {n:'W14x26',  d:13.91,bf:5.025, tf:0.420,tw:0.255,Sx:35.3, Ix:245,  A:7.69},
+    {n:'W14x30',  d:13.84,bf:6.730, tf:0.385,tw:0.270,Sx:42.0, Ix:291,  A:8.85},
+    {n:'W14x34',  d:13.98,bf:6.745, tf:0.455,tw:0.285,Sx:48.6, Ix:340,  A:10.0},
+    {n:'W14x38',  d:14.10,bf:6.770, tf:0.515,tw:0.310,Sx:54.6, Ix:385,  A:11.2},
+    {n:'W14x43',  d:13.66,bf:7.995, tf:0.530,tw:0.305,Sx:62.6, Ix:428,  A:12.6},
+    {n:'W14x48',  d:13.79,bf:8.031, tf:0.595,tw:0.340,Sx:70.2, Ix:484,  A:14.1},
+    {n:'W14x53',  d:13.92,bf:8.060, tf:0.660,tw:0.370,Sx:77.8, Ix:541,  A:15.6},
+    {n:'W14x61',  d:13.89,bf:9.995, tf:0.645,tw:0.375,Sx:87.1, Ix:640,  A:17.9},
+    {n:'W14x68',  d:14.04,bf:10.035,tf:0.720,tw:0.415,Sx:103,  Ix:722,  A:20.0},
+    {n:'W14x74',  d:14.17,bf:10.070,tf:0.785,tw:0.450,Sx:112,  Ix:795,  A:21.8},
+    {n:'W14x82',  d:14.31,bf:10.130,tf:0.855,tw:0.510,Sx:123,  Ix:882,  A:24.0},
+    {n:'W14x90',  d:14.02,bf:14.520,tf:0.710,tw:0.440,Sx:143,  Ix:999,  A:26.5},
+    {n:'W14x99',  d:14.16,bf:14.565,tf:0.780,tw:0.485,Sx:157,  Ix:1110, A:29.1},
+    {n:'W14x109', d:14.32,bf:14.605,tf:0.860,tw:0.525,Sx:173,  Ix:1240, A:32.0},
+    {n:'W14x120', d:14.48,bf:14.670,tf:0.940,tw:0.590,Sx:190,  Ix:1380, A:35.3},
+    {n:'W14x132', d:14.66,bf:14.725,tf:1.030,tw:0.645,Sx:209,  Ix:1530, A:38.8},
+    {n:'W14x145', d:14.78,bf:15.500,tf:1.090,tw:0.680,Sx:232,  Ix:1710, A:42.7},
+    {n:'W14x159', d:15.00,bf:15.565,tf:1.190,tw:0.745,Sx:254,  Ix:1900, A:46.7},
+    {n:'W14x176', d:15.22,bf:15.650,tf:1.310,tw:0.830,Sx:281,  Ix:2140, A:51.8},
+    {n:'W14x193', d:15.48,bf:15.710,tf:1.440,tw:0.890,Sx:310,  Ix:2400, A:56.8},
+    {n:'W14x211', d:15.72,bf:15.800,tf:1.560,tw:0.980,Sx:338,  Ix:2660, A:62.0},
+    // W18
+    {n:'W18x35',  d:17.70,bf:6.000, tf:0.425,tw:0.300,Sx:57.6, Ix:510,  A:10.3},
+    {n:'W18x40',  d:17.90,bf:6.015, tf:0.525,tw:0.315,Sx:68.4, Ix:612,  A:11.8},
+    {n:'W18x46',  d:18.06,bf:6.060, tf:0.605,tw:0.360,Sx:78.8, Ix:712,  A:13.5},
+    {n:'W18x50',  d:18.00,bf:7.495, tf:0.570,tw:0.355,Sx:88.9, Ix:800,  A:14.7},
+    {n:'W18x55',  d:18.11,bf:7.530, tf:0.630,tw:0.390,Sx:98.3, Ix:890,  A:16.2},
+    {n:'W18x60',  d:18.24,bf:7.555, tf:0.695,tw:0.415,Sx:108,  Ix:984,  A:17.6},
+    {n:'W18x65',  d:18.35,bf:7.590, tf:0.750,tw:0.450,Sx:117,  Ix:1070, A:19.1},
+    {n:'W18x71',  d:18.47,bf:7.635, tf:0.810,tw:0.495,Sx:127,  Ix:1170, A:20.9},
+    {n:'W18x76',  d:18.21,bf:11.035,tf:0.680,tw:0.425,Sx:146,  Ix:1330, A:22.3},
+    {n:'W18x86',  d:18.39,bf:11.090,tf:0.770,tw:0.480,Sx:166,  Ix:1530, A:25.3},
+    {n:'W18x97',  d:18.59,bf:11.145,tf:0.870,tw:0.535,Sx:188,  Ix:1750, A:28.5},
+    {n:'W18x106', d:18.73,bf:11.200,tf:0.940,tw:0.590,Sx:204,  Ix:1910, A:31.1},
+    {n:'W18x119', d:18.97,bf:11.265,tf:1.060,tw:0.655,Sx:231,  Ix:2190, A:35.1},
+    {n:'W18x130', d:19.25,bf:11.160,tf:1.200,tw:0.670,Sx:256,  Ix:2460, A:38.3},
+    {n:'W18x143', d:19.49,bf:11.220,tf:1.320,tw:0.730,Sx:282,  Ix:2750, A:42.1},
+    {n:'W18x158', d:19.73,bf:11.260,tf:1.440,tw:0.810,Sx:310,  Ix:3060, A:46.3},
+    {n:'W18x175', d:20.04,bf:11.375,tf:1.590,tw:0.890,Sx:344,  Ix:3450, A:51.3},
+    {n:'W18x192', d:20.35,bf:11.455,tf:1.750,tw:0.960,Sx:380,  Ix:3870, A:56.4},
+    // W21
+    {n:'W21x48',  d:20.63,bf:8.140, tf:0.430,tw:0.350,Sx:93.0, Ix:959,  A:14.1},
+    {n:'W21x55',  d:20.80,bf:8.215, tf:0.522,tw:0.375,Sx:110,  Ix:1140, A:16.2},
+    {n:'W21x62',  d:20.99,bf:8.240, tf:0.615,tw:0.400,Sx:127,  Ix:1330, A:18.3},
+    {n:'W21x68',  d:21.13,bf:8.270, tf:0.685,tw:0.430,Sx:140,  Ix:1480, A:20.0},
+    {n:'W21x73',  d:21.24,bf:8.295, tf:0.740,tw:0.455,Sx:151,  Ix:1600, A:21.5},
+    {n:'W21x83',  d:21.43,bf:8.355, tf:0.835,tw:0.515,Sx:171,  Ix:1830, A:24.4},
+    {n:'W21x93',  d:21.62,bf:8.420, tf:0.930,tw:0.580,Sx:192,  Ix:2070, A:27.3},
+    {n:'W21x101', d:21.36,bf:12.290,tf:0.800,tw:0.500,Sx:227,  Ix:2420, A:29.8},
+    {n:'W21x111', d:21.51,bf:12.340,tf:0.875,tw:0.550,Sx:249,  Ix:2670, A:32.7},
+    {n:'W21x122', d:21.68,bf:12.390,tf:0.960,tw:0.600,Sx:273,  Ix:2960, A:35.9},
+    {n:'W21x132', d:21.83,bf:12.440,tf:1.035,tw:0.650,Sx:295,  Ix:3220, A:38.8},
+    {n:'W21x147', d:22.06,bf:12.510,tf:1.150,tw:0.720,Sx:329,  Ix:3630, A:43.2},
+    {n:'W21x166', d:22.48,bf:12.600,tf:1.360,tw:0.750,Sx:380,  Ix:4280, A:48.8},
+    {n:'W21x182', d:22.72,bf:12.500,tf:1.480,tw:0.830,Sx:417,  Ix:4730, A:53.6},
+    {n:'W21x201', d:23.03,bf:12.575,tf:1.630,tw:0.910,Sx:461,  Ix:5310, A:59.3},
+    // W24
+    {n:'W24x55',  d:23.57,bf:7.005, tf:0.505,tw:0.395,Sx:114,  Ix:1350, A:16.2},
+    {n:'W24x62',  d:23.74,bf:7.040, tf:0.590,tw:0.430,Sx:131,  Ix:1550, A:18.2},
+    {n:'W24x68',  d:23.73,bf:8.965, tf:0.585,tw:0.415,Sx:154,  Ix:1830, A:20.1},
+    {n:'W24x76',  d:23.92,bf:8.990, tf:0.680,tw:0.440,Sx:176,  Ix:2100, A:22.4},
+    {n:'W24x84',  d:24.10,bf:9.020, tf:0.770,tw:0.470,Sx:196,  Ix:2370, A:24.7},
+    {n:'W24x94',  d:24.31,bf:9.065, tf:0.875,tw:0.515,Sx:222,  Ix:2700, A:27.7},
+    {n:'W24x104', d:24.06,bf:12.750,tf:0.750,tw:0.500,Sx:258,  Ix:3100, A:30.6},
+    {n:'W24x117', d:24.26,bf:12.800,tf:0.850,tw:0.550,Sx:291,  Ix:3540, A:34.4},
+    {n:'W24x131', d:24.48,bf:12.855,tf:0.960,tw:0.605,Sx:329,  Ix:4020, A:38.5},
+    {n:'W24x146', d:24.74,bf:12.900,tf:1.090,tw:0.650,Sx:371,  Ix:4580, A:43.0},
+    {n:'W24x162', d:25.00,bf:12.955,tf:1.220,tw:0.705,Sx:414,  Ix:5170, A:47.7},
+    // W27
+    {n:'W27x84',  d:26.71,bf:9.960, tf:0.640,tw:0.460,Sx:213,  Ix:2850, A:24.8},
+    {n:'W27x94',  d:26.92,bf:9.990, tf:0.745,tw:0.490,Sx:243,  Ix:3270, A:27.7},
+    {n:'W27x102', d:27.09,bf:10.015,tf:0.827,tw:0.515,Sx:267,  Ix:3620, A:30.0},
+    {n:'W27x114', d:27.29,bf:10.070,tf:0.932,tw:0.570,Sx:299,  Ix:4080, A:33.5},
+    {n:'W27x129', d:27.63,bf:10.010,tf:1.100,tw:0.610,Sx:345,  Ix:4760, A:37.8},
+    {n:'W27x146', d:27.38,bf:13.965,tf:0.975,tw:0.605,Sx:394,  Ix:5390, A:43.1},
+    {n:'W27x161', d:27.59,bf:14.020,tf:1.080,tw:0.660,Sx:436,  Ix:6010, A:47.6},
+    {n:'W27x178', d:27.81,bf:14.085,tf:1.190,tw:0.725,Sx:481,  Ix:6690, A:52.5},
+    {n:'W27x194', d:28.11,bf:14.015,tf:1.340,tw:0.750,Sx:531,  Ix:7460, A:57.1},
+    // W30
+    {n:'W30x90',  d:29.53,bf:10.400,tf:0.610,tw:0.470,Sx:245,  Ix:3610, A:26.3},
+    {n:'W30x99',  d:29.65,bf:10.450,tf:0.670,tw:0.520,Sx:269,  Ix:3990, A:29.0},
+    {n:'W30x108', d:29.83,bf:10.475,tf:0.760,tw:0.545,Sx:299,  Ix:4470, A:31.7},
+    {n:'W30x116', d:30.01,bf:10.495,tf:0.850,tw:0.565,Sx:329,  Ix:4930, A:34.2},
+    {n:'W30x124', d:30.17,bf:10.515,tf:0.930,tw:0.585,Sx:355,  Ix:5360, A:36.5},
+    {n:'W30x132', d:30.31,bf:10.545,tf:1.000,tw:0.615,Sx:380,  Ix:5770, A:38.9},
+    {n:'W30x148', d:30.67,bf:10.480,tf:1.180,tw:0.650,Sx:436,  Ix:6680, A:43.5},
+    {n:'W30x173', d:30.44,bf:14.985,tf:1.065,tw:0.655,Sx:539,  Ix:8200, A:50.8},
+    {n:'W30x191', d:30.68,bf:15.040,tf:1.185,tw:0.710,Sx:598,  Ix:9170, A:56.1},
+    {n:'W30x211', d:30.94,bf:15.105,tf:1.315,tw:0.775,Sx:663,  Ix:10300,A:62.0},
+    // W33
+    {n:'W33x118', d:32.86,bf:11.480,tf:0.740,tw:0.550,Sx:359,  Ix:5900, A:34.7},
+    {n:'W33x130', d:33.09,bf:11.510,tf:0.855,tw:0.580,Sx:406,  Ix:6710, A:38.3},
+    {n:'W33x141', d:33.30,bf:11.535,tf:0.960,tw:0.605,Sx:448,  Ix:7450, A:41.5},
+    {n:'W33x152', d:33.49,bf:11.565,tf:1.055,tw:0.635,Sx:487,  Ix:8160, A:44.7},
+    {n:'W33x169', d:33.82,bf:11.500,tf:1.220,tw:0.715,Sx:549,  Ix:9290, A:49.5},
+    {n:'W33x201', d:33.68,bf:15.745,tf:1.150,tw:0.715,Sx:686,  Ix:11600,A:59.1},
+    {n:'W33x221', d:33.93,bf:15.805,tf:1.275,tw:0.775,Sx:759,  Ix:12900,A:65.3},
+    {n:'W33x241', d:34.18,bf:15.860,tf:1.400,tw:0.830,Sx:831,  Ix:14200,A:71.0},
+    {n:'W33x263', d:34.53,bf:15.805,tf:1.570,tw:0.870,Sx:919,  Ix:15900,A:77.4},
+    {n:'W33x291', d:34.84,bf:15.905,tf:1.730,tw:0.960,Sx:1010, Ix:17600,A:85.6},
+    {n:'W33x318', d:35.16,bf:15.985,tf:1.890,tw:1.040,Sx:1110, Ix:19500,A:93.7},
+    {n:'W33x354', d:35.55,bf:16.100,tf:2.090,tw:1.160,Sx:1240, Ix:22000,A:104 },
+    {n:'W33x387', d:36.00,bf:16.200,tf:2.280,tw:1.260,Sx:1350, Ix:24300,A:114 },
+    // W36
+    {n:'W36x135', d:35.55,bf:11.950,tf:0.790,tw:0.600,Sx:439,  Ix:7800, A:39.7},
+    {n:'W36x150', d:35.85,bf:11.975,tf:0.940,tw:0.625,Sx:504,  Ix:9040, A:44.2},
+    {n:'W36x160', d:36.01,bf:12.000,tf:1.020,tw:0.650,Sx:542,  Ix:9760, A:47.0},
+    {n:'W36x170', d:36.17,bf:12.027,tf:1.100,tw:0.680,Sx:581,  Ix:10500,A:50.0},
+    {n:'W36x182', d:36.33,bf:12.075,tf:1.180,tw:0.725,Sx:623,  Ix:11300,A:53.6},
+    {n:'W36x194', d:36.49,bf:12.117,tf:1.260,tw:0.765,Sx:664,  Ix:12100,A:57.0},
+    {n:'W36x210', d:36.69,bf:12.180,tf:1.360,tw:0.830,Sx:719,  Ix:13200,A:61.8},
+    {n:'W36x232', d:37.12,bf:12.120,tf:1.570,tw:0.870,Sx:809,  Ix:15000,A:68.1},
+    {n:'W36x256', d:37.43,bf:12.215,tf:1.730,tw:0.960,Sx:895,  Ix:16800,A:75.4},
+    {n:'W36x280', d:37.83,bf:16.595,tf:1.570,tw:0.885,Sx:1030, Ix:19500,A:82.3},
+    {n:'W36x300', d:38.24,bf:16.655,tf:1.680,tw:0.945,Sx:1110, Ix:21100,A:88.3},
+    {n:'W36x328', d:38.56,bf:16.795,tf:1.850,tw:1.020,Sx:1210, Ix:23300,A:96.4},
+    {n:'W36x361', d:38.99,bf:16.895,tf:2.010,tw:1.120,Sx:1320, Ix:25700,A:106 },
+    {n:'W36x395', d:39.37,bf:16.985,tf:2.200,tw:1.220,Sx:1440, Ix:28300,A:116 },
+  ]
+};
+
+// Combined lookup
+const ALL = [
+  ...DB.HP.map(s=>({...s,type:'HP'})),
+  ...DB.W.map(s=>({...s,type:'W'}))
+];
+
+// ==========================================
+//  STATE
+// ==========================================
+let mode = 'A';
+let unit = 'in';
+
+// ==========================================
+//  INIT
+// ==========================================
+function init() {
+  buildDropdown('selSection', false);
+  buildDropdown('selRef', true);
+}
+
+function buildDropdown(id, withEmpty) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = '';
+  if (withEmpty) sel.add(new Option('— enter S and I manually below —',''));
+  else          sel.add(new Option('— select section —',''));
+  const g1 = document.createElement('optgroup');
+  g1.label = 'HP Sections — Bearing Piles';
+  DB.HP.forEach(s => g1.appendChild(new Option(s.n, s.n)));
+  const g2 = document.createElement('optgroup');
+  g2.label = 'W Sections — Wide Flange';
+  DB.W.forEach(s => g2.appendChild(new Option(s.n, s.n)));
+  sel.append(g1, g2);
+}
+
+// ==========================================
+//  CONTROLS
+// ==========================================
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnA').classList.toggle('active', m==='A');
+  document.getElementById('btnB').classList.toggle('active', m==='B');
+  document.getElementById('descA').classList.toggle('hidden', m!=='A');
+  document.getElementById('descB').classList.toggle('hidden', m!=='B');
+  document.getElementById('rowModeB').classList.toggle('hidden', m!=='B');
+  // Show/hide section picker and adjust grid
+  const inpRow = document.querySelector('.input-row');
+  const fieldA = document.getElementById('fieldSectionA');
+  const fieldBlank = document.getElementById('fieldBlank');
+  if (m === 'B') {
+    fieldA.style.display = 'none';
+    fieldBlank.style.display = 'none';
+    inpRow.style.gridTemplateColumns = '1fr 1fr';
+  } else {
+    fieldA.style.display = '';
+    fieldBlank.style.display = '';
+    inpRow.style.gridTemplateColumns = '';
+  }
+  document.getElementById('divResults').classList.add('hidden');
+  document.getElementById('resA').classList.add('hidden');
+  document.getElementById('resB').classList.add('hidden');
+  document.getElementById('resErr').classList.add('hidden');
+}
+
+function setUnit(u) {
+  unit = u;
+  document.getElementById('btnIn').classList.toggle('active', u==='in');
+  document.getElementById('btnMm').classList.toggle('active', u==='mm');
+}
+
+function refChanged() {
+  const name = document.getElementById('selRef').value;
+  if (!name) return;
+  const s = ALL.find(x => x.n === name);
+  if (s) {
+    document.getElementById('inpReqS').value = s.Sx;
+    document.getElementById('inpReqI').value = s.Ix;
+  }
+}
+
+// ==========================================
+//  PHYSICS
+// ==========================================
+function getCL() {
+  let v = parseFloat(document.getElementById('inpCL').value);
+  if (isNaN(v) || v <= 0) return null;
+  return unit === 'mm' ? v / 25.4 : v;
+}
+
+function corrode(s, CL) {
+  const dc  = s.d  - 2*CL;
+  const bfc = s.bf - 2*CL;
+  const tfc = s.tf - 2*CL;
+  const twc = s.tw - 2*CL;
+  if (dc<=0 || bfc<=0 || tfc<=0 || twc<=0) return null;
+  const hw = dc - 2*tfc;
+  if (hw <= 0) return null;
+  const I = twc*hw*hw*hw/12 + bfc/12*(dc*dc*dc - hw*hw*hw);
+  const S = I / (dc/2);
+  const A = 2*bfc*tfc + hw*twc;
+  return {d:dc, bf:bfc, tf:tfc, tw:twc, Ix:I, Sx:S, A};
+}
+
+function calcNom(s) {
+  const hw = s.d - 2*s.tf;
+  const I = s.tw*hw*hw*hw/12 + s.bf/12*(s.d*s.d*s.d - hw*hw*hw);
+  const S = I/(s.d/2);
+  const A = 2*s.bf*s.tf + hw*s.tw;
+  return {Ix:I, Sx:S, A};
+}
+
+// ==========================================
+//  FORMATTING
+// ==========================================
+function f(v, d=3) { return v==null ? '—' : v.toFixed(d); }
+function pct(a, b) { return ((b-a)/a*100).toFixed(1); }
+function pctClass(p) {
+  const v = parseFloat(p);
+  if (v <= -25) return 'pct-bad';
+  if (v <= -10) return 'pct-warn';
+  return 'pct-good';
+}
+function clStr(CL) {
+  return unit==='in' ? `${CL.toFixed(4)} in/side` : `${(CL*25.4).toFixed(2)} mm/side`;
+}
+function eqDia(d, bf) { return Math.sqrt(d*d + bf*bf); }
+
+// ==========================================
+//  MAIN CALCULATE
+// ==========================================
+function calc() {
+  const CL = getCL();
+  if (CL === null) { showErr('Enter a corrosion loss > 0.'); return; }
+
+  document.getElementById('divResults').classList.remove('hidden');
+  document.getElementById('resErr').classList.add('hidden');
+
+  if (mode === 'A') runModeA(CL);
+  else               runModeB(CL);
+}
+
+// ── MODE A ──
+
+// Find the closest standard section whose tabulated Sx and Ix
+// both fit within the corroded calculated values (without going over).
+// "Closest" = maximises min(Sx_tab/Sx_corr, Ix_tab/Ix_corr).
+function findEquiv(Sx_corr, Ix_corr, excludeName) {
+  let best = null, bestScore = -1;
+  for (const s of ALL) {
+    if (s.n === excludeName) continue;
+    if (s.Sx <= Sx_corr && s.Ix <= Ix_corr) {
+      const score = Math.min(s.Sx / Sx_corr, s.Ix / Ix_corr);
+      if (score > bestScore) { bestScore = score; best = s; }
+    }
+  }
+  return best;
+}
+
+function runModeA(CL) {
+  const name = document.getElementById('selSection').value;
+  if (!name) { showErr('Select a pile section.'); return; }
+  const s = ALL.find(x => x.n === name);
+  if (!s) return;
+
+  const nom = calcNom(s);
+  const cor = corrode(s, CL);
+
+  // Pills
+  const sReduct = cor ? parseFloat(pct(nom.Sx, cor.Sx)) : null;
+  const iReduct = cor ? parseFloat(pct(nom.Ix, cor.Ix)) : null;
+  const pillClass = v => v===null ? '' : v<=-25 ? 'danger' : v<=-10 ? 'warn' : 'good';
+
+  document.getElementById('pillRow').innerHTML = `
+    <div class="pill">
+      <div class="pill-label">Recommended Section</div>
+      <div class="pill-value">${s.n}</div>
+      <div class="pill-sub">${s.type==='HP'?'HP Bearing Pile':'W Wide Flange'}</div>
+    </div>
+    <div class="pill">
+      <div class="pill-label">Corrosion Loss</div>
+      <div class="pill-value" style="font-size:13px;">${clStr(CL)}</div>
+      <div class="pill-sub">per exposed surface</div>
+    </div>
+    <div class="pill ${pillClass(sReduct)}">
+      <div class="pill-label">S<sub>x</sub> Reduction</div>
+      <div class="pill-value">${sReduct!==null ? sReduct.toFixed(1)+'%' : 'N/A'}</div>
+      <div class="pill-sub">${cor ? f(nom.Sx,2)+' → '+f(cor.Sx,2)+' in³' : 'Fully corroded'}</div>
+    </div>
+    <div class="pill ${pillClass(iReduct)}">
+      <div class="pill-label">I<sub>x</sub> Reduction</div>
+      <div class="pill-value">${iReduct!==null ? iReduct.toFixed(1)+'%' : 'N/A'}</div>
+      <div class="pill-sub">${cor ? f(nom.Ix,2)+' → '+f(cor.Ix,2)+' in⁴' : 'Fully corroded'}</div>
+    </div>`;
+
+  const tbody = document.getElementById('tbodyA');
+
+  if (!cor) {
+    tbody.innerHTML = `<tr><td colspan="10" style="color:var(--red);text-align:center;padding:20px;font-weight:600;">
+      Section fully corroded — one or more dimensions become negative. Reduce CL or select a heavier section.
+    </td></tr>`;
+  } else {
+    const dP  = pct(s.d, cor.d);
+    const bfP = pct(s.bf,cor.bf);
+    const tfP = pct(s.tf,cor.tf);
+    const twP = pct(s.tw,cor.tw);
+    const sP  = pct(nom.Sx, cor.Sx);
+    const iP  = pct(nom.Ix, cor.Ix);
+    const aP  = pct(nom.A,  cor.A);
+
+    const equiv = findEquiv(cor.Sx, cor.Ix, s.n);
+    const equivRow = equiv
+      ? `<tr class="row-equiv" style="background:#d4edda;">
+          <td class="left" style="font-family:var(--mono); color:#145a32;">
+            ▶ ${equiv.n} &nbsp;<span class="badge badge-${equiv.type.toLowerCase()}">${equiv.type}</span>
+          </td>
+          <td>—</td><td>—</td><td>—</td><td>—</td>
+          <td>${equiv.Sx}</td>
+          <td style="color:#145a32;">${((equiv.Sx/cor.Sx)*100).toFixed(1)}% of cap.</td>
+          <td>${equiv.Ix}</td>
+          <td style="color:#145a32;">${((equiv.Ix/cor.Ix)*100).toFixed(1)}% of cap.</td>
+          <td>${equiv.A}</td>
+          <td>${f(eqDia(equiv.d,equiv.bf),3)}</td>
+        </tr>`
+      : `<tr class="row-equiv"><td colspan="11" style="color:var(--muted);font-style:italic;font-size:11px;">
+          No standard section fits within the corroded capacity.
+        </td></tr>`;
+
+    // Append equiv section pill
+    const equivPillHTML = equiv
+      ? `<div class="pill good">
+          <div class="pill-label">Design Section</div>
+          <div class="pill-value">${equiv.n}</div>
+          <div class="pill-sub">closest fit ≤ corroded props</div>
+        </div>`
+      : `<div class="pill danger"><div class="pill-label">Design Section</div><div class="pill-value">None</div><div class="pill-sub">no section fits</div></div>`;
+    document.getElementById('pillRow').innerHTML += equivPillHTML;
+
+    tbody.innerHTML = `
+      <tr class="row-nominal">
+        <td class="left">Recommended Section — Tabulated</td>
+        <td>${f(s.d,3)}</td><td>${f(s.bf,3)}</td><td>${f(s.tf,3)}</td><td>${f(s.tw,3)}</td>
+        <td>${s.Sx}</td>
+        <td style="color:var(--muted);font-size:11px;">(see calc row)</td>
+        <td>${s.Ix}</td>
+        <td style="color:var(--muted);font-size:11px;">(see calc row)</td>
+        <td>${s.A}</td>
+        <td>${f(eqDia(s.d,s.bf),3)}</td>
+      </tr>
+      <tr class="row-nominal-calc">
+        <td class="left">Recommended Section — Calc from dims</td>
+        <td>—</td><td>—</td><td>—</td><td>—</td>
+        <td>—</td><td>${f(nom.Sx,2)}</td>
+        <td>—</td><td>${f(nom.Ix,2)}</td>
+        <td>${f(nom.A,2)}</td>
+        <td>—</td>
+      </tr>
+      <tr class="row-corr">
+        <td class="left">Design Section (Corroded) — ${clStr(CL)}</td>
+        <td>${f(cor.d,3)}</td><td>${f(cor.bf,3)}</td><td>${f(cor.tf,3)}</td><td>${f(cor.tw,3)}</td>
+        <td>—</td><td>${f(cor.Sx,2)}</td>
+        <td>—</td><td>${f(cor.Ix,2)}</td>
+        <td>${f(cor.A,2)}</td>
+        <td><strong>${f(eqDia(cor.d,cor.bf),3)}</strong></td>
+      </tr>
+      <tr class="row-delta">
+        <td class="left" style="font-family:var(--mono);font-size:10.5px;">Δ corr vs nom calc (%)</td>
+        <td class="${pctClass(dP)}">${dP}%</td>
+        <td class="${pctClass(bfP)}">${bfP}%</td>
+        <td class="${pctClass(tfP)}">${tfP}%</td>
+        <td class="${pctClass(twP)}">${twP}%</td>
+        <td>—</td><td class="${pctClass(sP)}">${sP}%</td>
+        <td>—</td><td class="${pctClass(iP)}">${iP}%</td>
+        <td class="${pctClass(aP)}">${aP}%</td>
+        <td class="${pctClass(pct(eqDia(s.d,s.bf),eqDia(cor.d,cor.bf)))}">${pct(eqDia(s.d,s.bf),eqDia(cor.d,cor.bf))}%</td>
+      </tr>
+      ${equivRow}`;
+  }
+
+  document.getElementById('resA').classList.remove('hidden');
+  document.getElementById('resB').classList.add('hidden');
+}
+
+// ── MODE B ──
+function runModeB(CL) {
+  const reqS = parseFloat(document.getElementById('inpReqS').value);
+  const reqI = parseFloat(document.getElementById('inpReqI').value);
+  if (isNaN(reqS)||isNaN(reqI)||reqS<=0||reqI<=0) {
+    showErr('Enter valid required Sx and Ix values (> 0), or select a reference section.');
+    return;
+  }
+
+  const refName = document.getElementById('selRef').value;
+  const matches = [];
+  for (const s of ALL) {
+    const cor = corrode(s, CL);
+    if (!cor) continue;
+    if (cor.Sx >= reqS && cor.Ix >= reqI) {
+      const exS = (cor.Sx - reqS) / reqS * 100;
+      const exI = (cor.Ix - reqI) / reqI * 100;
+      matches.push({ s, cor, exS, exI, min: Math.min(exS, exI) });
+    }
+  }
+  matches.sort((a,b) => a.min - b.min);
+
+  document.getElementById('pillB').innerHTML = `
+    <div class="pill">
+      <div class="pill-label">Required S<sub>x</sub> (after corr.)</div>
+      <div class="pill-value">${reqS}</div>
+      <div class="pill-sub">in³</div>
+    </div>
+    <div class="pill">
+      <div class="pill-label">Required I<sub>x</sub> (after corr.)</div>
+      <div class="pill-value">${reqI}</div>
+      <div class="pill-sub">in⁴</div>
+    </div>
+    <div class="pill">
+      <div class="pill-label">Corrosion Loss</div>
+      <div class="pill-value" style="font-size:13px;">${clStr(CL)}</div>
+      <div class="pill-sub">per exposed surface</div>
+    </div>
+    <div class="pill ${matches.length===0?'danger':'good'}">
+      <div class="pill-label">Sections Found</div>
+      <div class="pill-value">${matches.length}</div>
+      <div class="pill-sub">meeting both S and I</div>
+    </div>`;
+
+  const tbody = document.getElementById('tbodyB');
+  if (matches.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="13" style="color:var(--red);text-align:center;padding:20px;font-weight:600;">
+      No sections satisfy both requirements at this corrosion loss. Reduce the required properties or increase corrosion loss assumption.
+    </td></tr>`;
+  } else {
+    tbody.innerHTML = matches.map(({s,cor,exS,exI}) => {
+      const rowCls = s.type==='HP' ? 'row-hp' : 'row-w';
+      const exSCls = exS < 5  ? 'excess-lo' : 'excess-hi';
+      const exICls = exI < 5  ? 'excess-lo' : 'excess-hi';
+      return `<tr class="${rowCls}">
+        <td class="left">${s.n}</td>
+        <td><span class="badge badge-${s.type.toLowerCase()}">${s.type}</span></td>
+        <td>${f(s.d,3)}</td><td>${f(s.bf,3)}</td><td>${f(s.tf,3)}</td><td>${f(s.tw,3)}</td>
+        <td>${s.Sx}</td>
+        <td style="font-weight:700;">${f(cor.Sx,2)}</td>
+        <td class="${exSCls}">+${exS.toFixed(1)}%</td>
+        <td>${s.Ix}</td>
+        <td style="font-weight:700;">${f(cor.Ix,2)}</td>
+        <td class="${exICls}">+${exI.toFixed(1)}%</td>
+        <td>${f(cor.A,2)}</td>
+        <td>${f(eqDia(cor.d,cor.bf),3)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('resB').classList.remove('hidden');
+  document.getElementById('resA').classList.add('hidden');
+}
+
+// ── ERROR ──
+function showErr(msg) {
+  document.getElementById('divResults').classList.remove('hidden');
+  document.getElementById('errMsg').textContent = msg;
+  document.getElementById('resErr').classList.remove('hidden');
+  document.getElementById('resA').classList.add('hidden');
+  document.getElementById('resB').classList.add('hidden');
+}
+
+// ── SNAPSHOT SAVE / LOAD ──────────────────────────────────────────
+function saveSnapshot() {
+  const snap = {
+    _tool:    'Pile Corrosion Loss Calculator',
+    _version: '1.0',
+    _saved:   new Date().toISOString(),
+    mode:     mode,
+    unit:     unit,
+    selSection: document.getElementById('selSection').value,
+    inpCL:      document.getElementById('inpCL').value,
+    selRef:     document.getElementById('selRef').value,
+    inpReqS:    document.getElementById('inpReqS').value,
+    inpReqI:    document.getElementById('inpReqI').value,
+  };
+  const section = snap.selSection || snap.selRef || 'pile';
+  const fname = `PileCorrosion_${section.replace(/[^a-zA-Z0-9_-]/g,'_')}_${new Date().toISOString().slice(0,10)}.json`;
+  const blob = new Blob([JSON.stringify(snap, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fname;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadSnapshot() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = evt => {
+    const file = evt.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const snap = JSON.parse(e.target.result);
+        if (snap._tool !== 'Pile Corrosion Loss Calculator') {
+          alert('This snapshot is not from the Pile Corrosion Calculator.');
+          return;
+        }
+        // Restore state
+        setMode(snap.mode || 'A');
+        setUnit(snap.unit || 'in');
+        if (snap.selSection) document.getElementById('selSection').value = snap.selSection;
+        if (snap.inpCL)      document.getElementById('inpCL').value      = snap.inpCL;
+        if (snap.selRef) {
+          document.getElementById('selRef').value = snap.selRef;
+          refChanged();
+        }
+        if (snap.inpReqS) document.getElementById('inpReqS').value = snap.inpReqS;
+        if (snap.inpReqI) document.getElementById('inpReqI').value = snap.inpReqI;
+        // Re-run calculation
+        calc();
+      } catch(err) {
+        alert('Could not read snapshot file: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// go
+init();
+</script>
+</body>
+</html>
