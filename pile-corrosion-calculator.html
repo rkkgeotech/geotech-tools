@@ -652,6 +652,14 @@ function setMode(m) {
 }
 
 function setUnit(u) {
+  if (u === unit) return;
+  const inp = document.getElementById('inpCL');
+  const v = parseFloat(inp.value);
+  if (!isNaN(v)) {
+    inp.value = u === 'mm'
+      ? (v * 25.4).toFixed(3)   // in → mm
+      : (v / 25.4).toFixed(4);  // mm → in
+  }
   unit = u;
   document.getElementById('btnIn').classList.toggle('active', u==='in');
   document.getElementById('btnMm').classList.toggle('active', u==='mm');
