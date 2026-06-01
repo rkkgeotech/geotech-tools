@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shear Strength Correlation Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#0c1f35;--navy2:#152d4a;--blue:#1d5fa8;--blue2:#2471c9;
+    --steel:#4a7daa;--amber:#d97706;--green:#166534;--red:#991b1b;
+    --bg:#f0f4f8;--bg2:#ffffff;--border:#c8d6e5;--text:#1a2b3c;--muted:#5a738a;
+    --mono:'IBM Plex Mono','Courier New',monospace;
+    --sans:'IBM Plex Sans','Segoe UI',sans-serif;
+    /* coarse (granular / phi) = warm amber ; fine (cohesive / Su) = teal-blue */
+    --gc:#8a5300;--gc2:#fcf2e2;--gcbr:#e8a33d;
+    --gn:#0e5b6b;--gn2:#e2f3f6;--gnbr:#4db8c8;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);font-size:13px;background:var(--bg);color:var(--text);line-height:1.5}
+
+  /* ── HEADER ── */
+  .header{background:var(--navy);color:#fff;border-bottom:3px solid var(--blue2)}
+  .header-inner{max-width:1320px;margin:0 auto;padding:18px 24px 14px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+  .header h1{font-size:17px;font-weight:700;letter-spacing:-.3px}
+  .header h1 span{color:#6db3f5}
+  .header-sub{font-size:10.5px;color:#7a9fc0;margin-top:3px;font-family:var(--mono)}
+  .header-tag{font-family:var(--mono);font-size:10px;color:#5a8ab0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:3px 8px;border-radius:2px;white-space:nowrap}
+
+  /* ── LAYOUT ── */
+  .container{max-width:1320px;margin:0 auto;padding:20px 20px 40px}
+
+  /* ── CARD ── */
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:3px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card-head{background:var(--navy2);color:#fff;padding:9px 16px;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+  .card-head-l{display:flex;align-items:center;gap:8px}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--blue2);flex-shrink:0}
+  .card-body{padding:18px 20px}
+
+  /* ── FORM ── */
+  .field-row{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  select,input[type=number],input[type=text]{padding:7px 10px;border:1px solid var(--border);border-radius:3px;font-size:13px;font-family:var(--sans);color:var(--text);background:#fff}
+  select:focus,input:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 3px rgba(36,113,201,.12)}
+
+  /* ── BUTTONS ── */
+  .btn-calc{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;background:var(--blue);color:#fff;border:none;border-radius:3px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:background .12s}
+  .btn-calc:hover{background:var(--navy2)}
+  .btn-sm{padding:5px 12px;font-size:11px;font-family:var(--sans);font-weight:500;border:1px solid var(--border);border-radius:3px;background:#fff;color:var(--steel);cursor:pointer;transition:background .1s}
+  .btn-sm:hover{background:#eaf2fc}
+  .btn-add{padding:5px 12px;font-size:12px;font-family:var(--sans);font-weight:500;border:1px solid var(--blue);border-radius:3px;background:#f0f6ff;color:var(--blue);cursor:pointer}
+  .btn-add:hover{background:#dbeafe}
+  .btn-del{padding:2px 7px;font-size:12px;font-family:var(--mono);border:1px solid #dce8f4;border-radius:2px;background:#f5f7fa;color:var(--muted);cursor:pointer}
+  .btn-del:hover{background:#fce8e8;border-color:#f5b8b8;color:var(--red)}
+  .toggle-link{font-size:11px;color:#7a9fc0;cursor:pointer;background:none;border:none;font-family:var(--sans);padding:0;text-decoration:underline}
+
+  /* ── NOTES ── */
+  .note-box{font-size:11.5px;color:var(--muted);background:#f4f8fc;border-left:3px solid var(--steel);padding:8px 12px;margin-bottom:14px;line-height:1.6}
+  .note-box strong{color:var(--text)}
+  .formula-bar{display:flex;gap:16px;flex-wrap:wrap;padding:10px 14px;background:var(--navy);border-radius:3px;font-family:var(--mono);font-size:10.5px;color:#6db3f5}
+  .formula-bar span{white-space:nowrap}
+  .formula-bar em{color:#a0c8f0;font-style:normal}
+  .tbl-note{font-size:10.5px;color:var(--muted);margin-top:10px;padding:6px 10px;background:#f5f7fa;border-left:2px solid var(--border);line-height:1.6}
+
+  /* ── TABLES (param entry) ── */
+  .tbl-wrap{overflow-x:auto}
+  .param-tbl{border-collapse:collapse;width:100%;font-size:12px}
+  .param-tbl th{background:#dce8f4;color:var(--navy);padding:6px 8px;border:1px solid var(--border);font-size:10.5px;font-weight:700;white-space:nowrap;text-align:center}
+  .param-tbl th.left{text-align:left}
+  .param-tbl td{padding:3px 4px;border:1px solid #d8e4ee;vertical-align:middle}
+  .param-tbl td.rownum{text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);width:30px}
+  .param-tbl input[type=text],.param-tbl input[type=number]{width:100%;padding:5px 7px;font-size:12px;border:1px solid #d8e4ee;border-radius:2px}
+  .param-tbl input:focus{border-color:var(--blue2);outline:none}
+  .param-tbl select{width:100%;padding:5px 6px;font-size:12px;border:1px solid #d8e4ee;border-radius:2px}
+  .auto-cell{text-align:center;font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--navy);background:#eef5fc;white-space:nowrap}
+  .soil-disp{font-size:11px;color:var(--muted);font-style:italic;padding:3px 6px}
+  .depth-bot{font-size:9.5px;color:var(--muted);margin-top:1px;font-family:var(--mono)}
+
+  /* ── TABS ── */
+  .tab-bar{display:flex;align-items:flex-end;gap:0;border-bottom:2px solid var(--navy2);flex-wrap:wrap}
+  .tab-btn{padding:8px 18px;font-size:12px;font-family:var(--sans);font-weight:500;border:1px solid var(--border);border-bottom:none;background:var(--bg);color:var(--muted);cursor:pointer;border-radius:3px 3px 0 0;margin-right:2px;margin-bottom:-2px;transition:background .1s;white-space:nowrap}
+  .tab-btn.active{background:var(--bg2);color:var(--navy);font-weight:700;border-color:var(--navy2);border-bottom:2px solid var(--bg2);z-index:1;position:relative}
+  .tab-btn:hover:not(.active){background:#e4ecf4}
+  .tab-btn.add-tab{border-style:dashed;color:var(--blue);background:transparent;margin-left:4px}
+  .tab-btn.add-tab:hover{background:#f0f6ff}
+  .tab-btn.sum-tab{background:var(--navy);color:#7a9fc0;border-color:var(--navy);margin-left:auto}
+  .tab-btn.sum-tab.active{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+  .tab-panel{display:none;padding:20px}
+  .tab-panel.active{display:block}
+  .tab-panels{background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px;min-height:200px;margin-bottom:16px}
+
+  /* ── BORING HEADER ── */
+  .bor-hdr{background:#f4f8fc;border:1px solid var(--border);border-radius:3px;padding:12px 16px;margin-bottom:14px}
+  .ce-box{padding:6px 10px;background:#fff;border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:13px;min-width:56px;text-align:center}
+
+  /* ── PILLS ── */
+  .summary-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .pill{background:#f0f6ff;border:1px solid #c0d8f0;border-radius:3px;padding:8px 14px;min-width:110px}
+  .pill-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .pill-value{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--navy);margin:2px 0 1px}
+  .pill-sub{font-size:10px;color:var(--muted)}
+  .pill.good .pill-value{color:var(--green)}
+  .pill.coarse{background:var(--gc2);border-color:var(--gcbr)}.pill.coarse .pill-value{color:var(--gc)}
+  .pill.fine{background:var(--gn2);border-color:var(--gnbr)}.pill.fine .pill-value{color:var(--gn)}
+
+  /* ── RESULTS TABLE ── */
+  .res-wrap{overflow-x:auto}
+  .res-tbl{border-collapse:collapse;font-size:11px}
+  .res-tbl th{padding:4px 6px;border:1px solid var(--border);text-align:center;font-size:9.5px;font-weight:700;white-space:nowrap}
+  .res-tbl td{padding:4px 6px;border:1px solid #d8e4ee;text-align:right;font-family:var(--mono);font-size:11px;white-space:nowrap}
+  .res-tbl td.left{text-align:left;font-family:var(--sans);font-size:11px;white-space:normal;min-width:100px}
+  .sticky-l{position:sticky;left:0;z-index:2}
+  .gh-coarse{background:var(--gc);color:#fff}.ca-coarse{background:var(--gc2);color:var(--gc);font-weight:700}
+  .gh-fine  {background:var(--gn);color:#fff}.ca-fine  {background:var(--gn2);color:var(--gn);font-weight:700}
+  .cell-na{color:#ccd8e0;font-weight:400}
+  .row-sum td{background:#f0f4f8;font-style:italic;font-size:10.5px;font-family:var(--mono)}
+  .row-sum td.left{font-style:normal;font-weight:700;font-family:var(--sans);font-size:11px}
+
+  /* ── SUMMARY TABLE ── */
+  .sum-tbl{border-collapse:collapse;width:100%;font-size:12px}
+  .sum-tbl th{background:var(--navy2);color:#fff;padding:7px 10px;border:1px solid var(--border);font-size:10.5px;font-weight:600;text-align:left}
+  .sum-tbl td{padding:6px 10px;border:1px solid #d8e4ee;vertical-align:middle;line-height:1.5}
+  .sum-tbl tr:nth-child(even) td{background:#f8fafc}
+  .sum-tbl tr:hover td{filter:brightness(.97)}
+  .dv-input{width:110px;font-family:var(--mono);font-size:12px;text-align:center;padding:5px 8px;border:1px solid var(--border);border-radius:3px;background:#fff8e8}
+  .dv-input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(217,119,6,.15)}
+  .badge{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:10px;white-space:nowrap}
+  .badge.coarse{background:var(--gc2);color:var(--gc);border:1px solid var(--gcbr)}
+  .badge.fine{background:var(--gn2);color:var(--gn);border:1px solid var(--gnbr)}
+
+  /* ── REFERENCE TABLE ── */
+  .ref-tbl{border-collapse:collapse;width:100%;font-size:12px}
+  .ref-tbl th{background:#dce8f4;color:var(--navy);padding:7px 10px;border:1px solid var(--border);font-size:10.5px;font-weight:700;text-align:left}
+  .ref-tbl td{padding:7px 10px;border:1px solid #d8e4ee;vertical-align:top;line-height:1.6}
+  .ref-tbl tr:nth-child(even) td{background:#f8fafc}
+  .ref-tbl code{font-family:var(--mono);font-size:10.5px;background:#edf2f7;padding:1px 5px;border-radius:2px}
+
+  .hdr-btn{padding:6px 14px;font-size:11.5px;font-family:var(--sans);font-weight:600;
+    border:1px solid rgba(255,255,255,.28);border-radius:3px;background:rgba(255,255,255,.1);
+    color:#d0e8f8;cursor:pointer;transition:background .12s;letter-spacing:.2px}
+  .hdr-btn:hover{background:rgba(255,255,255,.22)}
+  .hdr-btn.save{border-color:rgba(134,239,172,.5);color:#bbf7d0}
+  .hdr-btn.save:hover{background:rgba(134,239,172,.15)}
+  .hdr-btn.print-btn{border-color:rgba(147,197,253,.35);color:#93c5fd}
+  .hdr-btn.print-btn:hover{background:rgba(147,197,253,.12)}
+  .hidden{display:none}
+  tr:hover td{filter:brightness(.98)}
+
+  /* ── PLOTS ── */
+  .plot-wrap{overflow-x:auto;margin:0}
+  .plot-outer{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+  .plot-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;padding:4px 0;align-items:center}
+  .plot-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text)}
+  .plot-legend-swatch{width:12px;height:12px;border-radius:2px;flex-shrink:0;border:1.5px solid transparent}
+  .plot-hint{font-size:10px;color:var(--muted);margin-left:auto}
+  .plot-note{font-size:10.5px;color:var(--muted);margin-top:6px;font-style:italic}
+  .plot-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:900px){.plot-grid2{grid-template-columns:1fr}}
+  /* ── PLOT TOOLTIP ── */
+  #plot-tip{position:fixed;background:rgba(12,31,53,.95);color:#e8f0f8;padding:9px 13px;border-radius:4px;
+    font-size:11.5px;font-family:var(--sans);pointer-events:none;z-index:9999;line-height:1.8;
+    white-space:nowrap;border:1px solid rgba(100,160,220,.3);box-shadow:0 4px 16px rgba(0,0,0,.35);display:none}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <h1>Shear Strength <span>Correlation Calculator</span></h1>
+      <div class="header-sub">SPT (N<sub>1</sub>)<sub>60</sub> &rarr; &phi; (deg) for coarse-grained &nbsp;&middot;&nbsp; S<sub>u</sub> (ksf) for fine-grained &nbsp;&middot;&nbsp; Peck/Hanson/Thornburn C<sub>N</sub></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="hdr-btn save" onclick="saveProject()" title="Save all project data to a JSON file">&#8659; Save Project</button>
+      <button class="hdr-btn"      onclick="loadProject()" title="Load a previously saved project JSON file">&#8657; Load Project</button>
+      <button class="hdr-btn print-btn" onclick="printAll()" title="Print all borings + summary + reference sheet (opens print window)">&#9113; Print All</button>
+    </div>
+    <div class="header-tag">v1.0 &nbsp;|&nbsp; Per-Boring Tabs &nbsp;&middot;&nbsp; (N<sub>1</sub>)<sub>60</sub> Correction &nbsp;&middot;&nbsp; &phi; / S<sub>u</sub> Profiles &amp; Print</div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ── GLOBAL PARAMETERS ──────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-head"><div class="card-head-l"><div class="dot"></div>Global Parameters</div></div>
+  <div class="card-body">
+    <div class="field-row" style="margin-bottom:12px">
+      <div class="field"><label>&gamma;<sub>w</sub> (pcf)</label><input type="number" id="inpGw" value="62.4" step="0.1" style="width:90px" oninput="recalcAllBorings()"></div>
+    </div>
+    <div class="formula-bar">
+      <span><em>N₆₀ = N × C<sub>E</sub> × C<sub>R</sub></em></span>
+      <span><em>C<sub>E</sub> = ER / 60</em></span>
+      <span>(N<sub>1</sub>)<sub>60</sub> = N₆₀ × C<sub>N</sub></span>
+      <span>C<sub>N</sub> = 0.77·log(20 / σ′<sub>v,tsf</sub>) &nbsp;[coarse]</span>
+      <span>C<sub>N</sub> = 1.0 &nbsp;[fine]</span>
+      <span>σ′<sub>v</sub> cumulative; γ → γ<sub>buoy</sub> below GWT</span>
+    </div>
+    <div class="note-box" style="margin-top:10px">
+      <strong>Two correlations, one per soil class:</strong>
+      coarse-grained (granular) samples return a friction angle &phi; from Peck, Hanson &amp; Thornburn (1974);
+      fine-grained (cohesive) samples return an undrained shear strength S<sub>u</sub> = (N<sub>1</sub>)<sub>60</sub> / 7.5 ksf.
+      Per the source spreadsheet convention, the overburden correction C<sub>N</sub> is set to 1.0 for fine-grained soils,
+      so (N<sub>1</sub>)<sub>60</sub> = N₆₀ for those samples.
+    </div>
+  </div>
+</div>
+
+<!-- ── STRATUM PARAMETERS ─────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-head"><div class="card-head-l"><div class="dot"></div>Stratum Parameters</div></div>
+  <div class="card-body">
+    <div class="note-box">Define soil strata used across all borings. Choose <strong>Coarse-grained</strong> (granular &rarr; &phi;) or <strong>Fine-grained</strong> (cohesive &rarr; S<sub>u</sub>). Unit weight &gamma; drives the σ′<sub>v</sub> calculation for the overburden correction.</div>
+    <div class="tbl-wrap">
+      <table class="param-tbl">
+        <thead><tr>
+          <th style="width:30px">#</th>
+          <th class="left" style="width:105px">Stratum ID</th>
+          <th class="left" style="width:215px">Soil Type</th>
+          <th style="width:100px">γ (pcf)</th>
+          <th class="left" style="width:250px">Description</th>
+          <th style="width:34px"></th>
+        </tr></thead>
+        <tbody id="stratBody"></tbody>
+      </table>
+    </div>
+    <button class="btn-add" style="margin-top:8px" onclick="addStratum()">+ Add Stratum</button>
+  </div>
+</div>
+
+<!-- ── BORING TABS ─────────────────────────────────────────────────────────── -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn add-tab" onclick="addBoring()">+ Add Boring</button>
+  <button class="tab-btn sum-tab" id="tabbtn-summary" onclick="switchTab('summary')">▶ Summary</button>
+</div>
+<div class="tab-panels" id="tabPanels">
+  <div id="tabpanel-summary" class="tab-panel">
+    <div class="note-box">Aggregates &phi; and S<sub>u</sub> across all borings, organized by stratum. Run <strong>Calculate</strong> in each boring tab before generating the summary. Design values are user-defined.</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn-calc" onclick="generateSummary()">&#9654; Generate Summary</button>
+      <button class="btn-sm" onclick="exportSummaryCSV()">&#8595; Export Summary CSV</button>
+      <button class="btn-sm" onclick="printSummaryPage()" title="Print summary + reference sheet">&#9113; Print Summary</button>
+    </div>
+    <div id="summaryContent"></div>
+    <div id="splot"></div>
+  </div>
+</div>
+
+<!-- ── REFERENCES ─────────────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="card-head">
+    <div class="card-head-l"><div class="dot"></div>References</div>
+    <button class="toggle-link" id="refToggle" onclick="toggleRef()">Show ▾</button>
+  </div>
+  <div id="refBody" class="card-body hidden"></div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════════════
+// Soil class drives which correlation applies.
+//   coarse  → granular → friction angle φ (deg)
+//   fine    → cohesive → undrained shear strength Su (ksf)
+const SOIL_TYPES = [
+  {key:'coarse', label:'Coarse-grained (granular → φ)',  cls:'coarse'},
+  {key:'fine',   label:'Fine-grained (cohesive → Su)',   cls:'fine'},
+];
+const SOIL_LABEL = {};
+SOIL_TYPES.forEach(s => SOIL_LABEL[s.key] = s.label);
+const SOIL_CLS = {};
+SOIL_TYPES.forEach(s => SOIL_CLS[s.key] = s.cls);
+
+// Correlation metadata (one per class)
+const CORR = {
+  coarse: {
+    label:'Friction Angle, φ',
+    short:'27.1 + 0.3·(N₁)₆₀ − 0.00054·(N₁)₆₀²',
+    unit:'deg', sym:'φ', ntype:'(N₁)₆₀',
+    gh:'gh-coarse', ca:'ca-coarse',
+    src:'Peck, Hanson & Thornburn (1974)',
+    // value from N1(60)
+    fn:n160 => (n160!==null && n160>0) ? (27.1 + 0.3*n160 - 0.00054*n160*n160) : null,
+  },
+  fine: {
+    label:'Undrained Shear Strength, Sᵤ',
+    short:'(N₁)₆₀ / 7.5   (ksf)',
+    unit:'ksf', sym:'Sᵤ', ntype:'(N₁)₆₀',
+    gh:'gh-fine', ca:'ca-fine',
+    src:'Terzaghi & Peck (1967) / NAVFAC DM-7',
+    // For fine-grained, CN=1 so N1(60)=N60. Spreadsheet: N1(60)*1000/7.5 psf = N1(60)/7.5 ksf
+    fn:n160 => (n160!==null && n160>0) ? (n160/7.5) : null,
+  },
+};
+function corrFor(soilType){ return CORR[SOIL_CLS[soilType]] || null; }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STRATUM COLORS  (8-color pastel cycle)
+// ═══════════════════════════════════════════════════════════════════════════
+const STRAT_COLORS = [
+  {bg:'#dbeafe',br:'#93c5fd'},  // blue
+  {bg:'#dcfce7',br:'#86efac'},  // green
+  {bg:'#fef9c3',br:'#fde047'},  // yellow
+  {bg:'#fed7aa',br:'#fdba74'},  // orange
+  {bg:'#ede9fe',br:'#c4b5fd'},  // purple
+  {bg:'#fce7f3',br:'#f9a8d4'},  // pink
+  {bg:'#cffafe',br:'#67e8f9'},  // cyan
+  {bg:'#d9f99d',br:'#bef264'},  // lime
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+const strata     = {};   // key → {label, soilType, gamma, colorIdx, desc}
+const boringKeys = [];   // ordered
+let nextSK = 1, nextBK = 1;
+const designValues = {}; // stratKey → user-entered design value
+let _inCascade = false;  // prevents recursive σ'v profile cascade
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STRATA
+// ═══════════════════════════════════════════════════════════════════════════
+function soilOpts() {
+  return '<option value="">— select —</option>' +
+    SOIL_TYPES.map(s=>`<option value="${s.key}">${s.label}</option>`).join('');
+}
+
+function stratOptsHTML() {
+  return '<option value="">— select —</option>' +
+    Object.entries(strata).map(([k,s])=>`<option value="${k}">${s.label||k}</option>`).join('');
+}
+
+function addStratum() {
+  const key = 'ST' + nextSK++;
+  const colorIdx = Object.keys(strata).length;
+  strata[key] = {label:'', soilType:'', gamma:120, colorIdx, desc:''};
+  const dotBg = STRAT_COLORS[colorIdx % STRAT_COLORS.length].bg;
+  const dotBr = STRAT_COLORS[colorIdx % STRAT_COLORS.length].br;
+  const so = soilOpts();
+  const tr = document.createElement('tr');
+  tr.id = 'stratrow-'+key;
+  tr.innerHTML = `
+    <td class="rownum">${Object.keys(strata).length}</td>
+    <td style="white-space:nowrap"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${dotBg};border:2px solid ${dotBr};margin-right:5px;vertical-align:middle"></span><input type="text" placeholder="e.g. CL-1" style="width:78px"
+      oninput="strata['${key}'].label=this.value;refreshStratDropdowns()"></td>
+    <td><select style="width:207px" onchange="strata['${key}'].soilType=this.value;refreshStratDropdowns()">${so}</select></td>
+    <td><input type="number" value="120" step="1" style="width:86px;text-align:center"
+      oninput="strata['${key}'].gamma=parseFloat(this.value)||120;recalcAllBorings()"></td>
+    <td><input type="text" placeholder="optional" style="width:240px"
+      oninput="strata['${key}'].desc=this.value"></td>
+    <td><button class="btn-del" onclick="deleteStratum('${key}')">×</button></td>`;
+  document.getElementById('stratBody').appendChild(tr);
+  refreshStratDropdowns();
+}
+
+function deleteStratum(key) {
+  delete strata[key];
+  document.getElementById('stratrow-'+key)?.remove();
+  refreshStratDropdowns();
+}
+
+function refreshStratDropdowns() {
+  const opts = stratOptsHTML();
+  document.querySelectorAll('select.stratsel').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = opts;
+    if (strata[cur]) sel.value = cur;
+  });
+  recalcAllBorings();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BORINGS / TABS
+// ═══════════════════════════════════════════════════════════════════════════
+function addBoring() {
+  const bkey = 'BR' + nextBK++;
+  const counter = boringKeys.length + 1;
+  boringKeys.push(bkey);
+
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn';
+  btn.id = 'tabbtn-' + bkey;
+  btn.textContent = 'B-' + counter;
+  btn.onclick = () => switchTab(bkey);
+  const addBtn = document.querySelector('.add-tab');
+  document.getElementById('tabBar').insertBefore(btn, addBtn);
+
+  const panel = document.createElement('div');
+  panel.id = 'tabpanel-' + bkey;
+  panel.className = 'tab-panel';
+  panel.innerHTML = boringPanelHTML(bkey, counter);
+  document.getElementById('tabPanels').appendChild(panel);
+
+  switchTab(bkey);
+  updateSampleCount(bkey, 5);
+}
+
+function boringPanelHTML(bkey, counter) {
+  return `
+  <div class="bor-hdr">
+    <div class="field-row">
+      <div class="field"><label>Boring ID</label>
+        <input type="text" id="blabel-${bkey}" value="B-${counter}" style="width:88px"
+          oninput="document.getElementById('tabbtn-${bkey}').textContent=this.value||'${bkey}'"></div>
+      <div class="field"><label>Energy Ratio ER (%)</label>
+        <input type="number" id="ber-${bkey}" value="60" step="1" min="1" max="100" style="width:90px"
+          oninput="onBorER('${bkey}',this.value)"></div>
+      <div class="field"><label>GWT Depth (ft)</label>
+        <input type="number" id="bgw-${bkey}" value="10" step="0.5" min="0" style="width:90px"
+          oninput="recalcBoring('${bkey}')"></div>
+      <div class="field"><label>Ground Surface El. (ft)</label>
+        <input type="number" id="bgse-${bkey}" step="0.1" style="width:100px" placeholder="e.g. 15.5"
+          title="Optional — enables elevation-based plot Y-axis"
+          oninput="rebuildBoringPlot('${bkey}')"></div>
+      <div class="field"><label># Samples</label>
+        <input type="number" id="bns-${bkey}" value="5" step="1" min="1" max="40" style="width:78px"
+          onchange="updateSampleCount('${bkey}',this.value)"></div>
+      <div class="field"><label>C<sub>E</sub></label>
+        <div class="ce-box" id="bce-${bkey}">1.00</div></div>
+      <div class="field" style="margin-left:auto;justify-content:flex-end">
+        <label style="visibility:hidden">x</label>
+        <button class="btn-sm" style="color:var(--red);border-color:#f5b8b8" onclick="deleteBoring('${bkey}')">Delete Boring</button>
+      </div>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="param-tbl">
+      <thead><tr>
+        <th style="width:30px">#</th>
+        <th style="width:90px" title="Supports column paste from gINT / Excel">Depth Top (ft) ⇩</th>
+        <th style="width:80px" title="Supports column paste from gINT / Excel">Length (in) ⇩</th>
+        <th style="width:95px">Stratum</th>
+        <th class="left" style="width:165px">Soil Type</th>
+        <th style="width:60px" title="Supports column paste from gINT / Excel">N ⇩</th>
+        <th style="width:68px;background:#d0e4f4" title="Effective vertical stress">σ′<sub>v</sub> (tsf)</th>
+        <th style="width:46px;background:#d0e4f4" title="Overburden correction (1.0 for fine-grained)">C<sub>N</sub></th>
+        <th style="width:50px;background:#d0e4f4" title="Energy correction = ER / 60">C<sub>E</sub></th>
+        <th style="width:48px;background:#d0e4f4" title="Rod length correction (Skempton 1986)">C<sub>R</sub></th>
+        <th style="width:52px;background:#d0e4f4" title="Energy + rod corrected = N × C_E × C_R">N<sub>60</sub></th>
+        <th style="width:56px;background:#d0e4f4" title="Overburden + energy + rod corrected">(N<sub>1</sub>)<sub>60</sub></th>
+        <th style="width:40px" title="Exclude from averages">Excl.</th>
+      </tr></thead>
+      <tbody id="sbody-${bkey}" data-count="0"></tbody>
+    </table>
+  </div>
+  <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <button class="btn-calc" onclick="calcBoring('${bkey}')">&#9654; Calculate</button>
+    <button class="btn-sm" onclick="exportBoringCSV('${bkey}')">&#8595; Export CSV</button>
+    <button class="btn-sm" onclick="printBoringPage('${bkey}')" title="Print this boring — letter portrait">&#9113; Print Boring</button>
+  </div>
+  <div id="bres-${bkey}" class="hidden" style="margin-top:16px">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-head">
+        <div class="card-head-l"><div class="dot"></div>Shear Strength Results — <span id="breslbl-${bkey}"></span></div>
+      </div>
+      <div class="card-body">
+        <div id="bpills-${bkey}" class="summary-row"></div>
+        <div id="btbl-${bkey}" class="res-wrap"></div>
+        <div id="bnote-${bkey}" class="tbl-note"></div>
+        <div id="bplot-${bkey}" class="plot-outer"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function deleteBoring(bkey) {
+  if (boringKeys.length <= 1) { alert('At least one boring is required.'); return; }
+  const idx = boringKeys.indexOf(bkey);
+  boringKeys.splice(idx, 1);
+  document.getElementById('tabbtn-'+bkey)?.remove();
+  document.getElementById('tabpanel-'+bkey)?.remove();
+  switchTab(boringKeys[Math.min(idx, boringKeys.length-1)]);
+}
+
+function switchTab(key) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.id && b.id.startsWith('tabbtn-')) b.classList.remove('active');
+  });
+  document.getElementById('tabpanel-'+key)?.classList.add('active');
+  document.getElementById('tabbtn-'+key)?.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SAMPLE ROWS
+// ═══════════════════════════════════════════════════════════════════════════
+function updateSampleCount(bkey, val) {
+  const n = Math.min(40, Math.max(1, parseInt(val) || 1));
+  const tbody = document.getElementById('sbody-'+bkey);
+  if (!tbody) return;
+  const cur = parseInt(tbody.dataset.count) || 0;
+  if (n > cur) {
+    for (let r = cur; r < n; r++) addSampleRow(bkey, r);
+  } else {
+    for (let r = cur - 1; r >= n; r--) document.getElementById(`sr-${bkey}-${r}`)?.remove();
+  }
+  tbody.dataset.count = n;
+  applyStratumCascade(bkey);
+}
+
+function addSampleRow(bkey, r) {
+  const opts = stratOptsHTML();
+  const tr = document.createElement('tr');
+  tr.id = `sr-${bkey}-${r}`;
+  tr.innerHTML = `
+    <td class="rownum">${r+1}</td>
+    <td>
+      <input type="number" id="dep-${bkey}-${r}" data-bkey="${bkey}" data-r="${r}" data-c="0"
+        step="0.1" placeholder="10.0" style="width:76px"
+        oninput="calcSamp('${bkey}',${r})" onkeydown="navKey(event,this)"
+      onpaste="handlePaste(event,'${bkey}',${r},0)">
+      <div class="depth-bot" id="bot-${bkey}-${r}"></div>
+    </td>
+    <td><input type="number" id="len-${bkey}-${r}" data-bkey="${bkey}" data-r="${r}" data-c="1"
+      step="0.5" placeholder="18" style="width:68px"
+      oninput="calcSamp('${bkey}',${r})" onkeydown="navKey(event,this)"
+      onpaste="handlePaste(event,'${bkey}',${r},1)"></td>
+    <td><select id="strat-${bkey}-${r}" class="stratsel" style="width:89px"
+      onchange="onStratChange('${bkey}',${r})">${opts}</select></td>
+    <td class="soil-disp" id="sdisp-${bkey}-${r}">—</td>
+    <td><input type="number" id="nval-${bkey}-${r}" data-bkey="${bkey}" data-r="${r}" data-c="2"
+      step="1" placeholder="20" style="width:56px;text-align:center"
+      oninput="calcSamp('${bkey}',${r})" onkeydown="navKey(event,this)"
+      onpaste="handlePaste(event,'${bkey}',${r},2)"></td>
+    <td class="auto-cell" id="sigv-${bkey}-${r}">—</td>
+    <td class="auto-cell" id="cn-${bkey}-${r}">—</td>
+    <td class="auto-cell" id="ce-${bkey}-${r}">—</td>
+    <td class="auto-cell" id="cr-${bkey}-${r}">—</td>
+    <td class="auto-cell" id="n60-${bkey}-${r}">—</td>
+    <td class="auto-cell" id="n160-${bkey}-${r}">—</td>
+    <td style="text-align:center;border:1px solid #d8e4ee;padding:4px 2px"><input type="checkbox" id="excl-${bkey}-${r}"
+      title="Exclude from averages" onchange="toggleExclude('${bkey}',${r})"></td>`;
+  document.getElementById('sbody-'+bkey).appendChild(tr);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ROD LENGTH CORRECTION (Skempton 1986, per spreadsheet col M, keyed to depth)
+//   depth > 32 → 1.00 ; > 19 → 0.95 ; > 13 → 0.85 ; else 0.75
+// ═══════════════════════════════════════════════════════════════════════════
+function rodLengthCorr(dep) {
+  if (!(dep > 0)) return 1.0;
+  if (dep > 32) return 1.00;
+  if (dep > 19) return 0.95;
+  if (dep > 13) return 0.85;
+  return 0.75;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CUMULATIVE EFFECTIVE STRESS (tsf), layer-by-layer using each sample's γ.
+// Mirrors the spreadsheet: σ'v in tsf = Σ Δz·γ_eff / 2000.
+// ═══════════════════════════════════════════════════════════════════════════
+function computeCumulativeSigmaV(bkey, targetR) {
+  const n         = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+  const gw        = parseFloat(document.getElementById(`bgw-${bkey}`)?.value);
+  const gwV       = parseFloat(document.getElementById('inpGw')?.value) || 62.4;
+  const targetDep = parseFloat(document.getElementById(`dep-${bkey}-${targetR}`)?.value);
+  const gwt       = (gw === 0 || gw > 0) ? gw : 1e9; // blank GWT → treat as very deep (all dry)
+  if (!(targetDep > 0)) return null;
+
+  // Build depth profile: rows with a valid depth AND stratum, at or above targetDep
+  const profile = [];
+  for (let r = 0; r < n; r++) {
+    const dep = parseFloat(document.getElementById(`dep-${bkey}-${r}`)?.value);
+    const sk  = document.getElementById(`strat-${bkey}-${r}`)?.value;
+    const gma = strata[sk]?.gamma;
+    if (dep > 0 && gma && dep <= targetDep + 0.001) profile.push({dep, gma});
+  }
+  if (!profile.length) return null;
+  profile.sort((a, b) => a.dep - b.dep);
+  if (!profile.some(p => Math.abs(p.dep - targetDep) < 0.001)) return null;
+
+  let sigV = 0, prevDep = 0;
+  for (const {dep, gma} of profile) {
+    const dTop = prevDep;
+    const dBot = Math.min(dep, targetDep);
+    if (dBot > dTop) {
+      const abvGWT = Math.max(0, Math.min(dBot, gwt) - Math.max(dTop, 0));
+      const blwGWT = Math.max(0, dBot - Math.max(dTop, gwt));
+      sigV += gma * abvGWT + Math.max(0, gma - gwV) * blwGWT;
+    }
+    prevDep = dep;
+    if (Math.abs(dep - targetDep) < 0.001) break;
+  }
+  return sigV >= 0 ? sigV / 2000 : null; // → tsf
+}
+
+function calcSamp(bkey, r) {
+  const N   = parseFloat(document.getElementById(`nval-${bkey}-${r}`)?.value);
+  const dep = parseFloat(document.getElementById(`dep-${bkey}-${r}`)?.value);
+  const len = parseFloat(document.getElementById(`len-${bkey}-${r}`)?.value);
+  const sk  = document.getElementById(`strat-${bkey}-${r}`)?.value;
+  const er  = parseFloat(document.getElementById(`ber-${bkey}`)?.value)  || 60;
+  const strat = strata[sk] || {};
+  const cls   = SOIL_CLS[strat.soilType] || null;
+  const CE  = er / 60;
+  const CR  = rodLengthCorr(dep);
+  const N60 = N > 0 ? N * CE * CR : null;
+
+  let sigV=null, CN=null, N160=null;
+  if (sk && strata[sk]?.gamma && dep > 0) {
+    sigV = computeCumulativeSigmaV(bkey, r);
+    if (sigV !== null) {
+      if (cls === 'fine') {
+        CN = 1.0; // spreadsheet: overburden correction = 1 for fine-grained
+      } else {
+        // Peck/Hanson/Thornburn: 0.77·log10(20/σ'v,tsf); guard small σ'v
+        CN = sigV > 0 ? 0.77 * Math.log10(20 / sigV) : null;
+        if (CN !== null && CN < 0) CN = 0;
+      }
+      N160 = (N60 !== null && CN !== null) ? N60 * CN : null;
+    }
+  }
+
+  const bot = dep > 0 && len > 0 ? `bot: ${(dep+len/12).toFixed(2)} ft` : '';
+  const el  = id => document.getElementById(id);
+  const f   = (v, d) => v !== null && v !== undefined ? v.toFixed(d) : '—';
+  if (el(`bot-${bkey}-${r}`))   el(`bot-${bkey}-${r}`).textContent  = bot;
+  if (el(`sdisp-${bkey}-${r}`)) el(`sdisp-${bkey}-${r}`).innerHTML  = strat.soilType ? clsBadge(strat.soilType) : '—';
+  if (el(`sigv-${bkey}-${r}`))  el(`sigv-${bkey}-${r}`).textContent = sigV!==null ? sigV.toFixed(2) : '—';
+  if (el(`cn-${bkey}-${r}`))    el(`cn-${bkey}-${r}`).textContent   = f(CN,2);
+  if (el(`ce-${bkey}-${r}`))    el(`ce-${bkey}-${r}`).textContent   = f(CE,2);
+  if (el(`cr-${bkey}-${r}`))    el(`cr-${bkey}-${r}`).textContent   = f(CR,2);
+  if (el(`n60-${bkey}-${r}`))   el(`n60-${bkey}-${r}`).textContent  = f(N60,1);
+  if (el(`n160-${bkey}-${r}`))  el(`n160-${bkey}-${r}`).textContent = f(N160,1);
+  // Stratum color on auto-cells
+  const sc = (sk && strata[sk]) ? STRAT_COLORS[strata[sk].colorIdx % STRAT_COLORS.length] : null;
+  ['sigv','cn','ce','cr','n60','n160'].forEach(col => {
+    const ae = document.getElementById(`${col}-${bkey}-${r}`);
+    if (ae) { ae.style.background = sc ? sc.bg : ''; ae.style.borderColor = sc ? sc.br : ''; }
+  });
+  if (!_inCascade) { _inCascade = true; recalcBoring(bkey); _inCascade = false; }
+}
+
+function clsBadge(soilType){
+  const cls = SOIL_CLS[soilType];
+  if (cls === 'coarse') return '<span class="badge coarse">Coarse · φ</span>';
+  if (cls === 'fine')   return '<span class="badge fine">Fine · Sᵤ</span>';
+  return '—';
+}
+
+function onBorER(bkey, val) {
+  const ce = (parseFloat(val)||60) / 60;
+  const el = document.getElementById(`bce-${bkey}`);
+  if (el) el.textContent = ce.toFixed(2);
+  recalcBoring(bkey);
+}
+
+function recalcBoring(bkey) {
+  const n = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+  for (let r = 0; r < n; r++) calcSamp(bkey, r);
+}
+
+function recalcAllBorings() { boringKeys.forEach(bk => recalcBoring(bk)); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STRATUM CASCADE
+// ═══════════════════════════════════════════════════════════════════════════
+function onStratChange(bkey, r) {
+  const sel = document.getElementById(`strat-${bkey}-${r}`);
+  if (!sel) return;
+  sel.dataset.manual = sel.value ? '1' : '';
+  applyStratumCascade(bkey);
+  calcSamp(bkey, r);
+}
+
+function applyStratumCascade(bkey) {
+  const n = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+  let cur = '';
+  for (let r = 0; r < n; r++) {
+    const sel = document.getElementById(`strat-${bkey}-${r}`);
+    if (!sel) continue;
+    if (sel.dataset.manual === '1') {
+      cur = sel.value;
+    } else if (sel.value !== cur) {
+      sel.value = cur;
+      calcSamp(bkey, r);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXCLUDE ROW
+// ═══════════════════════════════════════════════════════════════════════════
+function toggleExclude(bkey, r) {
+  const chk = document.getElementById(`excl-${bkey}-${r}`);
+  const tr  = document.getElementById(`sr-${bkey}-${r}`);
+  if (tr) tr.style.opacity = chk?.checked ? '0.3' : '1';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PASTE HANDLER
+// ═══════════════════════════════════════════════════════════════════════════
+function handlePaste(e, bkey, r, c) {
+  const text = (e.clipboardData || window.clipboardData).getData('text');
+  const lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(l => l !== '');
+  if (lines.length <= 1) return;
+  e.preventDefault();
+  const needed = r + lines.length;
+  const cur = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+  if (needed > cur) {
+    const capped = Math.min(needed, 40);
+    const nsEl = document.getElementById(`bns-${bkey}`);
+    if (nsEl) nsEl.value = capped;
+    updateSampleCount(bkey, capped);
+  }
+  lines.forEach((val, i) => {
+    const targetR = r + i;
+    const el = document.querySelector(`[data-bkey="${bkey}"][data-r="${targetR}"][data-c="${c}"]`);
+    if (el) { el.value = val; calcSamp(bkey, targetR); }
+  });
+  applyStratumCascade(bkey);
+  const lastR = Math.min(r + lines.length - 1, 39);
+  const lastEl = document.querySelector(`[data-bkey="${bkey}"][data-r="${lastR}"][data-c="${c}"]`);
+  if (lastEl) lastEl.focus();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ARROW KEY NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════
+function navKey(e, el) {
+  const validKeys = ['ArrowDown','ArrowUp','Enter','ArrowLeft','ArrowRight'];
+  if (!validKeys.includes(e.key)) return;
+  const bkey = el.dataset.bkey;
+  const r    = parseInt(el.dataset.r);
+  const c    = parseInt(el.dataset.c);
+  let nr = r, nc = c;
+  if (e.key === 'ArrowUp')   { e.preventDefault(); nr = r - 1; }
+  else if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); nr = r + 1; }
+  else if (e.key === 'ArrowLeft') {
+    if (el.selectionStart !== 0 || el.selectionEnd !== 0) return;
+    e.preventDefault(); nc = c - 1;
+  }
+  else if (e.key === 'ArrowRight') {
+    if (el.selectionStart !== el.value.length || el.selectionEnd !== el.value.length) return;
+    e.preventDefault(); nc = c + 1;
+  }
+  const target = document.querySelector(`[data-bkey="${bkey}"][data-r="${nr}"][data-c="${nc}"]`);
+  if (target) target.focus();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CALCULATE (per boring)
+// ═══════════════════════════════════════════════════════════════════════════
+function readBoringRows(bkey) {
+  const er  = parseFloat(document.getElementById(`ber-${bkey}`)?.value) || 60;
+  const gwR = document.getElementById(`bgw-${bkey}`)?.value;
+  const gw  = (gwR === '0' || parseFloat(gwR) >= 0) ? parseFloat(gwR) : 1e9;
+  const gwV = parseFloat(document.getElementById('inpGw')?.value) || 62.4;
+  const n   = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+  const CE  = er / 60;
+  const rows = [];
+  for (let r = 0; r < n; r++) {
+    const N   = parseFloat(document.getElementById(`nval-${bkey}-${r}`)?.value);
+    const dep = parseFloat(document.getElementById(`dep-${bkey}-${r}`)?.value);
+    const len = parseFloat(document.getElementById(`len-${bkey}-${r}`)?.value);
+    const sk  = document.getElementById(`strat-${bkey}-${r}`)?.value;
+    const excl = document.getElementById(`excl-${bkey}-${r}`)?.checked;
+    if (!N || N <= 0 || excl) continue;
+    const strat = strata[sk] || {};
+    const cls   = SOIL_CLS[strat.soilType] || null;
+    const CR  = rodLengthCorr(dep);
+    const N60 = N * CE * CR;
+    let sigV=null, CN=null, N160=null;
+    if (strat.gamma && dep > 0) {
+      sigV = computeCumulativeSigmaV(bkey, r);
+      if (sigV !== null) {
+        if (cls === 'fine') CN = 1.0;
+        else { CN = sigV > 0 ? 0.77*Math.log10(20/sigV) : null; if (CN!==null && CN<0) CN = 0; }
+        N160 = (CN !== null) ? N60 * CN : null;
+      }
+    }
+    rows.push({rowNum:r+1, dep, len, soilType:strat.soilType||'', cls, stratKey:sk, N, CE, CR, N60, sigV, CN, N160});
+  }
+  return rows;
+}
+
+// shear-strength value for a row (φ or Su depending on soil class)
+function ssCalc(row) {
+  const c = corrFor(row.soilType);
+  if (!c) return null;
+  try {
+    const v = c.fn(row.N160);
+    return (v!==null && isFinite(v) && v>0) ? v : null;
+  } catch(e){ return null; }
+}
+
+function fmtSS(row, v) {
+  if (v === null) return '—';
+  const c = corrFor(row.soilType);
+  if (!c) return '—';
+  return c.unit === 'deg' ? `${Math.round(v)}°` : v.toFixed(2);
+}
+
+// Strata that actually appear in this boring's rows, in first-seen order.
+// Each becomes its own color-coded results column (φ for coarse, Sᵤ for fine).
+function stratColumns(rows) {
+  const seen = [];
+  rows.forEach(r => {
+    if (r.stratKey && strata[r.stratKey] && !seen.includes(r.stratKey)) seen.push(r.stratKey);
+  });
+  return seen.map(sk => {
+    const st  = strata[sk];
+    const cls = SOIL_CLS[st.soilType] || null;
+    const sc  = STRAT_COLORS[st.colorIdx % STRAT_COLORS.length];
+    const metric = cls==='coarse' ? 'φ (deg)' : cls==='fine' ? 'Sᵤ (ksf)' : '—';
+    return { sk, st, cls, sc, metric };
+  });
+}
+
+function fmtStratVal(col, v) {
+  if (v === null) return '—';
+  return col.cls==='coarse' ? `${Math.round(v)}°` : v.toFixed(2);
+}
+
+function buildResTable(rows) {
+  const cols = stratColumns(rows);
+  let h = '<table class="res-tbl"><thead><tr>';
+  const fixH = [
+    {cls:'left sticky-l',w:55,l:'#'},
+    {cls:'',w:78,l:'Depth (ft)'},
+    {cls:'left',w:120,l:'Soil Class'},
+    {cls:'',w:44,l:'N'},
+    {cls:'',w:48,l:'N₆₀'},
+    {cls:'',w:50,l:'(N₁)₆₀'},
+  ];
+  fixH.forEach(f => h+=`<th class="${f.cls}" style="min-width:${f.w}px;background:#dce8f4;color:var(--navy)">${f.l}</th>`);
+  // one color-coded header per stratum
+  cols.forEach(c => {
+    const lbl = escHtml(c.st.label || c.sk);
+    h += `<th style="min-width:92px;background:${c.sc.br};color:var(--navy);border-bottom:3px solid ${c.sc.br}">
+      ${lbl}<br><span style="font-weight:500;font-size:8px">${c.metric}</span></th>`;
+  });
+  if (!cols.length) h += `<th style="min-width:92px;background:#dce8f4;color:var(--navy)">Strength</th>`;
+  h += '</tr></thead><tbody>';
+
+  rows.forEach((row, ri) => {
+    const v   = ssCalc(row);
+    const dep = row.dep ? `${row.dep.toFixed(1)}${row.len?` – ${(row.dep+row.len/12).toFixed(2)}`:''}` : '—';
+    const bg  = ri%2===0?'#fff':'#f8fafc';
+    let cells = '';
+    cols.forEach(c => {
+      if (row.stratKey === c.sk && v !== null) {
+        cells += `<td style="background:${c.sc.bg};color:var(--navy);font-weight:700">${fmtStratVal(c, v)}</td>`;
+      } else {
+        cells += `<td class="cell-na">—</td>`;
+      }
+    });
+    if (!cols.length) cells = `<td class="cell-na">—</td>`;
+    h+=`<tr>
+      <td class="left sticky-l" style="background:${bg}"><strong>${row.rowNum}</strong></td>
+      <td style="text-align:center;font-family:var(--mono);font-size:10px">${dep}</td>
+      <td class="left" style="font-size:10.5px">${clsBadge(row.soilType)}</td>
+      <td style="text-align:center;font-family:var(--mono)">${row.N}</td>
+      <td style="text-align:center;font-family:var(--mono)">${row.N60?row.N60.toFixed(1):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);font-weight:600;color:var(--navy2)">${row.N160?row.N160.toFixed(1):'—'}</td>
+      ${cells}</tr>`;
+  });
+
+  // Summary rows: per-stratum Min/Max/Avg
+  const stat = (arr,kind)=>arr.length?(kind==='Min'?Math.min(...arr):kind==='Max'?Math.max(...arr):arr.reduce((a,b)=>a+b)/arr.length):null;
+  const colVals = cols.map(c => rows.filter(r=>r.stratKey===c.sk).map(ssCalc).filter(v=>v!==null));
+  ['Min','Max','Avg'].forEach(s=>{
+    h+=`<tr class="row-sum"><td class="left sticky-l" style="background:#f0f4f8">${s}</td><td></td><td></td><td></td><td></td><td></td>`;
+    cols.forEach((c,i)=>{
+      const val = stat(colVals[i], s);
+      const txt = val===null ? '—' : (c.cls==='coarse' ? Math.round(val)+'°' : val.toFixed(2));
+      h+=`<td style="background:${c.sc.bg};color:var(--navy)">${txt}</td>`;
+    });
+    if (!cols.length) h+=`<td>—</td>`;
+    h+='</tr>';
+  });
+  return h+'</tbody></table>';
+}
+
+function calcBoring(bkey) {
+  const rows = readBoringRows(bkey);
+  if (!rows.length) { alert(`No valid N values in this boring.`); return; }
+
+  const phiV = rows.filter(r=>r.cls==='coarse').map(ssCalc).filter(v=>v!==null);
+  const suV  = rows.filter(r=>r.cls==='fine').map(ssCalc).filter(v=>v!==null);
+  const borLabel = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+
+  const avg = arr => arr.reduce((a,b)=>a+b,0)/arr.length;
+  let pills = `
+    <div class="pill"><div class="pill-label">Samples</div><div class="pill-value">${rows.length}</div><div class="pill-sub">with N data</div></div>`;
+  if (phiV.length) pills += `<div class="pill coarse"><div class="pill-label">φ Range (coarse)</div>
+      <div class="pill-value" style="font-size:13px">${Math.round(Math.min(...phiV))}° – ${Math.round(Math.max(...phiV))}°</div>
+      <div class="pill-sub">mean ${Math.round(avg(phiV))}° · ${phiV.length} samples</div></div>`;
+  if (suV.length) pills += `<div class="pill fine"><div class="pill-label">Sᵤ Range (fine)</div>
+      <div class="pill-value" style="font-size:13px">${Math.min(...suV).toFixed(2)} – ${Math.max(...suV).toFixed(2)}</div>
+      <div class="pill-sub">ksf · mean ${avg(suV).toFixed(2)} · ${suV.length} samples</div></div>`;
+
+  document.getElementById(`bpills-${bkey}`).innerHTML = pills;
+  document.getElementById(`btbl-${bkey}`).innerHTML = buildResTable(rows);
+  document.getElementById(`bnote-${bkey}`).innerHTML =
+    `φ = 27.1 + 0.3·(N₁)₆₀ − 0.00054·(N₁)₆₀² &nbsp;(Peck, Hanson &amp; Thornburn 1974, coarse-grained). &nbsp;
+     Sᵤ = (N₁)₆₀ / 7.5 ksf (fine-grained). &nbsp;
+     C<sub>N</sub> = 0.77·log(20/σ′<sub>v,tsf</sub>) for coarse, fixed at 1.0 for fine. &nbsp;
+     C<sub>R</sub> rod-length correction per Skempton (1986).`;
+  document.getElementById(`breslbl-${bkey}`).textContent = borLabel;
+  document.getElementById(`bres-${bkey}`).classList.remove('hidden');
+  buildBoringPlot(bkey, rows);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUMMARY
+// ═══════════════════════════════════════════════════════════════════════════
+function generateSummary() {
+  if (!Object.keys(strata).length) { alert('No strata defined.'); return; }
+  const all=[];
+  boringKeys.forEach(bkey => {
+    const blabel = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+    readBoringRows(bkey).forEach(r => all.push({...r, boringLabel:blabel, bkey}));
+  });
+
+  let html=`<div class="tbl-wrap"><table class="sum-tbl">
+    <thead><tr>
+      <th>Stratum</th><th>Soil Class</th><th style="text-align:center">γ (pcf)</th>
+      <th>Borings w/ Data</th><th style="text-align:center"># Samples</th>
+      <th style="text-align:center">N Range</th>
+      <th style="text-align:center">(N₁)₆₀ Avg</th>
+      <th style="text-align:center">Strength Min</th>
+      <th style="text-align:center">Strength Max</th>
+      <th style="text-align:center">Strength Mean</th>
+      <th style="text-align:center;min-width:140px">Design Value</th>
+    </tr></thead><tbody>`;
+
+  Object.entries(strata).forEach(([sk, st]) => {
+    const samps = all.filter(s => s.stratKey === sk);
+    const bors  = [...new Set(samps.map(s=>s.boringLabel))];
+    const Ns    = samps.map(s=>s.N).filter(Boolean);
+    const N160s = samps.map(s=>s.N160).filter(v=>v!==null&&v!==undefined);
+    const cls   = SOIL_CLS[st.soilType] || null;
+    const vals  = samps.map(ssCalc).filter(v=>v!==null);
+    const unit  = cls==='coarse' ? '°' : (cls==='fine' ? ' ksf' : '');
+    const fmtV  = v => v===null ? '—' : (cls==='coarse' ? Math.round(v)+'°' : v.toFixed(2));
+    const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b)/arr.length) : null;
+    const avgN160 = avg(N160s);
+    const dv = designValues[sk] || '';
+    const dvUnit = cls==='coarse' ? 'deg' : (cls==='fine' ? 'ksf' : '');
+    html+=`<tr>
+      <td><strong>${st.label||sk}</strong></td>
+      <td>${st.soilType?clsBadge(st.soilType):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${st.gamma}</td>
+      <td style="font-size:11px">${bors.length?bors.join(', '):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${samps.length||'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${Ns.length?`${Math.min(...Ns)} – ${Math.max(...Ns)}`:'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);font-weight:600;color:var(--navy2)">${avgN160!==null?avgN160.toFixed(1):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);color:${cls==='coarse'?'var(--gc)':'var(--gn)'}">${vals.length?fmtV(Math.min(...vals)):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);color:${cls==='coarse'?'var(--gc)':'var(--gn)'}">${vals.length?fmtV(Math.max(...vals)):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${vals.length?fmtV(avg(vals)):'—'}</td>
+      <td style="text-align:center;white-space:nowrap">
+        <input type="number" class="dv-input" step="${cls==='coarse'?'0.5':'0.05'}" value="${dv}" placeholder="enter value"
+          onchange="designValues['${sk}']=this.value"> <span style="font-size:10px;color:var(--muted)">${dvUnit}</span>
+      </td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>
+    <div class="tbl-note" style="margin-top:10px">
+      Strength = φ (deg) for coarse-grained strata, S<sub>u</sub> (ksf) for fine-grained strata. Min/Max/Mean are taken over all included samples assigned to each stratum.
+      Design values are user-defined — enter based on engineering judgment considering the range, stratum variability, and the governing analysis.
+      Run <strong>Calculate</strong> in each boring tab to ensure results reflect current inputs.
+    </div>`;
+
+  document.getElementById('summaryContent').innerHTML = html;
+  buildSummaryPlot(all);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════════════════════════
+function exportBoringCSV(bkey) {
+  const rows = readBoringRows(bkey);
+  if (!rows.length) { alert('No data to export.'); return; }
+  const blabel = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+  const hdrs = ['Boring','Sample #','Depth Top (ft)','Depth Bot (ft)','Soil Class',
+    'N','sigv_tsf','C_N','C_E','C_R','N60','(N1)60','phi (deg)','Su (ksf)'];
+  const body = rows.map(r => {
+    const bot = (r.dep&&r.len)?(r.dep+r.len/12).toFixed(2):'';
+    const v = ssCalc(r);
+    const phi = (r.cls==='coarse'&&v!==null)?Math.round(v):'';
+    const su  = (r.cls==='fine'&&v!==null)?v.toFixed(2):'';
+    return [blabel,r.rowNum,r.dep||'',bot,r.cls||'',
+      r.N,r.sigV!==null?r.sigV.toFixed(2):'',r.CN!==null?r.CN.toFixed(2):'',
+      r.CE?r.CE.toFixed(2):'',r.CR?r.CR.toFixed(2):'',r.N60?r.N60.toFixed(1):'',r.N160!==null?r.N160.toFixed(1):'',
+      phi,su].join(',');
+  });
+  dl([hdrs.join(','),...body].join('\n'), `ShearStrength_${blabel.replace(/\s/g,'_')}.csv`);
+}
+
+function exportSummaryCSV() {
+  if (!Object.keys(strata).length) { alert('No strata defined.'); return; }
+  const all=[];
+  boringKeys.forEach(bkey=>{
+    const blabel=document.getElementById(`blabel-${bkey}`)?.value||bkey;
+    readBoringRows(bkey).forEach(r=>all.push({...r,boringLabel:blabel}));
+  });
+  const hdrs=['Stratum','Soil Class','gamma (pcf)','Borings','N Samples','N Min','N Max','(N1)60 Avg','Strength Min','Strength Max','Strength Mean','Unit','Design Value'];
+  const body=Object.entries(strata).map(([sk,st])=>{
+    const samps=all.filter(s=>s.stratKey===sk);
+    const cls = SOIL_CLS[st.soilType]||null;
+    const bors=[...new Set(samps.map(s=>s.boringLabel))];
+    const Ns=samps.map(s=>s.N).filter(Boolean);
+    const N160s=samps.map(s=>s.N160).filter(v=>v!=null);
+    const vals=samps.map(ssCalc).filter(v=>v!==null);
+    const avg=arr=>arr.length?(arr.reduce((a,b)=>a+b)/arr.length):null;
+    const unit = cls==='coarse'?'deg':(cls==='fine'?'ksf':'');
+    const fmtV = v => v===null?'':(cls==='coarse'?Math.round(v):v.toFixed(2));
+    return [st.label||sk,cls||'',st.gamma,bors.join('; '),samps.length,
+      Ns.length?Math.min(...Ns):'',Ns.length?Math.max(...Ns):'',
+      avg(N160s)!==null?avg(N160s).toFixed(1):'',
+      vals.length?fmtV(Math.min(...vals)):'',vals.length?fmtV(Math.max(...vals)):'',
+      vals.length?fmtV(avg(vals)):'',unit,designValues[sk]||''
+    ].join(',');
+  });
+  dl([hdrs.join(','),...body].join('\n'), 'ShearStrength_Summary.csv');
+}
+
+function dl(csv, fname) {
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=fname; a.click();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REFERENCES
+// ═══════════════════════════════════════════════════════════════════════════
+function toggleRef() {
+  const b=document.getElementById('refBody'),t=document.getElementById('refToggle');
+  if(b.classList.contains('hidden')){b.classList.remove('hidden');t.textContent='Hide ▴';if(!b.dataset.built)buildRef();}
+  else{b.classList.add('hidden');t.textContent='Show ▾';}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SAVE / LOAD PROJECT
+// ═══════════════════════════════════════════════════════════════════════════
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function saveProject() {
+  const borData = boringKeys.map(bkey => {
+    const n = parseInt(document.getElementById(`sbody-${bkey}`)?.dataset.count) || 0;
+    return {
+      bkey,
+      label:    document.getElementById(`blabel-${bkey}`)?.value || '',
+      er:       document.getElementById(`ber-${bkey}`)?.value    || '60',
+      gw:       document.getElementById(`bgw-${bkey}`)?.value    || '10',
+      gse:      document.getElementById(`bgse-${bkey}`)?.value   || '',
+      nSamples: n,
+      samples:  Array.from({length: n}, (_, r) => ({
+        dep:         document.getElementById(`dep-${bkey}-${r}`)?.value   || '',
+        len:         document.getElementById(`len-${bkey}-${r}`)?.value   || '',
+        stratKey:    document.getElementById(`strat-${bkey}-${r}`)?.value || '',
+        stratManual: document.getElementById(`strat-${bkey}-${r}`)?.dataset?.manual || '',
+        N:           document.getElementById(`nval-${bkey}-${r}`)?.value  || '',
+        excl:        document.getElementById(`excl-${bkey}-${r}`)?.checked || false,
+      })),
+    };
+  });
+  const state = {
+    version: 1, kind: 'shear-strength',
+    savedAt: new Date().toISOString(),
+    globalParams: { gw: document.getElementById('inpGw')?.value || '62.4' },
+    nextSK, nextBK,
+    strata:       JSON.parse(JSON.stringify(strata)),
+    borings:      borData,
+    designValues: JSON.parse(JSON.stringify(designValues)),
+  };
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ShearStrength_${(borData[0]?.label||'project').replace(/[^a-zA-Z0-9_-]/g,'_')}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadProject() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try { restoreState(JSON.parse(evt.target.result)); }
+      catch(err) { alert('Could not load project file:\n' + err.message); }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
+function restoreState(state) {
+  if (!state?.version) throw new Error('Unrecognized file format — missing version field.');
+
+  Object.keys(strata).forEach(k => delete strata[k]);
+  document.getElementById('stratBody').innerHTML = '';
+  [...boringKeys].forEach(bkey => {
+    document.getElementById('tabbtn-'+bkey)?.remove();
+    document.getElementById('tabpanel-'+bkey)?.remove();
+  });
+  boringKeys.length = 0;
+  Object.keys(designValues).forEach(k => delete designValues[k]);
+  document.getElementById('summaryContent').innerHTML = '';
+
+  nextSK = state.nextSK || 1;
+  nextBK = state.nextBK || 1;
+
+  const gp = state.globalParams || {};
+  if (gp.gw !== undefined) { const el=document.getElementById('inpGw'); if(el) el.value = gp.gw; }
+
+  for (const [key, s] of Object.entries(state.strata || {})) {
+    strata[key] = s;
+    const ci   = s.colorIdx || 0;
+    const dotBg = STRAT_COLORS[ci % STRAT_COLORS.length].bg;
+    const dotBr = STRAT_COLORS[ci % STRAT_COLORS.length].br;
+    const so    = soilOpts();
+    const tbody = document.getElementById('stratBody');
+    const tr    = document.createElement('tr');
+    tr.id = 'stratrow-' + key;
+    tr.innerHTML = `
+      <td class="rownum">${tbody.children.length+1}</td>
+      <td style="white-space:nowrap"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${dotBg};border:2px solid ${dotBr};margin-right:5px;vertical-align:middle"></span>
+        <input type="text" value="${escHtml(s.label)}" placeholder="e.g. CL-1" style="width:78px"
+          oninput="strata['${key}'].label=this.value;refreshStratDropdowns()"></td>
+      <td><select style="width:207px" onchange="strata['${key}'].soilType=this.value;refreshStratDropdowns()">${so}</select></td>
+      <td><input type="number" value="${s.gamma||120}" step="1" style="width:86px;text-align:center"
+        oninput="strata['${key}'].gamma=parseFloat(this.value)||120;recalcAllBorings()"></td>
+      <td><input type="text" value="${escHtml(s.desc||'')}" placeholder="optional" style="width:240px"
+        oninput="strata['${key}'].desc=this.value"></td>
+      <td><button class="btn-del" onclick="deleteStratum('${key}')">×</button></td>`;
+    tbody.appendChild(tr);
+    tr.querySelector('select').value = s.soilType || '';
+  }
+  refreshStratDropdowns();
+
+  for (const bdata of (state.borings || [])) {
+    const bkey   = bdata.bkey;
+    boringKeys.push(bkey);
+    const counter = boringKeys.length;
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn'; btn.id = 'tabbtn-' + bkey;
+    btn.textContent = bdata.label || ('B-' + counter);
+    btn.onclick = () => switchTab(bkey);
+    document.getElementById('tabBar').insertBefore(btn, document.querySelector('.add-tab'));
+    const panel = document.createElement('div');
+    panel.id = 'tabpanel-' + bkey; panel.className = 'tab-panel';
+    panel.innerHTML = boringPanelHTML(bkey, counter);
+    document.getElementById('tabPanels').appendChild(panel);
+    const sv = (id, v) => { const el=document.getElementById(id); if(el&&v!==undefined) el.value=v; };
+    sv(`blabel-${bkey}`, bdata.label);
+    sv(`ber-${bkey}`,    bdata.er);
+    sv(`bgw-${bkey}`,    bdata.gw);
+    sv(`bgse-${bkey}`,   bdata.gse);
+    sv(`bns-${bkey}`,    bdata.nSamples);
+    const ceEl = document.getElementById(`bce-${bkey}`);
+    if (ceEl) ceEl.textContent = ((parseFloat(bdata.er)||60)/60).toFixed(2);
+    updateSampleCount(bkey, bdata.nSamples || 0);
+    (bdata.samples || []).forEach((s, r) => {
+      sv(`dep-${bkey}-${r}`,  s.dep);
+      sv(`len-${bkey}-${r}`,  s.len);
+      sv(`nval-${bkey}-${r}`, s.N);
+      const ss = document.getElementById(`strat-${bkey}-${r}`);
+      if (ss) { ss.value = s.stratKey||''; ss.dataset.manual = s.stratManual||''; }
+      const ex = document.getElementById(`excl-${bkey}-${r}`);
+      if (ex) { ex.checked = s.excl||false; if(s.excl) toggleExclude(bkey, r); }
+    });
+    recalcBoring(bkey);
+  }
+
+  Object.assign(designValues, state.designValues || {});
+  if (boringKeys.length) {
+    switchTab(boringKeys[0]);
+    boringKeys.forEach(bkey => document.getElementById(`bres-${bkey}`)?.classList.add('hidden'));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOLTIP (plot hover)
+// ═══════════════════════════════════════════════════════════════════════════
+function showPlotTip(el, evt) {
+  let tip = document.getElementById('plot-tip');
+  if (!tip) { tip = document.createElement('div'); tip.id = 'plot-tip'; document.body.appendChild(tip); }
+  const parts = el.getAttribute('data-tip').split('||');
+  tip.innerHTML = `<strong style="font-size:12px;color:#93c5fd">${parts[0]}</strong>` +
+    parts.slice(1).map(l => `<div style="color:#c8ddf0">${l}</div>`).join('');
+  tip.style.display = 'block';
+  movePlotTip(evt);
+}
+function movePlotTip(evt) {
+  const tip = document.getElementById('plot-tip');
+  if (!tip || tip.style.display === 'none') return;
+  const x = evt.clientX + 15, y = evt.clientY - 12;
+  tip.style.left = Math.min(x, window.innerWidth  - tip.offsetWidth  - 8) + 'px';
+  tip.style.top  = Math.max(4, Math.min(y, window.innerHeight - tip.offsetHeight - 8)) + 'px';
+}
+function hidePlotTip() {
+  const tip = document.getElementById('plot-tip');
+  if (tip) tip.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PLOT HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+function niceStep(range, nTicks) {
+  const raw = range / nTicks;
+  const pow = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+  const m   = raw/pow < 2 ? 1 : raw/pow < 5 ? 2 : 5;
+  return pow * m;
+}
+
+function makeSvgBase(VW, VH, ML, MR, MT, MB, xMax, yLo, yHi, useElev, xLabelFmt) {
+  const PW = VW - ML - MR, PH = VH - MT - MB;
+  const sx = v => ML + (v / xMax) * PW;
+  const sy = v => useElev ? MT + (yHi - v) / (yHi - yLo) * PH : MT + (v - yLo) / (yHi - yLo) * PH;
+
+  const xStep  = niceStep(xMax, 8);
+  const xTicks = [];
+  for (let e = 0; e <= xMax + 0.001; e += xStep) xTicks.push(e);
+
+  const yStep  = niceStep(yHi - yLo || 10, 8);
+  const yStart = Math.ceil(yLo / yStep) * yStep;
+  const yTicks = [];
+  for (let y = yStart; y <= yHi + 0.001; y += yStep) yTicks.push(parseFloat(y.toFixed(4)));
+
+  let s = `<rect x="${ML}" y="${MT}" width="${PW}" height="${PH}" fill="#f8fafc" stroke="#c8d6e5" stroke-width="1"/>`;
+  xTicks.forEach(e => {
+    const x = sx(e);
+    s += `<line x1="${x}" y1="${MT}" x2="${x}" y2="${MT+PH}" stroke="${e===0?'#8ba9c0':'#dde6ef'}" stroke-width="${e===0?1.5:.7}" stroke-dasharray="${e===0?'none':'3,3'}"/>`;
+    s += `<text x="${x}" y="${MT+PH+18}" text-anchor="middle" font-size="11" fill="#5a738a">${xLabelFmt(e)}</text>`;
+  });
+  yTicks.forEach(y => {
+    const yp = sy(y);
+    if (yp < MT - 1 || yp > MT + PH + 1) return;
+    s += `<line x1="${ML}" y1="${yp}" x2="${ML+PW}" y2="${yp}" stroke="#dde6ef" stroke-width=".7"/>`;
+    s += `<text x="${ML-10}" y="${yp+4}" text-anchor="end" font-size="11" fill="#5a738a">${y.toFixed(useElev ? 1 : 0)}</text>`;
+  });
+  s += `<line x1="${ML}" y1="${MT}" x2="${ML}" y2="${MT+PH}" stroke="#4a7daa" stroke-width="2"/>`;
+  s += `<line x1="${ML}" y1="${MT+PH}" x2="${ML+PW}" y2="${MT+PH}" stroke="#4a7daa" stroke-width="2"/>`;
+  return { s, sx, sy, PW, PH };
+}
+
+// Build a single strength-vs-depth SVG for one class ('coarse' or 'fine')
+function buildClassPlot(pts, cls, useElev, yLo, yHi, titlePrefix) {
+  const isPhi = cls==='coarse';
+  const col   = isPhi ? {line:'#b5781f', mark:'#8a5300'} : {line:'#2a93a6', mark:'#0e5b6b'};
+  const xLabel= isPhi ? 'Friction Angle, φ (deg)' : 'Undrained Shear Strength, Sᵤ (ksf)';
+  const xfmt  = isPhi ? (e=>Math.round(e)) : (e=>e.toFixed(e<1?2:1));
+  const VW=560, VH=620, ML=70, MR=22, MT=40, MB=64;
+
+  const cp = pts.filter(p=>p.cls===cls && p.val!==null);
+  if (!cp.length) {
+    return `<div class="card" style="margin:0"><div class="card-head"><div class="card-head-l"><div class="dot"></div>${titlePrefix} ${isPhi?'φ Profile':'Sᵤ Profile'}</div></div>
+      <div class="card-body"><div class="plot-note">No ${isPhi?'coarse-grained':'fine-grained'} samples.</div></div></div>`;
+  }
+
+  const allX = cp.map(p=>p.val);
+  let xMax = isPhi ? Math.ceil(Math.max(...allX,30)/5)*5
+                   : Math.ceil(Math.max(...allX)/0.5)*0.5 || 1;
+  if (xMax<=0) xMax = isPhi?45:1;
+
+  const { s: grid, sx, sy, PH } = makeSvgBase(VW, VH, ML, MR, MT, MB, xMax, yLo, yHi, useElev, xfmt);
+  let data = '';
+  // connecting line (segment colored by "from" point's stratum)
+  for (let i=1;i<cp.length;i++){
+    const segCol = cp[i-1].sc ? cp[i-1].sc.br : col.line;
+    data += `<line x1="${sx(cp[i-1].val)}" y1="${sy(cp[i-1].yVal)}" x2="${sx(cp[i].val)}" y2="${sy(cp[i].yVal)}" stroke="${segCol}" stroke-width="2" opacity="0.75"/>`;
+  }
+  // markers + hit targets (filled with stratum color)
+  cp.forEach(p=>{
+    const x=sx(p.val), yp=sy(p.yVal);
+    const fill = p.sc ? p.sc.bg : col.mark;
+    const edge = p.sc ? p.sc.br : col.mark;
+    data += `<circle cx="${x}" cy="${yp}" r="4.5" fill="${fill}" stroke="${edge}" stroke-width="1.8"/>`;
+    const depStr  = `${p.dep.toFixed(1)} ft${p.elev!==null?` (El. ${p.elev.toFixed(1)} ft)`:''}`;
+    const valStr  = isPhi ? `${Math.round(p.val)}°` : `${p.val.toFixed(2)} ksf`;
+    const tip = escHtml([
+      p.blabel || titlePrefix,
+      `Depth: ${depStr}`,
+      `N = ${p.N}   (N₁)₆₀ = ${p.N160!==null?p.N160.toFixed(1):'—'}`,
+      `${isPhi?'φ':'Sᵤ'} = ${valStr}`
+    ].join('||'));
+    data += `<rect x="${ML}" y="${yp-7}" width="${VW-ML-MR}" height="14" fill="transparent" style="cursor:crosshair" data-tip="${tip}" onmouseover="showPlotTip(this,event)" onmousemove="movePlotTip(event)" onmouseout="hidePlotTip()"/>`;
+  });
+
+  const yLabel = useElev ? 'Elevation (ft)' : 'Depth (ft bgs)';
+  let svg = `<svg viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<style>text{font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif}</style>`;
+  svg += grid + data;
+  svg += `<text x="${ML+(VW-ML-MR)/2}" y="${VH-10}" text-anchor="middle" font-size="12" font-weight="600" fill="#1a2b3c">${xLabel}</text>`;
+  svg += `<text transform="translate(13,${MT+PH/2}) rotate(-90)" text-anchor="middle" font-size="12" font-weight="600" fill="#1a2b3c">${yLabel}</text>`;
+  svg += `<text x="${ML+(VW-ML-MR)/2}" y="${MT-14}" text-anchor="middle" font-size="13" font-weight="700" fill="${col.mark}">${escHtml(titlePrefix)} — ${isPhi?'φ':'Sᵤ'} vs. ${useElev?'Elevation':'Depth'}</text>`;
+  svg += '</svg>';
+  return `<div class="card" style="margin:0"><div class="card-head"><div class="card-head-l"><div class="dot" style="background:${col.mark}"></div>${titlePrefix} — ${isPhi?'φ (coarse-grained)':'Sᵤ (fine-grained)'}</div></div>
+    <div class="card-body"><div class="plot-wrap">${svg}</div></div></div>`;
+}
+
+// ─── BORING PLOTS (side-by-side φ and Su) ────────────────────────────────────
+function buildBoringPlot(bkey, rows) {
+  const container = document.getElementById(`bplot-${bkey}`);
+  if (!container) return;
+  const gseRaw  = document.getElementById(`bgse-${bkey}`)?.value ?? '';
+  const gse     = parseFloat(gseRaw);
+  const hasElev = gseRaw !== '' && !isNaN(gse);
+  const blabel  = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+
+  const pts = rows.map(row => {
+    const v = ssCalc(row);
+    if (v===null) return null;
+    const yVal = hasElev ? gse - row.dep : row.dep;
+    const elev = hasElev ? gse - row.dep : null;
+    const ci   = row.stratKey && strata[row.stratKey] ? strata[row.stratKey].colorIdx : 0;
+    const sc   = STRAT_COLORS[ci % STRAT_COLORS.length];
+    return { dep:row.dep, yVal, elev, val:v, cls:row.cls, N:row.N, N160:row.N160, blabel, stratKey:row.stratKey, sc };
+  }).filter(Boolean);
+
+  if (!pts.length) {
+    container.innerHTML = '<div class="plot-note">No strength data — assign soil types to strata and re-run Calculate.</div>';
+    return;
+  }
+  pts.sort((a,b)=> hasElev ? b.yVal-a.yVal : a.yVal-b.yVal);
+
+  const allY = pts.map(p=>p.yVal);
+  let yLo = Math.min(...allY), yHi = Math.max(...allY);
+  const yPad = (yHi-yLo||10)*0.14;
+  if (hasElev){ yLo-=yPad; yHi+=yPad; } else { yLo=Math.max(0,yLo-yPad); yHi+=yPad; }
+
+  const hasC = pts.some(p=>p.cls==='coarse');
+  const hasF = pts.some(p=>p.cls==='fine');
+  let inner = '';
+  if (hasC) inner += buildClassPlot(pts,'coarse',hasElev,yLo,yHi,escHtml(blabel));
+  if (hasF) inner += buildClassPlot(pts,'fine',hasElev,yLo,yHi,escHtml(blabel));
+  const grid = (hasC && hasF) ? `<div class="plot-grid2">${inner}</div>` : inner;
+
+  // Stratum legend (color-coded, matching results columns)
+  const seen = new Set();
+  const legPts = pts.filter(p => { if (seen.has(p.stratKey)) return false; seen.add(p.stratKey); return true; });
+  let legend = '<div class="plot-legend">';
+  legPts.forEach(p => {
+    const lbl = (p.stratKey && strata[p.stratKey]?.label) ? escHtml(strata[p.stratKey].label) : (p.stratKey || '?');
+    legend += `<div class="plot-legend-item"><div class="plot-legend-swatch" style="background:${p.sc.bg};border-color:${p.sc.br}"></div><span>${lbl}</span></div>`;
+  });
+  legend += `<span class="plot-hint">color = stratum · hover points for sample info${hasElev?'':' · enter GSE for elevation axis'}</span></div>`;
+  container.innerHTML = grid + legend;
+}
+
+function rebuildBoringPlot(bkey) {
+  if (!document.getElementById(`bres-${bkey}`)?.classList.contains('hidden')) {
+    buildBoringPlot(bkey, readBoringRows(bkey));
+  }
+}
+
+// ─── SUMMARY PLOTS (all borings, colored by stratum, split φ / Su) ───────────
+const BOR_DASH = ['none','5,4','2,3','8,3,2,3','1,4'];
+function buildSummaryPlot(allSamples) {
+  const container = document.getElementById('splot');
+  if (!container) return;
+
+  const gseVals = boringKeys.map(bkey => {
+    const v = document.getElementById(`bgse-${bkey}`)?.value ?? '';
+    const f = parseFloat(v);
+    return v !== '' && !isNaN(f) ? f : null;
+  });
+  const useElev = boringKeys.length>0 && gseVals.every(v => v !== null);
+
+  const borGroups = boringKeys.map((bkey, bi) => {
+    const blabel = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+    const gse    = gseVals[bi];
+    const rows   = allSamples.filter(s => s.bkey === bkey);
+    const pts = rows.map(row => {
+      const v = ssCalc(row);
+      if (v===null) return null;
+      const yVal = (useElev && gse!==null) ? gse - row.dep : row.dep;
+      const elev = (useElev && gse!==null) ? gse - row.dep : null;
+      const ci   = row.stratKey && strata[row.stratKey] ? strata[row.stratKey].colorIdx : 0;
+      const sc   = STRAT_COLORS[ci % STRAT_COLORS.length];
+      return { dep:row.dep, yVal, elev, val:v, cls:row.cls, sc, stratKey:row.stratKey, blabel, N:row.N, N160:row.N160, dash:BOR_DASH[bi%BOR_DASH.length] };
+    }).filter(Boolean);
+    pts.sort((a,b)=> useElev ? b.yVal-a.yVal : a.yVal-b.yVal);
+    return { bkey, blabel, pts, dash:BOR_DASH[bi%BOR_DASH.length] };
+  }).filter(g => g.pts.length>0);
+
+  if (!borGroups.length) {
+    container.innerHTML = '<div class="plot-note" style="margin-top:10px">Run <strong>Calculate</strong> in each boring tab before generating the summary plot.</div>';
+    return;
+  }
+
+  const allPts = borGroups.flatMap(g=>g.pts);
+  const allY = allPts.map(p=>p.yVal);
+  let yLo=Math.min(...allY), yHi=Math.max(...allY);
+  const yPad=(yHi-yLo||10)*0.14;
+  if (useElev){ yLo-=yPad; yHi+=yPad; } else { yLo=Math.max(0,yLo-yPad); yHi+=yPad; }
+
+  const mk = (cls) => {
+    const isPhi = cls==='coarse';
+    const xLabel= isPhi ? 'Friction Angle, φ (deg)' : 'Undrained Shear Strength, Sᵤ (ksf)';
+    const xfmt  = isPhi ? (e=>Math.round(e)) : (e=>e.toFixed(e<1?2:1));
+    const VW=560, VH=640, ML=70, MR=22, MT=40, MB=64;
+    const cpAll = allPts.filter(p=>p.cls===cls);
+    if (!cpAll.length) return '';
+    const allX = cpAll.map(p=>p.val);
+    let xMax = isPhi ? Math.ceil(Math.max(...allX,30)/5)*5 : Math.ceil(Math.max(...allX)/0.5)*0.5 || 1;
+    if (xMax<=0) xMax = isPhi?45:1;
+    const { s:grid, sx, sy, PH } = makeSvgBase(VW,VH,ML,MR,MT,MB,xMax,yLo,yHi,useElev,xfmt);
+    let data='';
+    borGroups.forEach(g=>{
+      const cp = g.pts.filter(p=>p.cls===cls);
+      for (let i=1;i<cp.length;i++){
+        data += `<line x1="${sx(cp[i-1].val)}" y1="${sy(cp[i-1].yVal)}" x2="${sx(cp[i].val)}" y2="${sy(cp[i].yVal)}" stroke="${cp[i-1].sc.br}" stroke-width="2" opacity="0.85" stroke-dasharray="${g.dash}"/>`;
+      }
+      cp.forEach(p=>{
+        const x=sx(p.val), yp=sy(p.yVal);
+        data += `<circle cx="${x}" cy="${yp}" r="4" fill="${p.sc.bg}" stroke="${p.sc.br}" stroke-width="1.6"/>`;
+        const depStr  = `${p.dep.toFixed(1)} ft${p.elev!==null?` (El. ${p.elev.toFixed(1)} ft)`:''}`;
+        const valStr  = isPhi ? `${Math.round(p.val)}°` : `${p.val.toFixed(2)} ksf`;
+        const tip = escHtml([p.blabel, `Depth: ${depStr}`, `N = ${p.N}   (N₁)₆₀ = ${p.N160!==null?p.N160.toFixed(1):'—'}`, `${isPhi?'φ':'Sᵤ'} = ${valStr}`].join('||'));
+        data += `<rect x="${x-7}" y="${yp-7}" width="14" height="14" fill="transparent" style="cursor:crosshair" data-tip="${tip}" onmouseover="showPlotTip(this,event)" onmousemove="movePlotTip(event)" onmouseout="hidePlotTip()"/>`;
+      });
+    });
+    const yLabel = useElev ? 'Elevation (ft)' : 'Depth (ft bgs)';
+    const mark = isPhi?'#8a5300':'#0e5b6b';
+    let svg = `<svg viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg">`;
+    svg += `<style>text{font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif}</style>`;
+    svg += grid + data;
+    svg += `<text x="${ML+(VW-ML-MR)/2}" y="${VH-10}" text-anchor="middle" font-size="12" font-weight="600" fill="#1a2b3c">${xLabel}</text>`;
+    svg += `<text transform="translate(13,${MT+PH/2}) rotate(-90)" text-anchor="middle" font-size="12" font-weight="600" fill="#1a2b3c">${yLabel}</text>`;
+    svg += `<text x="${ML+(VW-ML-MR)/2}" y="${MT-14}" text-anchor="middle" font-size="13" font-weight="700" fill="${mark}">${isPhi?'φ':'Sᵤ'} vs. ${useElev?'Elevation':'Depth'} — All Borings</text>`;
+    svg += '</svg>';
+    return `<div class="card" style="margin:0"><div class="card-head"><div class="card-head-l"><div class="dot" style="background:${mark}"></div>${isPhi?'φ Profile (coarse-grained)':'Sᵤ Profile (fine-grained)'}</div></div>
+      <div class="card-body"><div class="plot-wrap">${svg}</div></div></div>`;
+  };
+
+  const hasC = allPts.some(p=>p.cls==='coarse');
+  const hasF = allPts.some(p=>p.cls==='fine');
+  let inner='';
+  if (hasC) inner += mk('coarse');
+  if (hasF) inner += mk('fine');
+  const grid = (hasC && hasF) ? `<div class="plot-grid2">${inner}</div>` : inner;
+
+  // Legends: strata (color) + borings (dash)
+  const seenStrat=new Set();
+  const stratLeg = allPts.filter(p=>{ if(seenStrat.has(p.stratKey))return false; seenStrat.add(p.stratKey); return true; });
+  let legend = '<div class="plot-legend" style="margin-top:12px">';
+  stratLeg.forEach(p=>{
+    const lbl=(p.stratKey&&strata[p.stratKey]?.label)?escHtml(strata[p.stratKey].label):(p.stratKey||'?');
+    legend += `<div class="plot-legend-item"><div class="plot-legend-swatch" style="background:${p.sc.bg};border-color:${p.sc.br}"></div><span>${lbl}</span></div>`;
+  });
+  borGroups.forEach((g,i)=>{
+    legend += `<div class="plot-legend-item"><svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#5a738a" stroke-width="2" stroke-dasharray="${g.dash}"/></svg><span>${escHtml(g.blabel)}</span></div>`;
+  });
+  legend += `<span class="plot-hint">color = stratum · dash = boring · hover for sample info${useElev?'':' · enter GSE per boring for elevation mode'}</span></div>`;
+
+  const card = document.createElement('div');
+  card.className='card'; card.style.marginTop='16px';
+  card.innerHTML = `<div class="card-head"><div class="card-head-l"><div class="dot"></div>Shear Strength Profiles — All Borings</div></div>
+    <div class="card-body">${grid}${legend}</div>`;
+  container.innerHTML=''; container.appendChild(card);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PRINT
+// ═══════════════════════════════════════════════════════════════════════════
+function syncInputAttrs() {
+  document.querySelectorAll('input[type=number], input[type=text]').forEach(el => el.setAttribute('value', el.value));
+}
+function openPrintWindow(html) {
+  const w = window.open('', '_blank');
+  if (!w) { alert('Popup blocked — please allow popups for this page and try again.'); return; }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => { w.focus(); w.print(); }, 900);
+}
+function printAll() {
+  syncInputAttrs();
+  let body = printHeaderBar();
+  boringKeys.forEach((bk, i) => { if (i > 0) body += '<div class="pg"></div>'; body += boringPrintSection(bk); });
+  body += '<div class="pg"></div>' + summaryPrintSection() + '<div class="pg"></div>' + refPrintSection();
+  openPrintWindow(printWrap(body));
+}
+function printSummaryPage() {
+  syncInputAttrs();
+  openPrintWindow(printWrap(printHeaderBar() + summaryPrintSection() + '<div class="pg"></div>' + refPrintSection()));
+}
+function printBoringPage(bkey) {
+  syncInputAttrs();
+  openPrintWindow(printWrap(printHeaderBar() + boringPrintSection(bkey)));
+}
+function printHeaderBar() {
+  const d = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  return `<div class="doc-hdr"><span>Shear Strength Correlation Calculator</span><span style="font-size:9pt;color:#5a738a">${d}</span></div>`;
+}
+function boringPrintSection(bkey) {
+  const rows    = readBoringRows(bkey);
+  const blabel  = document.getElementById(`blabel-${bkey}`)?.value || bkey;
+  const er      = document.getElementById(`ber-${bkey}`)?.value || '60';
+  const gw      = document.getElementById(`bgw-${bkey}`)?.value || '—';
+  const gseRaw  = document.getElementById(`bgse-${bkey}`)?.value ?? '';
+  const gse     = gseRaw !== '' ? parseFloat(gseRaw) : null;
+  const elevCol = gse !== null;
+
+  const plotEls = document.getElementById(`bplot-${bkey}`)?.querySelectorAll('svg');
+  let plotSVG = '';
+  if (plotEls && plotEls.length) plotEls.forEach(s=>plotSVG += `<div class="plot-cell">${s.outerHTML}</div>`);
+  else plotSVG = '<p class="no-data">Run Calculate in the app to generate the plots before printing.</p>';
+
+  const cols = stratColumns(rows);
+  let trows = '';
+  rows.forEach(row => {
+    const v   = ssCalc(row);
+    const dep = row.dep != null ? row.dep.toFixed(1) : '—';
+    const bot = (row.dep != null && row.len) ? (row.dep + row.len/12).toFixed(2) : '';
+    const depFmt = dep + (bot ? ` – ${bot}` : '');
+    const elStr  = (gse !== null && row.dep != null) ? (gse - row.dep).toFixed(1) : '';
+    let stratCells = '';
+    cols.forEach(c => {
+      if (row.stratKey === c.sk && v !== null) {
+        stratCells += `<td class="c mono fw" style="background:${c.sc.bg}">${fmtStratVal(c, v)}</td>`;
+      } else {
+        stratCells += `<td class="c" style="color:#bbb">—</td>`;
+      }
+    });
+    if (!cols.length) stratCells = `<td class="c" style="color:#bbb">—</td>`;
+    trows += `<tr>
+      <td class="c">${row.rowNum}</td>
+      <td class="c mono">${depFmt}</td>
+      ${elevCol ? `<td class="c mono">${elStr}</td>` : ''}
+      <td class="c">${row.cls||'—'}</td>
+      <td class="c mono">${row.N}</td>
+      <td class="c mono">${row.N60 ? row.N60.toFixed(1) : '—'}</td>
+      <td class="c mono fw">${row.N160 != null ? row.N160.toFixed(1) : '—'}</td>
+      ${stratCells}
+    </tr>`;
+  });
+  const elevTh = elevCol ? '<th>Elev. (ft)</th>' : '';
+  // per-stratum headers (tinted)
+  let stratTh = cols.map(c => {
+    const metric = c.cls==='coarse' ? 'φ (deg)' : c.cls==='fine' ? 'Sᵤ (ksf)' : '';
+    return `<th style="background:${c.sc.br};color:#1a2b3c">${escHtml(c.st.label||c.sk)}<br><span style="font-weight:400;font-size:6.5pt">${metric}</span></th>`;
+  }).join('');
+  if (!cols.length) stratTh = '<th>Strength</th>';
+  const nCols = 7 + (elevCol?1:0) + (cols.length||1);
+  const paramStr = `ER = ${er}%  |  GWT = ${gw} ft bgs${gse !== null ? `  |  GSE = ${gse.toFixed(1)} ft` : ''}`;
+  const calcStr  = `φ = 27.1 + 0.3·(N₁)₆₀ − 0.00054·(N₁)₆₀²  |  Sᵤ = (N₁)₆₀/7.5 ksf  |  CN = 0.77·log(20/σ'v,tsf) [coarse], 1.0 [fine]`;
+
+  return `<div class="section">
+    <div class="bor-hdr-print"><span class="bor-id">${escHtml(blabel)}</span><span class="bor-params">${paramStr}</span></div>
+    <p class="calc-params">${calcStr}</p>
+    <table>
+      <thead><tr><th>#</th><th>Depth (ft)</th>${elevTh}<th>Class</th><th>N</th><th>N₆₀</th><th>(N₁)₆₀</th>${stratTh}</tr></thead>
+      <tbody>${trows || `<tr><td colspan="${nCols}" class="c" style="color:#888">No data — check that samples have N values and strata assigned.</td></tr>`}</tbody>
+    </table>
+    <div class="plot-print">${plotSVG}</div>
+  </div>`;
+}
+function summaryPrintSection() {
+  const sumEl = document.getElementById('summaryContent');
+  const splotEls = document.getElementById('splot')?.querySelectorAll('svg');
+  const sumHTML = sumEl?.innerHTML || '<p class="no-data">Run Generate Summary before printing.</p>';
+  let plotSVG = '';
+  if (splotEls && splotEls.length) splotEls.forEach(s=>plotSVG += `<div class="plot-cell">${s.outerHTML}</div>`);
+  return `<div class="section"><h2>Shear Strength Summary — All Borings</h2>${sumHTML}${plotSVG ? '<div class="plot-print" style="margin-top:14pt">' + plotSVG + '</div>' : ''}</div>`;
+}
+function refPrintSection() {
+  return `<div class="section"><h2>Correlation Formulas</h2>${formulasHTML()}<h2 style="margin-top:18pt">References</h2>${bibRefHTML()}<div class="tbl-note" style="margin-top:10pt">${assumptionsNote()}</div></div>`;
+}
+function printWrap(body) {
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Shear Strength Calculator</title><style>${printCSS()}</style></head><body>${body}</body></html>`;
+}
+function printCSS() {
+  return `
+    @page{size:letter portrait;margin:.75in}
+    :root{--navy:#0c1f35;--navy2:#152d4a;--mono:'IBM Plex Mono',monospace;--muted:#5a738a;--border:#c8d6e5}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;font-size:10pt;color:#1a2b3c;line-height:1.5}
+    h2{font-size:12pt;font-weight:700;color:var(--navy);border-bottom:2pt solid var(--navy);padding-bottom:3pt;margin:14pt 0 8pt}
+    table{border-collapse:collapse;width:100%;font-size:8pt;margin-bottom:10pt}
+    th{background:#152d4a;color:#fff;padding:4pt 5pt;text-align:center;font-size:7.5pt;font-weight:600;border:1pt solid #4a6a8a}
+    td{padding:3pt 5pt;border:1pt solid var(--border);vertical-align:middle}
+    tr:nth-child(even) td{background:#f8fafc}
+    .pg{page-break-before:always}
+    .section{page-break-inside:avoid}
+    .doc-hdr{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:5pt;border-bottom:2pt solid var(--navy);margin-bottom:12pt;font-size:13pt;font-weight:700;color:var(--navy)}
+    .bor-hdr-print{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4pt}
+    .bor-id{font-size:14pt;font-weight:700;color:var(--navy)}
+    .bor-params{font-family:var(--mono);font-size:8.5pt;color:var(--muted)}
+    .calc-params{font-size:7.5pt;color:var(--muted);margin-bottom:8pt}
+    .c{text-align:center}.mono{font-family:var(--mono)}.fw{font-weight:600}.amber{color:#8a5300}.teal{color:#0e5b6b}
+    .plot-print{page-break-before:always;display:flex;flex-wrap:wrap;gap:8pt;justify-content:center}
+    .plot-cell{width:48%}.plot-cell svg{width:100%;height:auto;display:block}
+    .no-data{color:#888;font-style:italic;font-size:9pt;margin:8pt 0}
+    .tbl-note{font-size:8pt;color:var(--muted);padding:4pt 8pt;border-left:2pt solid var(--border);line-height:1.6}
+    .badge{font-size:7pt;font-weight:700;padding:1pt 5pt;border-radius:8pt}
+    .sum-tbl{border-collapse:collapse;width:100%}
+    .sum-tbl th{background:#152d4a;color:#fff;padding:5pt 6pt;border:1pt solid #4a6a8a;font-size:7.5pt}
+    .sum-tbl td{padding:3pt 6pt;border:1pt solid var(--border);font-size:8pt}
+    .sum-tbl tr:nth-child(even) td{background:#f8fafc}
+    .dv-input{font-family:var(--mono);font-size:8pt;border:1pt solid #ccc;padding:2pt 4pt;width:60pt}
+    .res-wrap,.res-tbl{display:none}
+  `;
+}
+
+// ─── FORMULA + REFERENCE CONTENT (shared screen + print) ──────────────────────
+function formulasHTML() {
+  return `<table><thead><tr><th style="width:90pt">Applies To</th><th style="width:60pt">Output</th><th>Formula</th><th style="width:70pt">N-Type</th><th style="width:130pt">Source</th></tr></thead><tbody>
+<tr><td>Coarse-grained (granular)</td><td style="text-align:center"><strong>φ</strong> (deg)</td><td style="font-family:monospace;font-size:8.5pt">φ = 27.1 + 0.3·(N₁)₆₀ − 0.00054·(N₁)₆₀²</td><td style="text-align:center">(N₁)₆₀</td><td>Peck, Hanson &amp; Thornburn (1974)</td></tr>
+<tr><td>Fine-grained (cohesive)</td><td style="text-align:center"><strong>Sᵤ</strong> (ksf)</td><td style="font-family:monospace;font-size:8.5pt">Sᵤ = (N₁)₆₀ / 7.5</td><td style="text-align:center">(N₁)₆₀</td><td>Terzaghi &amp; Peck (1967); NAVFAC DM-7</td></tr>
+<tr><td>Overburden corr. (coarse)</td><td style="text-align:center">C<sub>N</sub></td><td style="font-family:monospace;font-size:8.5pt">C<sub>N</sub> = 0.77·log(20 / σ′<sub>v,tsf</sub>)</td><td style="text-align:center">—</td><td>Peck, Hanson &amp; Thornburn (1974)</td></tr>
+<tr><td>Overburden corr. (fine)</td><td style="text-align:center">C<sub>N</sub></td><td style="font-family:monospace;font-size:8.5pt">C<sub>N</sub> = 1.0 (set to unity)</td><td style="text-align:center">—</td><td>Convention for cohesive soils</td></tr>
+<tr><td>Energy correction</td><td style="text-align:center">C<sub>E</sub></td><td style="font-family:monospace;font-size:8.5pt">C<sub>E</sub> = ER / 60</td><td style="text-align:center">—</td><td>Skempton (1986)</td></tr>
+<tr><td>Rod length correction</td><td style="text-align:center">C<sub>R</sub></td><td style="font-family:monospace;font-size:8.5pt">1.00 (z&gt;32) · 0.95 (z&gt;19) · 0.85 (z&gt;13) · 0.75 (z≤13)</td><td style="text-align:center">—</td><td>Skempton (1986)</td></tr>
+</tbody></table>`;
+}
+function bibRefHTML() {
+  return `<table><thead><tr><th style="width:28pt">#</th><th style="width:90pt">Used For</th><th>Full Citation</th></tr></thead><tbody>
+<tr><td class="c">1</td><td>φ, C<sub>N</sub></td><td><strong>Peck, R.B., Hanson, W.E., and Thornburn, T.H. (1974).</strong> <em>Foundation Engineering,</em> 2nd Ed. Wiley, New York. Friction-angle correlation and overburden correction C<sub>N</sub> = 0.77·log(20/σ′<sub>v,tsf</sub>).</td></tr>
+<tr><td class="c">2</td><td>Sᵤ</td><td><strong>Terzaghi, K. and Peck, R.B. (1967).</strong> <em>Soil Mechanics in Engineering Practice,</em> 2nd Ed. Wiley, New York. Basis for the N-to-S<sub>u</sub> relationship for cohesive soils (S<sub>u</sub> ≈ N / 7.5 in ksf).</td></tr>
+<tr><td class="c">3</td><td>Sᵤ (corroborating)</td><td><strong>U.S. Navy (1986).</strong> <em>Soil Mechanics — Design Manual 7.01 (NAVFAC DM-7.01).</em> Naval Facilities Engineering Command. Tabulates consistency-vs-N and undrained strength ranges for cohesive soils.</td></tr>
+<tr><td class="c">4</td><td>N₆₀, C<sub>E</sub>, C<sub>R</sub></td><td><strong>Skempton, A.W. (1986).</strong> Standard Penetration Test Procedures. <em>Géotechnique,</em> 36(3), 425–447. Energy reference (60%) and rod-length correction.</td></tr>
+</tbody></table>`;
+}
+function assumptionsNote() {
+  return `<strong>Assumptions and limitations:</strong>
+  (1) σ′<sub>v</sub> uses cumulative layer-by-layer calculation in tsf; γ is reduced by γ<sub>w</sub> below the GWT.
+  (2) Overburden correction C<sub>N</sub> is applied only to coarse-grained samples (Peck/Hanson/Thornburn); it is set to 1.0 for fine-grained samples, so (N₁)₆₀ = N₆₀ there — matching the source spreadsheet.
+  (3) Both correlations are empirical and carry significant scatter; the φ relationship is best suited to clean sands and the S<sub>u</sub> relationship is a rough index for cohesive soils. Use the computed range to guide selection, not replace engineering judgment, and corroborate S<sub>u</sub> with lab or in-situ testing where consequential.
+  (4) Negative C<sub>N</sub> values (shallow, low σ′<sub>v</sub>) are floored at 0.`;
+}
+function buildRef() {
+  document.getElementById('refBody').innerHTML = `
+<p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+  The following support the shear-strength correlations (φ for coarse-grained, S<sub>u</sub> for fine-grained), the N-value corrections, and the σ′<sub>v</sub>-based overburden correction implemented in this calculator.
+</p>
+<h3 style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Correlation Formulas</h3>
+<div class="tbl-wrap">${formulasHTML().replace(/class="c"/g,'style="text-align:center"')}</div>
+<h3 style="font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.5px">Bibliographic References</h3>
+<table class="ref-tbl"><thead><tr><th style="width:34px">#</th><th style="width:120px">Used For</th><th>Full Citation</th></tr></thead><tbody>
+<tr><td>1</td><td>φ, C<sub>N</sub></td><td><strong>Peck, R.B., Hanson, W.E., and Thornburn, T.H. (1974).</strong> <em>Foundation Engineering,</em> 2nd Ed. Wiley, New York. Source of the SPT friction-angle correlation φ = 27.1 + 0.3·(N₁)₆₀ − 0.00054·(N₁)₆₀² and the overburden correction <code>C<sub>N</sub> = 0.77·log(20/σ′<sub>v,tsf</sub>)</code>.</td></tr>
+<tr><td>2</td><td>Sᵤ</td><td><strong>Terzaghi, K. and Peck, R.B. (1967).</strong> <em>Soil Mechanics in Engineering Practice,</em> 2nd Ed. Wiley, New York. Basis for estimating undrained shear strength of cohesive soils from SPT N (<code>Sᵤ ≈ N/7.5</code> ksf).</td></tr>
+<tr><td>3</td><td>Sᵤ</td><td><strong>U.S. Navy (1986).</strong> <em>Soil Mechanics — NAVFAC DM-7.01.</em> Naval Facilities Engineering Command, Alexandria, VA. Consistency-vs-N tables and undrained strength ranges corroborating the S<sub>u</sub> index.</td></tr>
+<tr><td>4</td><td>N₆₀, C<sub>E</sub>, C<sub>R</sub></td><td><strong>Skempton, A.W. (1986).</strong> Standard Penetration Test Procedures and the Effects in Sands of Overburden Pressure, Relative Density, Particle Size, Ageing and Overconsolidation. <em>Géotechnique,</em> 36(3), 425–447. <code>N₆₀ = N × C<sub>E</sub> × C<sub>R</sub></code>, <code>C<sub>E</sub> = ER/60</code>; rod-length correction C<sub>R</sub>.</td></tr>
+</tbody></table>
+<div class="tbl-note" style="margin-top:12px">${assumptionsNote()}</div>`;
+  document.getElementById('refBody').dataset.built = '1';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+function init() {
+  addStratum(); addStratum();
+  addBoring();
+}
+init();
+
+</script>
+
+</body>
+</html>
