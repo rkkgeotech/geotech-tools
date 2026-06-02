@@ -479,6 +479,7 @@ header {
   <div><span class="status-dot"></span>OFFLINE READY</div>
   <div id="stat-boring" style="font-weight:500">—</div>
   <div id="stat-counts">0S · 0L · 0R</div>
+  <div id="stat-autosave" title="Autosaves every 5 min" style="color:var(--muted)">—</div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -2026,6 +2027,94 @@ function loadJSON() {
   };
   input.click();
 }
+
+// ── AUTOSAVE ──────────────────────────────────────────────────────
+const AUTOSAVE_KEY = 'fieldlog_v2_autosave';
+const AUTOSAVE_MS  = 5 * 60 * 1000; // 5 minutes
+
+function autosave() {
+  try {
+    if (!state.project.name && !state.borings.length) return; // nothing worth saving
+    saveToCurrent(); // flush any open form fields into state
+    const snap = {
+      _tool:    'FieldLog v2',
+      _version: '2.0',
+      _saved:   new Date().toISOString(),
+      state:    JSON.parse(JSON.stringify(state))
+    };
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(snap));
+    const el = document.getElementById('stat-autosave');
+    if (el) {
+      const d = new Date();
+      el.textContent = 'SAVED ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+      el.style.color = 'var(--accent2)';
+      setTimeout(() => { el.style.color = 'var(--muted)'; }, 3000);
+    }
+  } catch(e) { console.warn('FieldLog: autosave failed', e); }
+}
+
+// Check for a recoverable autosave snapshot on startup
+(function checkAutosaveOnLoad() {
+  try {
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if (!raw) return;
+    const snap = JSON.parse(raw);
+    if (snap._tool !== 'FieldLog v2' || !snap.state) return;
+    const ageMin = (Date.now() - new Date(snap._saved).getTime()) / 60000;
+    if (ageMin > 1440) return; // ignore snapshots older than 24 h
+    window._pendingAutosave = snap;
+    setTimeout(showAutosaveBanner, 600);
+  } catch(e) {}
+})();
+
+function showAutosaveBanner() {
+  if (!window._pendingAutosave) return;
+  const snap = window._pendingAutosave;
+  const d    = new Date(snap._saved);
+  const proj = snap.state?.project?.name ? ' \u2014 ' + snap.state.project.name : '';
+  const nBor = snap.state?.borings?.length || 0;
+  const time = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  const date = d.toLocaleDateString([], {month:'short', day:'numeric'});
+  const banner = document.createElement('div');
+  banner.id = 'autosave-banner';
+  banner.style.cssText = 'position:fixed;bottom:36px;left:0;right:0;z-index:500;background:var(--accent);color:white;padding:9px 14px;display:flex;align-items:center;gap:10px;font-size:12px;font-family:var(--sans);box-shadow:0 -2px 10px rgba(0,0,0,.25)';
+  banner.innerHTML =
+    '<span style="flex:1">\u27F3 Autosave found \u2014 ' + date + ' ' + time + proj +
+    ' (' + nBor + ' boring' + (nBor !== 1 ? 's' : '') + ')</span>' +
+    '<button onclick="restoreAutosave()" style="background:white;color:var(--accent);border:none;padding:5px 12px;border-radius:3px;font-weight:600;cursor:pointer;font-size:12px;font-family:var(--sans)">Restore</button>' +
+    '<button onclick="dismissAutosaveBanner()" style="background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.3);padding:5px 10px;border-radius:3px;cursor:pointer;font-size:12px;font-family:var(--sans)">Dismiss</button>';
+  document.body.appendChild(banner);
+}
+
+function restoreAutosave() {
+  const snap = window._pendingAutosave;
+  if (!snap) return;
+  try {
+    state = snap.state;
+    syncCounters();
+    setv('proj-name',   state.project.name);
+    setv('proj-num',    state.project.num);
+    setv('proj-client', state.project.client);
+    setv('proj-state',  state.project.state);
+    setv('proj-county', state.project.county);
+    setv('proj-units',  state.project.units);
+    if (state.borings.length) state.activeBoring = 0;
+    renderBoringCards(); renderBoringSelect(); renderAll();
+    updateHdr(); updateStatusBar();
+    dismissAutosaveBanner();
+    showToast('Autosave restored \u2713', 'success');
+  } catch(e) {
+    showToast('Could not restore autosave', 'warn');
+  }
+}
+
+function dismissAutosaveBanner() {
+  const b = document.getElementById('autosave-banner');
+  if (b) b.remove();
+  window._pendingAutosave = null;
+}
+
+setInterval(autosave, AUTOSAVE_MS);
 
 // ── INIT ─────────────────────────────────────────────────────────
 renderBoringCards();

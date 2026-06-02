@@ -249,6 +249,7 @@ table.sum-tbl .warn-icon{color:var(--amber);font-size:12px}
     <div class="hdr-left">
       <h1>Field Infiltration Test <span>Log</span></h1>
       <div class="hdr-sub" id="hdrSub">RK&amp;K GEOTECHNICAL · CONSTANT HEAD · v2.0</div>
+      <div id="autosave-ind" style="font-size:9px;color:#4ade80;font-family:'IBM Plex Mono',monospace;margin-top:2px;letter-spacing:.4px;opacity:0;transition:opacity .4s">—</div>
     </div>
     <div class="hdr-right">
       <button class="hdr-btn sb-toggle" id="sbToggle" onclick="toggleSidebar()">☰ Tests</button>
@@ -1079,6 +1080,93 @@ function buildPrintHTML(){
 function toggleSidebar(){
   $('sidebar').classList.toggle('open');
 }
+
+// ════════════════════════════════════════════
+//  AUTOSAVE
+// ════════════════════════════════════════════
+const AUTOSAVE_KEY_INFIL = 'infiltration_log_autosave';
+const AUTOSAVE_MS_INFIL  = 5 * 60 * 1000; // 5 minutes
+
+function autosave() {
+  try {
+    if (!tests.length && !project.jobName) return; // nothing worth saving
+    const snap = {
+      _tool:       'Field Infiltration Test Log v2',
+      _version:    '2.0',
+      _saved:      new Date().toISOString(),
+      project:     JSON.parse(JSON.stringify(project)),
+      tests:       JSON.parse(JSON.stringify(tests)),
+      nextTestId,
+      activeTestId,
+      activeView
+    };
+    localStorage.setItem(AUTOSAVE_KEY_INFIL, JSON.stringify(snap));
+    const el = $('autosave-ind');
+    if (el) {
+      const d = new Date();
+      el.textContent = '\u25CF SAVED ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+      el.style.opacity = '1';
+      setTimeout(() => { if (el) el.style.opacity = '0.45'; }, 4000);
+    }
+  } catch(e) { console.warn('InfiltrationLog: autosave failed', e); }
+}
+
+// Check for a recoverable autosave snapshot on startup
+(function checkAutosaveOnLoad() {
+  try {
+    const raw = localStorage.getItem(AUTOSAVE_KEY_INFIL);
+    if (!raw) return;
+    const snap = JSON.parse(raw);
+    if (!snap._tool || !snap._tool.includes('Field Infiltration Test Log')) return;
+    const ageMin = (Date.now() - new Date(snap._saved).getTime()) / 60000;
+    if (ageMin > 1440) return; // ignore if older than 24 h
+    window._pendingAutosaveInfil = snap;
+    setTimeout(showAutosaveBanner, 600);
+  } catch(e) {}
+})();
+
+function showAutosaveBanner() {
+  if (!window._pendingAutosaveInfil) return;
+  const snap = window._pendingAutosaveInfil;
+  const d    = new Date(snap._saved);
+  const proj = snap.project?.jobName ? ' \u2014 ' + snap.project.jobName : '';
+  const nTests = snap.tests?.length || 0;
+  const time = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  const date = d.toLocaleDateString([], {month:'short', day:'numeric'});
+  const banner = document.createElement('div');
+  banner.id = 'autosave-banner';
+  banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--navy);color:white;padding:9px 16px;display:flex;align-items:center;gap:10px;font-size:12px;font-family:var(--sans);border-top:2px solid var(--blue2);box-shadow:0 -2px 10px rgba(0,0,0,.25)';
+  banner.innerHTML =
+    '<span style="flex:1">\u27F3 Autosave found \u2014 ' + date + ' ' + time + proj +
+    ' (' + nTests + ' test site' + (nTests !== 1 ? 's' : '') + ')</span>' +
+    '<button onclick="restoreAutosave()" style="background:var(--blue2);color:white;border:none;padding:5px 12px;border-radius:3px;font-weight:600;cursor:pointer;font-size:11px;font-family:var(--sans)">Restore</button>' +
+    '<button onclick="dismissAutosaveBanner()" style="background:rgba(255,255,255,.1);color:#b8d4ef;border:1px solid rgba(255,255,255,.2);padding:5px 10px;border-radius:3px;cursor:pointer;font-size:11px;font-family:var(--sans)">Dismiss</button>';
+  document.body.appendChild(banner);
+}
+
+function restoreAutosave() {
+  const snap = window._pendingAutosaveInfil;
+  if (!snap) return;
+  try {
+    project      = snap.project || {jobName:'',projectNo:'',loggedBy:''};
+    tests        = snap.tests   || [];
+    nextTestId   = snap.nextTestId || (tests.length ? Math.max(...tests.map(t=>t.id))+1 : 1);
+    activeTestId = snap.activeTestId || (tests.length ? tests[0].id : null);
+    activeView   = snap.activeView   || (tests.length ? 'test' : 'empty');
+    renderSidebar(); renderMainPanel(); updateHdrSub();
+    dismissAutosaveBanner();
+    const el = $('autosave-ind');
+    if (el) { el.textContent = '\u2713 RESTORED'; el.style.opacity = '1'; setTimeout(()=>{ el.style.opacity = '0.45'; }, 4000); }
+  } catch(e) { alert('Could not restore autosave: ' + e.message); }
+}
+
+function dismissAutosaveBanner() {
+  const b = $('autosave-banner');
+  if (b) b.remove();
+  window._pendingAutosaveInfil = null;
+}
+
+setInterval(autosave, AUTOSAVE_MS_INFIL);
 
 // ════════════════════════════════════════════
 //  INIT
