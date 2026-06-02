@@ -128,17 +128,9 @@ table.readings thead th:last-child{border-right:none}
 table.readings tbody td{padding:3px 4px;border-bottom:1px solid var(--border2);vertical-align:middle}
 table.readings tbody tr:last-child td{border-bottom:none}
 
-/* Row states */
-table.readings tbody tr.soak-row td{background:#f3f6fa!important}
-table.readings tbody tr.soak-row input{color:var(--muted)!important}
-table.readings tbody tr.start-row{border-left:3px solid var(--green)}
-table.readings tbody tr.start-row td{background:var(--green-lt)!important}
-table.readings tbody tr.start-row:hover td{background:#d1fae5!important}
 table.readings tbody tr:hover td{background:#f4f9ff}
-table.readings tbody tr.soak-row:hover td{background:#eaeff7!important}
 table.readings tbody tr.water-row td{background:#fffdf4}
 table.readings tbody tr.water-row:hover td{background:#fffae8}
-table.readings tbody tr.start-row.water-row td{background:#f0fdf4!important}
 
 table.readings input[type=text],table.readings input[type=number]{padding:4px 5px;font-size:11.5px;border:1px solid var(--border);border-radius:2px;background:#fff;color:var(--text)}
 table.readings input:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 2px rgba(36,113,201,.13)}
@@ -154,10 +146,13 @@ table.readings input:focus{outline:none;border-color:var(--blue2);box-shadow:0 0
 .chip-after{background:var(--amber-lt);color:var(--amber);border:1px solid var(--amber-mid)}
 .chip-nil{color:var(--muted2);font-family:var(--mono);font-size:12px}
 
-/* Test start checkbox */
-input.chk-start{width:14px;height:14px;cursor:pointer;accent-color:var(--green)}
+/* Checkbox */
 input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:#b45309}
 td.td-chk{text-align:center;padding:3px 5px!important}
+
+/* Soak stamp button */
+.btn-stamp{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;background:transparent;color:var(--steel);border:1px solid var(--border);border-radius:3px;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;transition:all .12s}
+.btn-stamp:hover{background:var(--blue);border-color:var(--blue);color:#fff}
 
 /* ── RESULTS ── */
 .formula-note{font-size:11.5px;color:var(--muted);background:#f4f8fc;border-left:3px solid var(--steel);padding:8px 12px;margin-bottom:13px;line-height:1.65}
@@ -169,8 +164,6 @@ table.rates thead th{background:#1e3a5c;color:rgba(255,255,255,.88);padding:6px 
 table.rates thead th:first-child{text-align:left}
 table.rates tbody td{padding:5px 10px;border-bottom:1px solid var(--border2);font-family:var(--mono);font-size:12px;text-align:center}
 table.rates tbody td:first-child{text-align:left;font-family:var(--sans);font-size:11px;color:var(--muted)}
-table.rates tbody tr.soak-iv td{color:var(--muted2);font-style:italic}
-table.rates tbody tr.soak-iv td:first-child{color:var(--muted2)}
 table.rates tbody tr:last-child td{border-bottom:none}
 table.rates tbody tr:hover td{background:#f5f9ff}
 .rate-pill{display:inline-block;padding:2px 9px;border-radius:9px;font-size:11px;font-weight:700;font-family:var(--mono)}
@@ -185,9 +178,7 @@ table.rates tbody tr:hover td{background:#f5f9ff}
 .sv{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--navy2);line-height:1.1}
 .sbox.hl .sv{color:var(--blue)}
 .su{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:1px}
-.soak-tag{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:#f1f5f9;color:var(--muted2);padding:1px 5px;border-radius:2px;margin-left:4px;font-family:var(--mono)}
 .warn-note{font-size:11.5px;color:#92400e;background:#fffbeb;border-left:3px solid #f59e0b;padding:8px 12px;margin-top:11px;line-height:1.6}
-.no-start-note{font-size:11.5px;color:var(--muted);background:#f8f9fb;border-left:3px solid var(--border);padding:8px 12px;margin-bottom:11px;line-height:1.65}
 
 /* ── SUMMARY VIEW ── */
 table.sum-tbl{width:100%;border-collapse:collapse;font-size:12px}
@@ -234,14 +225,13 @@ table.sum-tbl .warn-icon{color:var(--amber);font-size:12px}
   table th:first-child{text-align:left}
   table td{padding:3px 6px;border:1px solid #c8d6e5;font-size:9.5px}
   table td:first-child{text-align:left}
-  .p-soak{color:#8ba3bb;font-style:italic}
-  .p-start-row td{background:#ecfdf5!important;border-left:2px solid #166534}
+  .p-soak-row td{background:#eef4fb!important;color:#5a738a}
   .p-rates-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
   .p-rate-box{border:1px solid #c8d6e5;padding:6px 10px;min-width:130px}
   .p-rate-lbl{font-size:8.5px;font-weight:700;text-transform:uppercase;color:#5a738a;letter-spacing:.5px}
   .p-rate-val{font-size:16px;font-weight:700;color:#1d5fa8;font-family:'IBM Plex Mono',monospace}
   .p-rate-unit{font-size:9px;color:#5a738a;font-family:'IBM Plex Mono',monospace}
-  .p-no-start{font-size:9px;color:#5a738a;font-style:italic;margin-bottom:6px}
+  .p-rates-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 }
 @media(max-width:768px){
   .sidebar{position:fixed;left:-260px;top:52px;z-index:100;height:calc(100vh - 52px);transition:left .25s;box-shadow:2px 0 8px rgba(0,0,0,.12)}
@@ -298,8 +288,8 @@ function nowDate(){
   return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
 }
 function nowTime(){
-  const d=new Date(); let h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM';
-  h=h%12||12; return `${h}:${String(m).padStart(2,'0')} ${ap}`;
+  const d=new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 function parseMs(ds,ts){
   try{ const d=new Date(`${String(ds).trim()} ${String(ts).trim()}`); return isNaN(d.getTime())?null:d.getTime(); }catch{ return null; }
@@ -317,8 +307,7 @@ function calcHeadFor(t,td){
 // ════════════════════════════════════════════
 function calcRatesForTest(t){
   const pl=getPLfor(t);
-  if(!pl||t.entries.length<2) return {intervals:[],avgRate:null,ssRate:null};
-  const tsIdx=t.entries.findIndex(e=>e.isTestStart);
+  if(!pl||t.entries.length<2) return {intervals:[],avgRate:null,ssRate:null,testRates:[]};
   const ivs=[];
   for(let i=1;i<t.entries.length;i++){
     const prev=t.entries[i-1], curr=t.entries[i];
@@ -329,10 +318,9 @@ function calcRatesForTest(t){
     const eh=calcHeadFor(t,curr.tapdown);
     if(sh===null||eh===null){ ivs.push(null); continue; }
     const dh=(sh-eh)*12, rate=dh/dt;
-    const isTest=tsIdx>=0&&(i-1)>=tsIdx;
-    ivs.push({i,dt,sh,eh,dh,rate,isTest});
+    ivs.push({i,dt,sh,eh,dh,rate});
   }
-  const testRates=ivs.filter(iv=>iv&&iv.isTest&&iv.rate>0).map(iv=>iv.rate);
+  const testRates=ivs.filter(iv=>iv&&iv.rate>0).map(iv=>iv.rate);
   const avgRate=testRates.length?testRates.reduce((a,b)=>a+b,0)/testRates.length:null;
   const last2=testRates.slice(-2);
   const ssRate=last2.length?last2.reduce((a,b)=>a+b,0)/last2.length:null;
@@ -347,7 +335,9 @@ function getActiveTest(){ return tests.find(t=>t.id===activeTestId); }
 // ════════════════════════════════════════════
 function addTest(){
   const t={id:nextTestId++,locationId:'',gsEl:'',installDate:'',testType:'single',
-    pipeLength:'',stickup:'',seating:'6',innerDia:'5',outerDia:'',entries:[],nextEntryId:1};
+    pipeLength:'',stickup:'',seating:'6',innerDia:'5',outerDia:'',
+    soak:{date:'',time:'',tapdown:'',comments:''},
+    entries:[],nextEntryId:1};
   tests.push(t);
   activeTestId=t.id; activeView='test';
   renderSidebar(); renderMainPanel();
@@ -384,6 +374,23 @@ function updateTestPipe(tid,field,val){
   t.entries.forEach(e=>refreshChips(t,e.id));
   renderResults();
 }
+function updateSoak(tid,field,val){
+  const t=getTestByID(tid); if(!t) return;
+  t.soak[field]=val;
+  if(field==='tapdown'){
+    const el=$(`soakHead-${tid}`); if(!el) return;
+    const h=calcHeadFor(t,val);
+    el.textContent=h!==null?h.toFixed(2)+' ft':'—';
+    el.style.color=h!==null?'var(--blue2)':'var(--muted2)';
+  }
+}
+function soakFillNow(tid){
+  const t=getTestByID(tid); if(!t) return;
+  t.soak.date=nowDate(); t.soak.time=nowTime();
+  const dEl=$(`soakDate-${tid}`), tEl=$(`soakTime-${tid}`);
+  if(dEl) dEl.value=t.soak.date;
+  if(tEl) tEl.value=t.soak.time;
+}
 
 // ════════════════════════════════════════════
 //  ENTRY MANAGEMENT
@@ -391,13 +398,12 @@ function updateTestPipe(tid,field,val){
 function addEntry(){
   const t=getActiveTest(); if(!t) return;
   const e={id:t.nextEntryId++,date:nowDate(),time:nowTime(),
-    tapdown:'',outerTapdown:'',waterAdded:false,afterAddTapdown:'',isTestStart:false,comments:''};
+    tapdown:'',outerTapdown:'',waterAdded:false,afterAddTapdown:'',comments:''};
   t.entries.push(e);
   const tb=$('tBody');
   if(tb){
     if(tb.querySelector('.empty')) tb.innerHTML='';
-    const tsIdx=t.entries.findIndex(x=>x.isTestStart);
-    tb.appendChild(buildRowEl(t,e,t.entries.length-1,tsIdx));
+    tb.appendChild(buildRowEl(t,e,t.entries.length-1));
   }
   renderResults(); updateSidebarItem(t.id);
   setTimeout(()=>{ const inp=$(`td-${t.id}-${e.id}`); if(inp) inp.focus(); },30);
@@ -418,27 +424,11 @@ function toggleWater(tid,eid,checked){
   e.waterAdded=checked; if(!checked) e.afterAddTapdown='';
   const tb=$('tBody'); const rows=tb?.querySelectorAll('tr');
   const idx=t.entries.findIndex(x=>x.id===eid);
-  const tsIdx=t.entries.findIndex(x=>x.isTestStart);
   if(idx>=0&&rows&&rows[idx]){
-    tb.replaceChild(buildRowEl(t,e,idx,tsIdx),rows[idx]);
+    tb.replaceChild(buildRowEl(t,e,idx),rows[idx]);
     const cb=$(`wa-${tid}-${eid}`); if(cb) cb.focus();
   }
   renderResults();
-}
-function setTestStart(tid,eid,checked){
-  const t=getTestByID(tid); if(!t) return;
-  if(checked) t.entries.forEach(e=>e.isTestStart=false);
-  const entry=t.entries.find(e=>e.id===eid); if(entry) entry.isTestStart=checked;
-  const tsIdx=t.entries.findIndex(e=>e.isTestStart);
-  t.entries.forEach((e,i)=>{
-    const row=$(`row-${tid}-${e.id}`); if(!row) return;
-    row.classList.remove('soak-row','start-row','post-start-row');
-    if(tsIdx<0||i<tsIdx) row.classList.add('soak-row');
-    else if(i===tsIdx) row.classList.add('start-row');
-    else row.classList.add('post-start-row');
-    const cb=$(`tstart-${tid}-${e.id}`); if(cb) cb.checked=e.isTestStart;
-  });
-  renderResults(); updateSidebarItem(tid);
 }
 
 // ════════════════════════════════════════════
@@ -477,8 +467,6 @@ function buildSidebarHTML(){
       const typeBadge=t.testType==='double'?'DR':'SR';
       const isAct=activeView==='test'&&activeTestId===t.id;
       const lbl=t.locationId||`Test #${t.id}`;
-      const hasStart=t.entries.some(e=>e.isTestStart);
-      const warn=!hasStart&&t.entries.length>0?'<span class="si-warn" title="No Test Start marked">⚠</span>':'';
       testListHTML+=`
         <div class="si ${isAct?'si-active':''}" id="sidebar-item-${t.id}" onclick="activateTest(${t.id})">
           <div class="si-main">
@@ -486,7 +474,6 @@ function buildSidebarHTML(){
             <div class="si-meta">
               <span class="si-badge ${t.testType==='double'?'si-badge-dr':''}">${typeBadge}</span>
               <span class="si-rate ${rates.ssRate!==null?'si-rate-val':''}" id="si-rate-${t.id}">${rateStr}</span>
-              ${warn}
             </div>
           </div>
           <button class="btn-si-del" onclick="event.stopPropagation();deleteTest(${t.id})">✕</button>
@@ -659,6 +646,45 @@ function buildTestEditorHTML(t){
       </div>
     </div>
   </div>
+  <!-- Soak Period -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-l"><div class="dot"></div> 24-Hour Soak Period</div>
+      <button class="btn-stamp" onclick="soakFillNow(${tid})">⏱ Stamp Now</button>
+    </div>
+    <div class="card-body">
+      <div class="tbl-note" style="margin-bottom:13px">
+        Record the date, time, and tape-down measurement when the pipe is initially filled to begin the 24-hour presoak.
+        Test readings below will begin after the soak is complete.
+      </div>
+      <div class="field-row">
+        <div class="field" style="min-width:110px">
+          <label>Fill Date</label>
+          <input type="text" id="soakDate-${tid}" value="${esc(t.soak.date)}" placeholder="MM/DD/YYYY"
+            onchange="updateSoak(${tid},'date',this.value)">
+        </div>
+        <div class="field" style="min-width:90px">
+          <label>Fill Time</label>
+          <input type="text" id="soakTime-${tid}" value="${esc(t.soak.time)}" placeholder="HH:MM"
+            onchange="updateSoak(${tid},'time',this.value)">
+        </div>
+        <div class="field" style="min-width:100px">
+          <label>Tape-Down <span class="sub">(ft)</span></label>
+          <input type="number" id="soakTd-${tid}" value="${esc(t.soak.tapdown)}" step="0.01" placeholder="0.00"
+            oninput="updateSoak(${tid},'tapdown',this.value)">
+        </div>
+        <div class="field" style="justify-content:flex-end;padding-bottom:2px">
+          <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">Head</div>
+          <div id="soakHead-${tid}" style="font-family:var(--mono);font-size:15px;font-weight:700;color:${(()=>{const h=calcHeadFor(t,t.soak.tapdown);return h!==null?'var(--blue2)':'var(--muted2)'})()}">${(()=>{const h=calcHeadFor(t,t.soak.tapdown);return h!==null?h.toFixed(2)+' ft':'—'})()}</div>
+        </div>
+        <div class="field" style="flex:2;min-width:180px">
+          <label>Notes</label>
+          <input type="text" value="${esc(t.soak.comments)}" placeholder="e.g. Filled to 2.0-ft head"
+            onchange="updateSoak(${tid},'comments',this.value)">
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- Readings -->
   <div class="card">
     <div class="card-head">
@@ -668,8 +694,8 @@ function buildTestEditorHTML(t){
     <div class="card-body">
       <div class="tbl-note">
         Enter the measured distance from the <strong>top of pipe to the water surface</strong> (tape-down).
-        Mark the first reading of the actual test as <strong>Test Start</strong> — soak-period readings will
-        remain in the log but are excluded from infiltration rate calculations.
+        Inner Head is calculated as <strong>Head = Pipe Length − Tape-Down</strong>.
+        All readings here are post-soak test intervals and are included in the rate calculations below.
       </div>
       <div class="tbl-wrap">
         <table class="readings" id="tbl">
@@ -706,7 +732,6 @@ function updateRefPanelDOM(t){
 function buildTableHeadHTML(t){
   let h=`<tr>
     <th style="width:28px">#</th>
-    <th style="width:64px">Test<br>Start</th>
     <th style="width:92px">Date</th>
     <th style="width:74px">Time</th>
     <th style="width:76px">Tape-Down<br>(ft)</th>
@@ -721,22 +746,19 @@ function buildTableHeadHTML(t){
 }
 function buildTableBodyHTML(t){
   if(!t.entries.length) return `<tr><td colspan="20"><div class="empty" style="text-align:center;padding:24px 16px;color:var(--muted)">No readings yet — click <strong>+ Add Reading</strong> to begin.</div></td></tr>`;
-  const tsIdx=t.entries.findIndex(e=>e.isTestStart);
-  return t.entries.map((e,i)=>buildRowHTML(t,e,i,tsIdx)).join('');
+  return t.entries.map((e,i)=>buildRowHTML(t,e,i)).join('');
 }
 function renderTableBody(t){
   const tb=$('tBody'); if(!tb) return;
   tb.innerHTML=buildTableBodyHTML(t);
 }
-function buildRowHTML(t,e,i,tsIdx){
-  const el=buildRowEl(t,e,i,tsIdx); return el.outerHTML;
+function buildRowHTML(t,e,i){
+  const el=buildRowEl(t,e,i); return el.outerHTML;
 }
-function buildRowEl(t,e,i,tsIdx){
+function buildRowEl(t,e,i){
   const tid=t.id, eid=e.id;
   const tr=document.createElement('tr');
   tr.id=`row-${tid}-${eid}`;
-  if(tsIdx<0||i<tsIdx) tr.classList.add('soak-row');
-  else if(i===tsIdx) tr.classList.add('start-row');
   if(e.waterAdded) tr.classList.add('water-row');
 
   const innerH=fmtH(calcHeadFor(t,e.tapdown));
@@ -751,7 +773,6 @@ function buildRowEl(t,e,i,tsIdx){
 
   tr.innerHTML=`
     <td style="text-align:center;font-family:var(--mono);font-size:10.5px;color:var(--muted2);padding:3px 5px">${i+1}</td>
-    <td class="td-chk"><input type="checkbox" class="chk-start" id="tstart-${tid}-${eid}" ${e.isTestStart?'checked':''} onchange="setTestStart(${tid},${eid},this.checked)" title="Mark as Test Start"></td>
     <td style="text-align:center;padding:3px 3px"><input class="inp-dt" type="text" id="date-${tid}-${eid}" value="${esc(e.date)}" onchange="t_entries_update(${tid},${eid},'date',this.value)"></td>
     <td style="text-align:center;padding:3px 3px"><input class="inp-tm" type="text" id="time-${tid}-${eid}" value="${esc(e.time)}" onchange="t_entries_update(${tid},${eid},'time',this.value)"></td>
     <td style="text-align:center;padding:3px 3px"><input class="inp-td" type="number" id="td-${tid}-${eid}" value="${esc(e.tapdown)}" step="0.01" placeholder="0.00" oninput="onFieldInput(${tid},${eid},'tapdown',this.value)"></td>
@@ -784,39 +805,33 @@ function buildResultsHTML(t){
   const pl=getPLfor(t);
   if(!pl) return '<div style="text-align:center;padding:20px;color:var(--amber)">Enter pipe length to enable rate calculations.</div>';
   if(t.entries.length<2) return '<div style="text-align:center;padding:20px;color:var(--muted)">Add at least 2 readings to calculate the infiltration rate.</div>';
-  const tsIdx=t.entries.findIndex(e=>e.isTestStart);
   const {intervals,avgRate,ssRate,testRates}=calcRatesForTest(t);
   if(!intervals.filter(Boolean).length) return '<div style="text-align:center;padding:20px;color:var(--muted)">Could not calculate rates — verify dates, times, and tape-down values.</div>';
-
-  const noStartNote=tsIdx<0?`<div class="no-start-note">ℹ No <strong>Test Start</strong> has been marked — all intervals are being treated as soak/pre-test readings and are excluded from the rate summary. Mark a reading as Test Start to enable calculations.</div>`:'';
 
   let rows='';
   intervals.forEach((iv,i)=>{
     const lbl=`Reading ${i+1} → ${i+2}`;
-    if(!iv){ rows+=`<tr class="soak-iv"><td>${lbl}</td><td colspan="5" style="text-align:center;font-family:var(--sans);font-size:11px">Skipped — missing or invalid data</td></tr>`; return; }
-    const isSoak=!iv.isTest;
+    if(!iv){ rows+=`<tr><td>${lbl}</td><td colspan="5" style="text-align:center;font-family:var(--sans);font-size:11px;color:var(--muted2);font-style:italic">Skipped — missing or invalid data</td></tr>`; return; }
     const pillClass=iv.rate>0.001?'pill-pos':(iv.rate<-0.001?'pill-neg':'pill-zero');
-    const soakTag=isSoak?`<span class="soak-tag">Soak</span>`:'';
-    rows+=`<tr class="${isSoak?'soak-iv':''}">
-      <td>${lbl}${soakTag}</td>
+    rows+=`<tr>
+      <td>${lbl}</td>
       <td>${iv.dt.toFixed(3)}</td>
       <td>${(iv.sh*12).toFixed(2)}</td>
       <td>${(iv.eh*12).toFixed(2)}</td>
       <td>${iv.dh.toFixed(3)}</td>
-      <td>${isSoak?`<span class="chip-nil" style="font-size:11px">excluded</span>`:`<span class="rate-pill ${pillClass}">${iv.rate.toFixed(3)}</span>`}</td>
+      <td><span class="rate-pill ${pillClass}">${iv.rate.toFixed(3)}</span></td>
     </tr>`;
   });
 
-  const hasNeg=intervals.some(iv=>iv&&iv.isTest&&iv.rate<-0.001);
-  const summaryHTML=(tsIdx>=0&&(avgRate!==null||ssRate!==null))?`
+  const posCount=testRates.length;
+  const summaryHTML=(avgRate!==null||ssRate!==null)?`
     <div class="summary-row" style="margin-top:14px">
-      ${avgRate!==null?`<div class="sbox"><div class="sl">Overall Average Rate</div><div class="sv">${avgRate.toFixed(3)}</div><div class="su">in/hr · ${testRates.filter(r=>r>0).length} test interval${testRates.filter(r=>r>0).length!==1?'s':''}</div></div>`:''}
-      ${ssRate!==null?`<div class="sbox hl"><div class="sl">Steady-State Rate · last ${Math.min(2,testRates.filter(r=>r>0).length)} interval${Math.min(2,testRates.filter(r=>r>0).length)!==1?'s':''}</div><div class="sv">${ssRate.toFixed(3)}</div><div class="su">in/hr</div></div>`:''}
+      ${avgRate!==null?`<div class="sbox"><div class="sl">Overall Average Rate</div><div class="sv">${avgRate.toFixed(3)}</div><div class="su">in/hr · ${posCount} interval${posCount!==1?'s':''}</div></div>`:''}
+      ${ssRate!==null?`<div class="sbox hl"><div class="sl">Steady-State Rate · last ${Math.min(2,posCount)} interval${Math.min(2,posCount)!==1?'s':''}</div><div class="sv">${ssRate.toFixed(3)}</div><div class="su">in/hr</div></div>`:''}
     </div>`:'';
-  const warnHTML=hasNeg?`<div class="warn-note">⚠ One or more test intervals show a negative rate — verify tape-down measurements and timestamps.</div>`:'';
+  const warnHTML=intervals.some(iv=>iv&&iv.rate<-0.001)?`<div class="warn-note">⚠ One or more intervals show a negative rate — verify tape-down measurements and timestamps.</div>`:'';
 
-  return `${noStartNote}
-    <div class="formula-note">Rate calculated as <code>f = Δh / Δt</code> — Δh = drop in inner head (in), Δt = elapsed time (hr). Intervals following a water addition use the <strong>after-add head</strong> as the start head. <strong>Soak-period rows are excluded.</strong></div>
+  return `<div class="formula-note">Rate calculated as <code>f = Δh / Δt</code> — Δh = drop in inner head (in), Δt = elapsed time (hr). Intervals following a water addition use the <strong>after-add head</strong> as the start head.</div>
     <div class="tbl-wrap"><table class="rates">
       <thead><tr><th>Interval</th><th>Δt (hr)</th><th>Start Head (in)</th><th>End Head (in)</th><th>Δh (in)</th><th>Rate (in/hr)</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -832,26 +847,23 @@ function buildSummaryHTML(){
   const rows=tests.map((t,i)=>{
     const pl=getPLfor(t), su=parseFloat(t.stickup)||0;
     const depth=pl!==null?(pl-su).toFixed(2):'—';
-    const tsIdx=t.entries.findIndex(e=>e.isTestStart);
-    const tsEntry=tsIdx>=0?t.entries[tsIdx]:null;
-    const tsLabel=tsEntry?`${tsEntry.date} ${tsEntry.time}`:'—';
-    const {intervals,avgRate,ssRate,testRates}=calcRatesForTest(t);
-    const postIvCount=(testRates||[]).filter(r=>r>0).length;
-    const noStart=tsIdx<0&&t.entries.length>0;
+    const {avgRate,ssRate,testRates}=calcRatesForTest(t);
+    const ivCount=(testRates||[]).length;
     const lbl=t.locationId||`Test #${t.id}`;
     const typeBadge=t.testType==='double'?'<span style="font-size:9px;background:var(--green-lt);color:var(--green);padding:1px 5px;border-radius:2px;font-weight:700">Double</span>':'<span style="font-size:9px;background:var(--blue-lt);color:var(--blue2);padding:1px 5px;border-radius:2px;font-weight:700">Single</span>';
     if(ssRate!==null) validRates.push(ssRate);
     const installFmt=t.installDate?new Date(t.installDate+'T00:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}):'—';
+    const soakLabel=t.soak&&t.soak.date?`${t.soak.date}${t.soak.time?' '+t.soak.time:''}`:'—';
     return `<tr>
       <td>${i+1}</td>
       <td class="loc-id" style="cursor:pointer" onclick="activateTest(${t.id})">${esc(lbl)}</td>
       <td style="text-align:center">${typeBadge}</td>
       <td class="mono" style="text-align:center">${depth}</td>
       <td class="mono" style="text-align:center;font-size:11px">${installFmt}</td>
-      <td class="mono" style="text-align:center;font-size:10.5px">${esc(tsLabel)}</td>
-      <td class="mono" style="text-align:center">${tsIdx>=0?postIvCount:'<span class="no-rate">—</span>'}</td>
-      <td style="text-align:center">${avgRate!==null?`<span class="rate-val">${avgRate.toFixed(3)}</span>`:`<span class="no-rate">${noStart?'No test start':'—'}</span>`}</td>
-      <td style="text-align:center">${ssRate!==null?`<span class="rate-val">${ssRate.toFixed(3)}</span>`:`<span class="no-rate">${noStart?'No test start':'—'}</span>`}${noStart?'<span class="warn-icon" style="margin-left:4px">⚠</span>':''}</td>
+      <td class="mono" style="text-align:center;font-size:10.5px">${esc(soakLabel)}</td>
+      <td class="mono" style="text-align:center">${ivCount||'—'}</td>
+      <td style="text-align:center">${avgRate!==null?`<span class="rate-val">${avgRate.toFixed(3)}</span>`:`<span class="no-rate">—</span>`}</td>
+      <td style="text-align:center">${ssRate!==null?`<span class="rate-val">${ssRate.toFixed(3)}</span>`:`<span class="no-rate">—</span>`}</td>
     </tr>`;
   }).join('');
 
@@ -876,12 +888,11 @@ function buildSummaryHTML(){
       <div class="tbl-wrap"><table class="sum-tbl">
         <thead><tr>
           <th>#</th><th>Location ID</th><th>Test Type</th><th>Test Depth (ft)</th>
-          <th>Install Date</th><th>Test Start</th><th>Post-Test Intervals</th>
+          <th>Install Date</th><th>Soak Fill Date</th><th># Intervals</th>
           <th>Avg. Rate (in/hr)</th><th>SS Rate (in/hr)</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table></div>
-      ${tests.some(t=>!t.entries.some(e=>e.isTestStart)&&t.entries.length>0)?`<div class="warn-note" style="margin-top:10px">⚠ One or more test sites have readings but no Test Start marked — open the test and mark the first test reading to enable rate calculations.</div>`:''}
     </div>
   </div>`;
 }
@@ -935,18 +946,16 @@ function buildPrintHTML(){
   let sumRows=tests.map((t,i)=>{
     const pl=getPLfor(t),su=parseFloat(t.stickup)||0;
     const depth=pl!==null?(pl-su).toFixed(2):'—';
-    const tsIdx=t.entries.findIndex(e=>e.isTestStart);
-    const tsEntry=tsIdx>=0?t.entries[tsIdx]:null;
-    const tsLabel=tsEntry?`${tsEntry.date} ${tsEntry.time}`:'—';
     const {avgRate,ssRate,testRates}=calcRatesForTest(t);
-    const postIvCount=(testRates||[]).filter(r=>r>0).length;
+    const ivCount=(testRates||[]).length;
     const lbl=t.locationId||`Test #${t.id}`;
     const installFmt=t.installDate?new Date(t.installDate+'T00:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}):'—';
+    const soakLabel=t.soak&&t.soak.date?`${t.soak.date}${t.soak.time?' '+t.soak.time:''}`:'—';
     return `<tr>
       <td>${i+1}</td><td>${lbl}</td>
       <td>${t.testType==='double'?'Double-Ring':'Single-Ring'}</td>
-      <td>${depth}</td><td>${installFmt}</td><td>${tsLabel}</td>
-      <td>${tsIdx>=0?postIvCount:'—'}</td>
+      <td>${depth}</td><td>${installFmt}</td><td>${soakLabel}</td>
+      <td>${ivCount||'—'}</td>
       <td>${avgRate!==null?avgRate.toFixed(3):'—'}</td>
       <td>${ssRate!==null?ssRate.toFixed(3):'—'}</td>
     </tr>`;
@@ -955,18 +964,15 @@ function buildPrintHTML(){
   // Individual test logs
   let testPages=tests.map(t=>{
     const pl=getPLfor(t),su=parseFloat(t.stickup)||0;
-    const tsIdx=t.entries.findIndex(e=>e.isTestStart);
     const lbl=t.locationId||`Test #${t.id}`;
     const installFmt=t.installDate?new Date(t.installDate+'T00:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}):'—';
+    const soakHead=calcHeadFor(t,t.soak?.tapdown);
 
     let readingRows=t.entries.map((e,i)=>{
       const head=calcHeadFor(t,e.tapdown);
       const aaHead=(e.waterAdded&&e.afterAddTapdown!=='')?calcHeadFor(t,e.afterAddTapdown):null;
-      const isSoak=tsIdx<0||i<tsIdx, isStart=i===tsIdx;
-      const rowCls=isStart?'p-start-row':isSoak?'p-soak':'';
-      const tsCell=e.isTestStart?'✓':'';
-      let row=`<tr class="${rowCls}">
-        <td>${i+1}</td><td style="text-align:center">${tsCell}</td>
+      let row=`<tr>
+        <td>${i+1}</td>
         <td>${e.date}</td><td>${e.time}</td>
         <td style="text-align:right">${e.tapdown!==''?e.tapdown:'—'}</td>
         <td style="text-align:right">${head!==null?head.toFixed(2):'—'}</td>`;
@@ -984,14 +990,14 @@ function buildPrintHTML(){
     let rateRows=intervals.map((iv,i)=>{
       const lbl2=`Reading ${i+1} → ${i+2}`;
       if(!iv) return `<tr><td>${lbl2}</td><td colspan="5" style="font-style:italic;color:#8ba3bb">Skipped</td></tr>`;
-      const isSoak=!iv.isTest;
-      return `<tr class="${isSoak?'p-soak':''}">
-        <td>${lbl2}${isSoak?' (Soak)':''}</td>
+      const pillClass=iv.rate>0?'':'color:#854d0e';
+      return `<tr>
+        <td>${lbl2}</td>
         <td>${iv.dt.toFixed(3)}</td>
         <td>${(iv.sh*12).toFixed(2)}</td>
         <td>${(iv.eh*12).toFixed(2)}</td>
         <td>${iv.dh.toFixed(3)}</td>
-        <td>${isSoak?'—':iv.rate.toFixed(3)}</td></tr>`;
+        <td>${iv.rate.toFixed(3)}</td></tr>`;
     }).join('');
 
     return `<div class="p-page">
@@ -1008,17 +1014,27 @@ function buildPrintHTML(){
         <div class="p-info-cell"><div class="p-info-lbl">Inner Pipe Dia.</div><div class="p-info-val">${t.innerDia||'5'} in</div></div>
         ${t.testType==='double'?`<div class="p-info-cell"><div class="p-info-lbl">Outer Ring Dia.</div><div class="p-info-val">${t.outerDia||'—'} in</div></div>`:''}
       </div>
+      <div class="p-section-title">24-Hour Soak Period</div>
+      <table>
+        <thead><tr><th>Fill Date</th><th>Fill Time</th><th>Tape-Down (ft)</th><th>Head (ft)</th><th>Notes</th></tr></thead>
+        <tbody><tr class="p-soak-row">
+          <td>${t.soak?.date||'—'}</td>
+          <td>${t.soak?.time||'—'}</td>
+          <td style="text-align:right">${t.soak?.tapdown||'—'}</td>
+          <td style="text-align:right">${soakHead!==null?soakHead.toFixed(2):'—'}</td>
+          <td>${t.soak?.comments||''}</td>
+        </tr></tbody>
+      </table>
       <div class="p-section-title">Test Readings</div>
       <table>
         <thead><tr>
-          <th>#</th><th>Test Start</th><th>Date</th><th>Time</th>
+          <th>#</th><th>Date</th><th>Time</th>
           <th>Tape-Down (ft)</th><th>Inner Head (ft)</th>
           ${outerReadingHead}
           <th>Water Added?</th><th>After-Add Tape-Down (ft)</th><th>After-Add Head (ft)</th><th>Comments</th>
         </tr></thead>
         <tbody>${readingRows}</tbody>
       </table>
-      ${tsIdx<0?`<p class="p-no-start">Note: No Test Start marked — all intervals treated as soak period.</p>`:''}
       <div class="p-section-title">Infiltration Rate Analysis — Inner Ring</div>
       <table>
         <thead><tr><th>Interval</th><th>Δt (hr)</th><th>Start Head (in)</th><th>End Head (in)</th><th>Δh (in)</th><th>Rate (in/hr)</th></tr></thead>
@@ -1047,7 +1063,7 @@ function buildPrintHTML(){
       <table>
         <thead><tr>
           <th>#</th><th>Location ID</th><th>Test Type</th><th>Test Depth (ft)</th>
-          <th>Install Date</th><th>Test Start</th><th>Post-Test Intervals</th>
+          <th>Install Date</th><th>Soak Fill Date</th><th># Intervals</th>
           <th>Avg. Rate (in/hr)</th><th>SS Rate (in/hr)</th>
         </tr></thead>
         <tbody>${sumRows}</tbody>
