@@ -8,207 +8,175 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:       #f0f4f8;
-  --surface:  #e2e8f0;
-  --card:     #ffffff;
-  --border:   #cbd5e1;
-  --accent:   #16a34a;
-  --blue:     #2563eb;
-  --amber:    #d97706;
-  --purple:   #7c3aed;
-  --rose:     #e11d48;
-  --text:     #0f172a;
-  --muted:    #64748b;
-  --mono:     'IBM Plex Mono', monospace;
-  --sans:     'IBM Plex Sans', sans-serif;
-  --cond:     'IBM Plex Sans Condensed', sans-serif;
+  --navy:   #0c1f35;
+  --navy2:  #152d4a;
+  --blue:   #1d5fa8;
+  --blue2:  #2471c9;
+  --bg:     #f0f4f8;
+  --bg2:    #ffffff;
+  --border: #c8d6e5;
+  --text:   #1a2b3c;
+  --muted:  #5a738a;
+  --muted2: #8ba3bb;
+  --mono:   'IBM Plex Mono', monospace;
+  --sans:   'IBM Plex Sans', sans-serif;
+  --cond:   'IBM Plex Sans Condensed', sans-serif;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
 
-/* ── GRID BACKGROUND ── */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(22,163,74,.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(22,163,74,.06) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-  z-index: 0;
+/* ── TOP BAR — matches individual tools ── */
+.topbar {
+  background: var(--navy);
+  border-bottom: 3px solid var(--blue2);
 }
+.topbar-inner {
+  max-width: 1040px; margin: 0 auto; padding: 14px 40px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.topbar-brand {
+  font-family: var(--cond); font-weight: 700; font-size: 16px;
+  color: #fff; letter-spacing: 0.5px;
+}
+.topbar-brand span { color: #6db3f5; font-weight: 300; }
+.topbar-sub { font-family: var(--mono); font-size: 10px; color: #7a9fc0; }
 
-/* ── HEADER ── */
+/* ── HERO ── */
 header {
-  position: relative; z-index: 1;
-  padding: 48px 40px 0;
-  max-width: 960px; margin: 0 auto;
+  max-width: 1040px; margin: 0 auto;
+  padding: 48px 40px 36px;
 }
 .rkk-badge {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 4px 10px 4px 6px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
+  border: 1px solid var(--border); border-radius: 20px;
   font-family: var(--mono); font-size: 11px; color: var(--muted);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 .rkk-dot {
   width: 8px; height: 8px; border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
+  background: var(--blue2);
+  box-shadow: 0 0 6px rgba(36, 113, 201, 0.5);
   animation: pulse 2.5s infinite;
 }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 h1 {
-  font-family: var(--cond);
-  font-size: clamp(32px, 5vw, 52px);
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  line-height: 1.05;
-  color: var(--text);
-  margin-bottom: 14px;
+  font-family: var(--cond); font-size: clamp(32px, 5vw, 52px);
+  font-weight: 700; letter-spacing: -0.5px; line-height: 1.05;
+  color: var(--navy); margin-bottom: 12px;
 }
-h1 em {
-  font-style: normal;
-  color: var(--accent);
-}
+h1 em { font-style: normal; color: var(--blue); }
 .tagline {
-  font-size: 15px; color: var(--muted);
-  font-family: var(--mono);
-  max-width: 480px;
-  line-height: 1.6;
-  margin-bottom: 52px;
+  font-size: 13.5px; color: var(--muted); font-family: var(--mono);
+  max-width: 480px; line-height: 1.65;
 }
+
+/* ── MAIN ── */
+main { max-width: 1040px; margin: 0 auto; padding: 0 40px 64px; }
 
 /* ── DIVIDER ── */
 .divider {
   height: 1px;
-  background: linear-gradient(90deg, var(--accent) 0%, transparent 60%);
-  margin-bottom: 40px;
-  opacity: .4;
+  background: linear-gradient(90deg, var(--blue2) 0%, transparent 60%);
+  margin-bottom: 36px; opacity: 0.35;
 }
 
 /* ── SECTION LABEL ── */
 .section-label {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
   letter-spacing: 2px; text-transform: uppercase;
-  color: var(--muted); margin-bottom: 20px;
+  color: var(--muted); margin-bottom: 18px;
   display: flex; align-items: center; gap: 10px;
 }
-.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
 /* ── GRID ── */
 .tool-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  margin-bottom: 48px;
+  gap: 14px; margin-bottom: 44px;
 }
 
 /* ── TOOL CARD ── */
 .tool-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 24px;
-  display: flex; flex-direction: column;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 22px; display: flex; flex-direction: column;
   position: relative; overflow: hidden;
-  transition: border-color .2s, transform .15s, box-shadow .2s;
-  text-decoration: none; color: inherit;
-  cursor: pointer;
+  transition: border-color .18s, transform .15s, box-shadow .18s;
+  text-decoration: none; color: inherit; cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
 }
 .tool-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: var(--card-accent, var(--accent));
-  opacity: 0; transition: opacity .2s;
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--card-accent, var(--blue)); opacity: 0; transition: opacity .18s;
 }
 .tool-card:hover {
-  border-color: var(--card-accent, var(--accent));
+  border-color: var(--card-accent, var(--blue));
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0,0,0,.12);
+  box-shadow: 0 6px 22px rgba(0,0,0,.10);
 }
 .tool-card:hover::before { opacity: 1; }
 
-.card-icon {
-  font-size: 28px; margin-bottom: 14px;
-  line-height: 1;
-}
+.card-icon { font-size: 26px; margin-bottom: 12px; line-height: 1; }
 .card-tag {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
   letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--card-accent, var(--accent));
-  margin-bottom: 6px;
+  color: var(--card-accent, var(--blue)); margin-bottom: 5px;
 }
 .card-name {
-  font-family: var(--cond); font-weight: 700; font-size: 19px;
-  line-height: 1.2; color: var(--text);
-  margin-bottom: 10px;
+  font-family: var(--cond); font-weight: 700; font-size: 18px;
+  line-height: 1.2; color: var(--navy); margin-bottom: 8px;
 }
 .card-desc {
-  font-size: 13px; color: var(--muted);
-  line-height: 1.6; flex: 1;
-  margin-bottom: 20px;
+  font-size: 12.5px; color: var(--muted); line-height: 1.6;
+  flex: 1; margin-bottom: 18px;
 }
 .card-footer {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-top: auto;
+  display: flex; align-items: center; justify-content: space-between; margin-top: auto;
 }
-.card-chips {
-  display: flex; gap: 5px; flex-wrap: wrap;
-}
+.card-chips { display: flex; gap: 4px; flex-wrap: wrap; }
 .chip {
-  font-family: var(--mono); font-size: 10px;
-  padding: 2px 7px; border-radius: 3px;
-  background: rgba(0,0,0,.05);
-  border: 1px solid var(--border);
-  color: var(--muted);
+  font-family: var(--mono); font-size: 10px; padding: 2px 7px;
+  border-radius: 3px; background: var(--bg); border: 1px solid var(--border); color: var(--muted);
 }
 .card-arrow {
-  font-size: 18px; color: var(--card-accent, var(--accent));
+  font-size: 16px; color: var(--card-accent, var(--blue));
   opacity: 0; transition: opacity .15s, transform .15s;
-  transform: translateX(-4px);
+  transform: translateX(-4px); flex-shrink: 0;
 }
-.tool-card:hover .card-arrow {
-  opacity: 1; transform: translateX(0);
-}
+.tool-card:hover .card-arrow { opacity: 1; transform: translateX(0); }
 
 /* ── FOOTER ── */
 footer {
-  position: relative; z-index: 1;
-  max-width: 960px; margin: 0 auto;
-  padding: 0 40px 48px;
+  max-width: 1040px; margin: 0 auto; padding: 20px 40px 44px;
   display: flex; align-items: center; justify-content: space-between;
   border-top: 1px solid var(--border);
-  padding-top: 24px;
 }
 .footer-left { font-family: var(--mono); font-size: 11px; color: var(--muted); }
-.footer-left strong { color: var(--accent); }
-.footer-right { font-family: var(--mono); font-size: 11px; color: var(--border); }
-
-/* ── MAIN CONTENT WRAPPER ── */
-main {
-  position: relative; z-index: 1;
-  max-width: 960px; margin: 0 auto;
-  padding: 0 40px;
-}
+.footer-left strong { color: var(--blue); }
+.footer-right { font-family: var(--mono); font-size: 11px; color: var(--muted2); }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
-  header, main, footer { padding-left: 20px; padding-right: 20px; }
+  .topbar-inner, header, main, footer { padding-left: 18px; padding-right: 18px; }
   header { padding-top: 32px; }
   .tool-grid { grid-template-columns: 1fr; }
+  .topbar-sub { display: none; }
 }
 </style>
 </head>
 <body>
 
+<!-- ── TOP BAR ── -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">RK&amp;K <span>Geotechnical</span></div>
+    <div class="topbar-sub">Baltimore, MD · Internal Tools</div>
+  </div>
+</div>
+
+<!-- ── HERO ── -->
 <header>
   <div class="rkk-badge">
     <span class="rkk-dot"></span>
@@ -218,13 +186,14 @@ main {
   <p class="tagline">// Internal field &amp; engineering tools.<br>Offline-capable. No login required.</p>
 </header>
 
+<!-- ── TOOLS ── -->
 <main>
   <div class="divider"></div>
 
   <div class="section-label">Field Tools</div>
   <div class="tool-grid">
 
-    <a class="tool-card" href="fieldlog-v2.html" style="--card-accent: #4ade80">
+    <a class="tool-card" href="fieldlog-v2.html" style="--card-accent: #16a34a">
       <div class="card-icon">🪨</div>
       <div class="card-tag">Field · PWA</div>
       <div class="card-name">FieldLog v2</div>
@@ -239,7 +208,22 @@ main {
       </div>
     </a>
 
-    <a class="tool-card" href="jar-label-wizard.html" style="--card-accent: #60a5fa">
+    <a class="tool-card" href="Infiltration_Test_Log.html" style="--card-accent: #0d9488">
+      <div class="card-icon">💧</div>
+      <div class="card-tag">Field · Hydrology</div>
+      <div class="card-name">Infiltration Test Log</div>
+      <div class="card-desc">Constant head infiltration test logging with automatic head calculation from tape-down measurements. Supports multiple test sites per project, single- and double-ring methods, and generates a summary table with average and steady-state rates.</div>
+      <div class="card-footer">
+        <div class="card-chips">
+          <span class="chip">Single / Double Ring</span>
+          <span class="chip">Multi-Site</span>
+          <span class="chip">JSON Snapshot</span>
+        </div>
+        <span class="card-arrow">→</span>
+      </div>
+    </a>
+
+    <a class="tool-card" href="jar-label-wizard.html" style="--card-accent: #2563eb">
       <div class="card-icon">🏷️</div>
       <div class="card-tag">Field · Printing</div>
       <div class="card-name">Jar Label Wizard</div>
@@ -253,7 +237,7 @@ main {
       </div>
     </a>
 
-    <a class="tool-card" href="box-label-wizard.html" style="--card-accent: #a78bfa">
+    <a class="tool-card" href="box-label-wizard.html" style="--card-accent: #7c3aed">
       <div class="card-icon">📦</div>
       <div class="card-tag">Field · Printing</div>
       <div class="card-name">Box Label Wizard</div>
@@ -272,36 +256,7 @@ main {
   <div class="section-label">Engineering Calculators</div>
   <div class="tool-grid">
 
-    <a class="tool-card" href="shear-strength-correlation-calculator.html" style="--card-accent: #4db8c8">
-      <div class="card-icon">📐</div>
-      <div class="card-tag">Strength · SPT</div>
-      <div class="card-name">Shear Strength Correlation Calculator</div>
-      <div class="card-desc">Estimates shear strength parameters (φ for granular soils, Sᵤ for cohesive soils) from SPT N-values using published correlations. Multi-boring input with stratum-based workflow.</div>
-      <div class="card-footer">
-        <div class="card-chips">
-          <span class="chip">SPT Correlation</span>
-          <span class="chip">φ &amp; Sᵤ</span>
-          <span class="chip">Multi-Boring</span>
-        </div>
-        <span class="card-arrow">→</span>
-      </div>
-    </a>
-
-    <a class="tool-card" href="es-correlation-calculator.html" style="--card-accent: #fbbf24">
-      <div class="card-icon">📊</div>
-      <div class="card-tag">Settlement · Elastic</div>
-      <div class="card-name">E<sub style="font-size:.7em">s</sub> Correlation Calculator</div>
-      <div class="card-desc">Estimates elastic modulus (Eₛ) from SPT N-values using published correlation methods. Supports multi-boring input, stratum definition, and settlement analysis workflows.</div>
-      <div class="card-footer">
-        <div class="card-chips">
-          <span class="chip">SPT Correlation</span>
-          <span class="chip">JSON Snapshot</span>
-        </div>
-        <span class="card-arrow">→</span>
-      </div>
-    </a>
-
-    <a class="tool-card" href="pile-corrosion-calculator.html" style="--card-accent: #fb7185">
+    <a class="tool-card" href="pile-corrosion-calculator.html" style="--card-accent: #be123c">
       <div class="card-icon">⚙️</div>
       <div class="card-tag">Structural · Steel</div>
       <div class="card-name">Pile Corrosion Loss Calculator</div>
@@ -310,6 +265,20 @@ main {
         <div class="card-chips">
           <span class="chip">H-Pile</span>
           <span class="chip">Pipe Pile</span>
+          <span class="chip">JSON Snapshot</span>
+        </div>
+        <span class="card-arrow">→</span>
+      </div>
+    </a>
+
+    <a class="tool-card" href="es-correlation-calculator.html" style="--card-accent: #b45309">
+      <div class="card-icon">📊</div>
+      <div class="card-tag">Settlement · Elastic</div>
+      <div class="card-name">E<sub style="font-size:.7em">s</sub> Correlation Calculator</div>
+      <div class="card-desc">Estimates elastic modulus (Eₛ) from SPT N-values using published correlation methods. Supports multi-boring input, stratum definition, and settlement analysis workflows.</div>
+      <div class="card-footer">
+        <div class="card-chips">
+          <span class="chip">SPT Correlation</span>
           <span class="chip">JSON Snapshot</span>
         </div>
         <span class="card-arrow">→</span>
