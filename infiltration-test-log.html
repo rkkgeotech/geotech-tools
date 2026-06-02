@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Infiltration Test Log — RK&K Geotechnical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0c1f35; --navy2:#152d4a; --blue:#1d5fa8; --blue2:#2471c9; --blue-lt:#e8f0fb;
+  --steel:#4a7daa; --amber:#b45309; --amber-lt:#fffbeb; --amber-mid:#fde68a;
+  --green:#166534; --green-lt:#ecfdf5; --green-mid:#bbf7d0;
+  --red:#991b1b; --red-lt:#fef2f2;
+  --bg:#f0f4f8; --bg2:#fff; --border:#c8d6e5; --border2:#dde8f2;
+  --text:#1a2b3c; --muted:#5a738a; --muted2:#8ba3bb;
+  --mono:'IBM Plex Mono','Courier New',monospace; --sans:'IBM Plex Sans','Segoe UI',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);font-size:13px;background:var(--bg);color:var(--text);line-height:1.5}
+
+/* ── HEADER ── */
+.hdr{background:var(--navy);color:#fff;border-bottom:3px solid var(--blue2);position:sticky;top:0;z-index:200}
+.hdr-inner{max-width:1300px;margin:0 auto;padding:14px 20px 11px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.hdr-left h1{font-size:16px;font-weight:700;letter-spacing:-.3px}
+.hdr-left h1 span{color:#6db3f5}
+.hdr-sub{font-size:9.5px;color:#7a9fc0;margin-top:2px;font-family:var(--mono);letter-spacing:.3px}
+.hdr-right{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.hdr-btn{font-family:var(--mono);font-size:11px;font-weight:600;padding:4px 10px;border-radius:3px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#b8d4ef;cursor:pointer;transition:background .13s;white-space:nowrap}
+.hdr-btn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.32)}
+.hdr-btn.green{border-color:rgba(74,222,128,.45);color:#4ade80}
+.hdr-btn.green:hover{background:rgba(74,222,128,.1)}
+
+/* ── WORKSPACE ── */
+.workspace{max-width:1300px;margin:0 auto;display:flex;min-height:calc(100vh - 52px)}
+
+/* ── SIDEBAR ── */
+.sidebar{width:248px;min-width:248px;background:#e8eef5;border-right:1px solid var(--border);padding:14px 12px;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.sb-sec{margin-bottom:18px}
+.sb-sec:last-child{margin-bottom:0}
+.sb-title{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--steel);margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.sb-count{background:var(--blue);color:#fff;font-size:9px;padding:1px 6px;border-radius:8px}
+.sb-field{margin-bottom:7px}
+.sb-field label{display:block;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:3px}
+.sb-field input{width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:3px;font-size:12px;font-family:var(--sans);color:var(--text);background:#fff}
+.sb-field input:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 2px rgba(36,113,201,.12)}
+
+/* sidebar test items */
+.si{display:flex;align-items:center;gap:6px;padding:8px 9px;border-radius:3px;cursor:pointer;border:1px solid transparent;margin-bottom:5px;background:#fff;transition:all .1s}
+.si:hover{border-color:var(--border);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.si.si-active{border-color:#4a7daa;background:#eaf2fc;box-shadow:0 1px 3px rgba(36,113,201,.12)}
+.si-main{flex:1;min-width:0}
+.si-id{font-size:12px;font-weight:600;color:var(--navy2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si.si-active .si-id{color:var(--blue)}
+.si-meta{display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap}
+.si-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:2px;background:var(--blue-lt);color:var(--blue);font-family:var(--mono)}
+.si-badge.si-badge-dr{background:var(--green-lt);color:var(--green)}
+.si-rate{font-size:10px;color:var(--muted2);font-family:var(--mono)}
+.si-rate.si-rate-val{color:var(--blue2);font-weight:600}
+.si-warn{font-size:10px;color:var(--amber)}
+.btn-si-del{flex-shrink:0;padding:2px 6px;font-size:11px;border:1px solid #dce8f4;border-radius:2px;background:#f5f7fa;color:var(--muted2);cursor:pointer;transition:all .1s}
+.btn-si-del:hover{background:var(--red-lt);border-color:#fca5a5;color:var(--red)}
+.btn-add-test{width:100%;padding:7px;font-size:11px;font-weight:600;font-family:var(--sans);border:1px dashed var(--steel);border-radius:3px;background:transparent;color:var(--steel);cursor:pointer;transition:all .12s;margin-top:3px}
+.btn-add-test:hover{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn-summary{width:100%;padding:8px;font-size:11px;font-weight:600;font-family:var(--sans);border:1px solid var(--border);border-radius:3px;background:#fff;color:var(--navy2);cursor:pointer;transition:all .12s;margin-top:10px}
+.btn-summary:hover,.btn-summary.active{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+
+/* ── MAIN PANEL ── */
+.main{flex:1;min-width:0;padding:16px 18px 52px}
+
+/* ── EMPTY MAIN ── */
+.empty-main{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;color:var(--muted);text-align:center;gap:10px}
+.empty-main-icon{font-size:36px}
+.empty-main-text{font-size:16px;font-weight:600;color:var(--navy2)}
+.empty-main-sub{font-size:13px;max-width:320px;line-height:1.6}
+.btn-add-test-main{padding:9px 22px;font-size:13px;font-weight:600;border:none;background:var(--blue);color:#fff;border-radius:3px;cursor:pointer;margin-top:4px}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:3px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-head{background:var(--navy2);color:#fff;padding:8px 16px;font-size:10.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-head-l{display:flex;align-items:center;gap:8px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--blue2);flex-shrink:0}
+.dot.amber{background:#f59e0b}
+.dot.green{background:#22c55e}
+.card-body{padding:15px 18px}
+
+/* ── FORM ── */
+.field-row{display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap;margin-bottom:11px}
+.field-row:last-child{margin-bottom:0}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);line-height:1.2}
+.field label .sub{font-size:9px;font-weight:400;text-transform:none;color:var(--muted2);letter-spacing:0;margin-left:3px}
+input[type=text],input[type=number],input[type=date],select{padding:6px 8px;border:1px solid var(--border);border-radius:3px;font-size:12.5px;font-family:var(--sans);color:var(--text);background:#fff;transition:border-color .12s,box-shadow .12s}
+input:focus,select:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 2px rgba(36,113,201,.13)}
+
+/* ── TOGGLE ── */
+.toggle-wrap{display:inline-flex;border:1px solid var(--border);border-radius:3px;overflow:hidden}
+.tog{padding:6px 13px;font-family:var(--sans);font-size:12px;font-weight:500;border:none;cursor:pointer;background:#fff;color:var(--steel);transition:background .1s,color .1s;white-space:nowrap}
+.tog:not(:last-child){border-right:1px solid var(--border)}
+.tog.on{background:var(--blue);color:#fff}
+.tog:hover:not(.on){background:#ecf4ff}
+
+/* ── REF PANEL ── */
+.ref-panel{background:#eef4fb;border:1px solid #c0d4e8;border-radius:3px;padding:12px 15px;margin-top:12px}
+.ref-title{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--steel);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.ref-grid{display:flex;gap:0;flex-wrap:wrap;align-items:flex-start}
+.ref-item{padding:0 20px 0 0}
+.ref-sep{width:1px;background:var(--border);margin:0 4px;min-height:40px}
+.ref-lbl{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.ref-val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--navy2);line-height:1.2;margin:1px 0}
+.ref-val.target{color:var(--blue2);font-size:19px}
+.ref-unit{font-size:9px;color:var(--muted);font-family:var(--mono)}
+
+/* ── TABLE NOTE ── */
+.tbl-note{font-size:11.5px;color:var(--muted);background:#f4f8fc;border-left:3px solid var(--steel);padding:8px 12px;margin-bottom:11px;line-height:1.65}
+.tbl-note strong{color:var(--navy2)}
+
+/* ── READINGS TABLE ── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.btn-add-row{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--blue);color:#fff;border:none;border-radius:3px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:background .12s;white-space:nowrap}
+.btn-add-row:hover{background:var(--navy2)}
+.btn-del{padding:2px 7px;font-size:12px;font-family:var(--mono);border:1px solid #dce8f4;border-radius:2px;background:#f5f7fa;color:var(--muted);cursor:pointer;transition:all .1s}
+.btn-del:hover{background:var(--red-lt);border-color:#fca5a5;color:var(--red)}
+
+table.readings{width:100%;border-collapse:collapse;font-size:12px}
+table.readings thead th{background:var(--navy2);color:rgba(255,255,255,.9);padding:6px 7px;font-size:9.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;text-align:center;border-right:1px solid rgba(255,255,255,.07)}
+table.readings thead th:last-child{border-right:none}
+table.readings tbody td{padding:3px 4px;border-bottom:1px solid var(--border2);vertical-align:middle}
+table.readings tbody tr:last-child td{border-bottom:none}
+
+/* Row states */
+table.readings tbody tr.soak-row td{background:#f3f6fa!important}
+table.readings tbody tr.soak-row input{color:var(--muted)!important}
+table.readings tbody tr.start-row{border-left:3px solid var(--green)}
+table.readings tbody tr.start-row td{background:var(--green-lt)!important}
+table.readings tbody tr.start-row:hover td{background:#d1fae5!important}
+table.readings tbody tr:hover td{background:#f4f9ff}
+table.readings tbody tr.soak-row:hover td{background:#eaeff7!important}
+table.readings tbody tr.water-row td{background:#fffdf4}
+table.readings tbody tr.water-row:hover td{background:#fffae8}
+table.readings tbody tr.start-row.water-row td{background:#f0fdf4!important}
+
+table.readings input[type=text],table.readings input[type=number]{padding:4px 5px;font-size:11.5px;border:1px solid var(--border);border-radius:2px;background:#fff;color:var(--text)}
+table.readings input:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 2px rgba(36,113,201,.13)}
+.inp-dt{width:86px;font-family:var(--mono);font-size:10.5px;text-align:center}
+.inp-tm{width:68px;font-family:var(--mono);font-size:10.5px;text-align:center}
+.inp-td{width:68px;font-family:var(--mono);text-align:right}
+.inp-cmt{width:140px;font-family:var(--sans);font-size:11px}
+
+/* Chips */
+.chip{font-family:var(--mono);font-size:11.5px;font-weight:600;padding:3px 7px;border-radius:2px;display:inline-block;white-space:nowrap;min-width:48px;text-align:right}
+.chip-inner{background:var(--blue-lt);color:var(--blue2)}
+.chip-outer{background:var(--green-lt);color:var(--green)}
+.chip-after{background:var(--amber-lt);color:var(--amber);border:1px solid var(--amber-mid)}
+.chip-nil{color:var(--muted2);font-family:var(--mono);font-size:12px}
+
+/* Test start checkbox */
+input.chk-start{width:14px;height:14px;cursor:pointer;accent-color:var(--green)}
+input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:#b45309}
+td.td-chk{text-align:center;padding:3px 5px!important}
+
+/* ── RESULTS ── */
+.formula-note{font-size:11.5px;color:var(--muted);background:#f4f8fc;border-left:3px solid var(--steel);padding:8px 12px;margin-bottom:13px;line-height:1.65}
+.formula-note strong{color:var(--navy)}
+.formula-note code{font-family:var(--mono);font-size:12px;background:#e2ecf7;padding:1px 5px;border-radius:2px;color:var(--blue)}
+
+table.rates{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:15px}
+table.rates thead th{background:#1e3a5c;color:rgba(255,255,255,.88);padding:6px 10px;font-size:9.5px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;text-align:center;white-space:nowrap}
+table.rates thead th:first-child{text-align:left}
+table.rates tbody td{padding:5px 10px;border-bottom:1px solid var(--border2);font-family:var(--mono);font-size:12px;text-align:center}
+table.rates tbody td:first-child{text-align:left;font-family:var(--sans);font-size:11px;color:var(--muted)}
+table.rates tbody tr.soak-iv td{color:var(--muted2);font-style:italic}
+table.rates tbody tr.soak-iv td:first-child{color:var(--muted2)}
+table.rates tbody tr:last-child td{border-bottom:none}
+table.rates tbody tr:hover td{background:#f5f9ff}
+.rate-pill{display:inline-block;padding:2px 9px;border-radius:9px;font-size:11px;font-weight:700;font-family:var(--mono)}
+.pill-pos{background:#dbeafe;color:#1e40af}
+.pill-zero{background:#f1f5f9;color:#64748b}
+.pill-neg{background:#fef9c3;color:#854d0e}
+
+.summary-row{display:flex;gap:11px;flex-wrap:wrap}
+.sbox{flex:1;min-width:155px;background:#f0f6fc;border:1px solid var(--border);border-radius:3px;padding:12px 14px}
+.sbox.hl{background:#e4eef8;border-color:#4a7daa}
+.sl{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--steel);margin-bottom:4px}
+.sv{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--navy2);line-height:1.1}
+.sbox.hl .sv{color:var(--blue)}
+.su{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:1px}
+.soak-tag{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:#f1f5f9;color:var(--muted2);padding:1px 5px;border-radius:2px;margin-left:4px;font-family:var(--mono)}
+.warn-note{font-size:11.5px;color:#92400e;background:#fffbeb;border-left:3px solid #f59e0b;padding:8px 12px;margin-top:11px;line-height:1.6}
+.no-start-note{font-size:11.5px;color:var(--muted);background:#f8f9fb;border-left:3px solid var(--border);padding:8px 12px;margin-bottom:11px;line-height:1.65}
+
+/* ── SUMMARY VIEW ── */
+table.sum-tbl{width:100%;border-collapse:collapse;font-size:12px}
+table.sum-tbl thead th{background:var(--navy2);color:rgba(255,255,255,.9);padding:7px 10px;font-size:9.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;text-align:center}
+table.sum-tbl thead th:first-child,table.sum-tbl thead th:nth-child(2){text-align:left}
+table.sum-tbl tbody td{padding:7px 10px;border-bottom:1px solid var(--border2);vertical-align:middle;font-size:12px}
+table.sum-tbl tbody td:first-child{font-family:var(--mono);font-size:11px;color:var(--muted2);text-align:center}
+table.sum-tbl tbody td.loc-id{font-weight:600;color:var(--navy2);text-align:left}
+table.sum-tbl tbody tr:hover td{background:#f5f9ff}
+table.sum-tbl tbody tr:last-child td{border-bottom:none}
+table.sum-tbl .mono{font-family:var(--mono)}
+table.sum-tbl .rate-val{font-family:var(--mono);font-weight:700;color:var(--blue2)}
+table.sum-tbl .no-rate{color:var(--muted2);font-size:11px;font-style:italic}
+table.sum-tbl .warn-icon{color:var(--amber);font-size:12px}
+.sum-stats{display:flex;gap:11px;flex-wrap:wrap;margin-bottom:15px}
+.stat-box{flex:1;min-width:130px;background:#f0f6fc;border:1px solid var(--border);border-radius:3px;padding:10px 13px}
+.stat-lbl{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--steel);margin-bottom:3px}
+.stat-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--navy2)}
+.stat-unit{font-size:10px;color:var(--muted);font-family:var(--mono)}
+
+/* ── PRINT ── */
+@media print {
+  .hdr,.workspace{display:none!important}
+  #printContent{display:block!important}
+  body{background:white;font-size:10px;font-family:'IBM Plex Sans',sans-serif}
+  .p-doc{max-width:100%;padding:0}
+  .p-hdr{border-bottom:2px solid #1d5fa8;padding-bottom:8px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-end}
+  .p-hdr-title{font-size:15px;font-weight:700;color:#0c1f35}
+  .p-hdr-title span{color:#1d5fa8}
+  .p-hdr-meta{font-size:9.5px;color:#5a738a;font-family:'IBM Plex Mono',monospace;text-align:right}
+  .p-section{margin-bottom:20px}
+  .p-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;background:#f0f4f8;border-left:3px solid #1d5fa8;padding:4px 8px;margin-bottom:7px;color:#0c1f35}
+  .p-info-grid{display:flex;gap:0;flex-wrap:wrap;border:1px solid #c8d6e5;margin-bottom:10px}
+  .p-info-cell{padding:5px 10px;border-right:1px solid #c8d6e5;flex:1;min-width:120px}
+  .p-info-cell:last-child{border-right:none}
+  .p-info-lbl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#5a738a}
+  .p-info-val{font-size:11px;font-weight:600;color:#0c1f35}
+  .p-page{page-break-before:always;padding-top:12px}
+  .p-page:first-child{page-break-before:auto}
+  .p-sub-title{font-size:13px;font-weight:700;color:#0c1f35;margin-bottom:10px;border-bottom:1px solid #c8d6e5;padding-bottom:4px}
+  .p-sub-title span{color:#1d5fa8}
+  table{width:100%;border-collapse:collapse;font-size:9.5px;margin-bottom:10px}
+  table th{background:#152d4a;color:#fff;padding:4px 6px;font-size:8.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;text-align:center}
+  table th:first-child{text-align:left}
+  table td{padding:3px 6px;border:1px solid #c8d6e5;font-size:9.5px}
+  table td:first-child{text-align:left}
+  .p-soak{color:#8ba3bb;font-style:italic}
+  .p-start-row td{background:#ecfdf5!important;border-left:2px solid #166534}
+  .p-rates-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .p-rate-box{border:1px solid #c8d6e5;padding:6px 10px;min-width:130px}
+  .p-rate-lbl{font-size:8.5px;font-weight:700;text-transform:uppercase;color:#5a738a;letter-spacing:.5px}
+  .p-rate-val{font-size:16px;font-weight:700;color:#1d5fa8;font-family:'IBM Plex Mono',monospace}
+  .p-rate-unit{font-size:9px;color:#5a738a;font-family:'IBM Plex Mono',monospace}
+  .p-no-start{font-size:9px;color:#5a738a;font-style:italic;margin-bottom:6px}
+}
+@media(max-width:768px){
+  .sidebar{position:fixed;left:-260px;top:52px;z-index:100;height:calc(100vh - 52px);transition:left .25s;box-shadow:2px 0 8px rgba(0,0,0,.12)}
+  .sidebar.open{left:0}
+  .main{padding:12px 12px 40px}
+  .sb-toggle{display:flex!important}
+}
+.sb-toggle{display:none;align-items:center;justify-content:center;padding:7px 14px;background:var(--navy2);color:#fff;border:none;font-size:11px;font-weight:600;font-family:var(--sans);cursor:pointer;gap:6px;width:100%}
+</style>
+</head>
+<body>
+
+<div class="hdr" id="siteHdr">
+  <div class="hdr-inner">
+    <div class="hdr-left">
+      <h1>Field Infiltration Test <span>Log</span></h1>
+      <div class="hdr-sub" id="hdrSub">RK&amp;K GEOTECHNICAL · CONSTANT HEAD · v2.0</div>
+    </div>
+    <div class="hdr-right">
+      <button class="hdr-btn sb-toggle" id="sbToggle" onclick="toggleSidebar()">☰ Tests</button>
+      <button class="hdr-btn" onclick="saveJSON()">⬇ Save</button>
+      <button class="hdr-btn" onclick="loadJSON()">⬆ Load</button>
+      <button class="hdr-btn" onclick="newProject()">↺ New</button>
+      <button class="hdr-btn green" onclick="printAll()">⎙ Print</button>
+    </div>
+  </div>
+</div>
+
+<div class="workspace">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="main" id="mainPanel"></div>
+</div>
+<div id="printContent" style="display:none"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let project = { jobName:'', projectNo:'', loggedBy:'' };
+let tests    = [];
+let nextTestId = 1;
+let activeTestId = null;
+let activeView   = 'empty'; // 'empty'|'test'|'summary'
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function nowDate(){
+  const d=new Date();
+  return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+}
+function nowTime(){
+  const d=new Date(); let h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM';
+  h=h%12||12; return `${h}:${String(m).padStart(2,'0')} ${ap}`;
+}
+function parseMs(ds,ts){
+  try{ const d=new Date(`${String(ds).trim()} ${String(ts).trim()}`); return isNaN(d.getTime())?null:d.getTime(); }catch{ return null; }
+}
+function fmtH(h){ return (h===null||isNaN(h))?null:h.toFixed(2); }
+function getPLfor(t){ return parseFloat(t.pipeLength)||null; }
+function calcHeadFor(t,td){
+  const pl=getPLfor(t), v=parseFloat(td);
+  if(pl===null||td===''||isNaN(v)) return null;
+  return pl-v;
+}
+
+// ════════════════════════════════════════════
+//  RATE CALCULATION (central, used everywhere)
+// ════════════════════════════════════════════
+function calcRatesForTest(t){
+  const pl=getPLfor(t);
+  if(!pl||t.entries.length<2) return {intervals:[],avgRate:null,ssRate:null};
+  const tsIdx=t.entries.findIndex(e=>e.isTestStart);
+  const ivs=[];
+  for(let i=1;i<t.entries.length;i++){
+    const prev=t.entries[i-1], curr=t.entries[i];
+    const t0=parseMs(prev.date,prev.time), t1=parseMs(curr.date,curr.time);
+    if(!t0||!t1||t1<=t0){ ivs.push(null); continue; }
+    const dt=(t1-t0)/3600000;
+    const sh=(prev.waterAdded&&prev.afterAddTapdown!=='')?calcHeadFor(t,prev.afterAddTapdown):calcHeadFor(t,prev.tapdown);
+    const eh=calcHeadFor(t,curr.tapdown);
+    if(sh===null||eh===null){ ivs.push(null); continue; }
+    const dh=(sh-eh)*12, rate=dh/dt;
+    const isTest=tsIdx>=0&&(i-1)>=tsIdx;
+    ivs.push({i,dt,sh,eh,dh,rate,isTest});
+  }
+  const testRates=ivs.filter(iv=>iv&&iv.isTest&&iv.rate>0).map(iv=>iv.rate);
+  const avgRate=testRates.length?testRates.reduce((a,b)=>a+b,0)/testRates.length:null;
+  const last2=testRates.slice(-2);
+  const ssRate=last2.length?last2.reduce((a,b)=>a+b,0)/last2.length:null;
+  return {intervals:ivs, avgRate, ssRate, testRates};
+}
+
+function getTestByID(id){ return tests.find(t=>t.id===id); }
+function getActiveTest(){ return tests.find(t=>t.id===activeTestId); }
+
+// ════════════════════════════════════════════
+//  TEST MANAGEMENT
+// ════════════════════════════════════════════
+function addTest(){
+  const t={id:nextTestId++,locationId:'',gsEl:'',installDate:'',testType:'single',
+    pipeLength:'',stickup:'',seating:'6',innerDia:'5',outerDia:'',entries:[],nextEntryId:1};
+  tests.push(t);
+  activeTestId=t.id; activeView='test';
+  renderSidebar(); renderMainPanel();
+}
+function deleteTest(id){
+  if(!confirm('Remove this test site and all its readings?')) return;
+  tests=tests.filter(t=>t.id!==id);
+  if(activeTestId===id){
+    activeTestId=tests.length?tests[0].id:null;
+    activeView=activeTestId?'test':'empty';
+  }
+  renderSidebar(); renderMainPanel();
+}
+function activateTest(id){
+  activeTestId=id; activeView='test';
+  renderSidebar(); renderMainPanel();
+}
+function showSummary(){
+  activeView='summary';
+  renderSidebar(); renderMainPanel();
+}
+function updateTestField(tid,field,val){
+  const t=getTestByID(tid); if(t){ t[field]=val; }
+  if(field==='locationId') updateSidebarItem(tid);
+}
+function setTestTypeFor(tid,type){
+  const t=getTestByID(tid); if(!t) return;
+  t.testType=type; renderMainPanel();
+}
+function updateTestPipe(tid,field,val){
+  const t=getTestByID(tid); if(!t) return;
+  t[field]=val;
+  updateRefPanelDOM(t);
+  t.entries.forEach(e=>refreshChips(t,e.id));
+  renderResults();
+}
+
+// ════════════════════════════════════════════
+//  ENTRY MANAGEMENT
+// ════════════════════════════════════════════
+function addEntry(){
+  const t=getActiveTest(); if(!t) return;
+  const e={id:t.nextEntryId++,date:nowDate(),time:nowTime(),
+    tapdown:'',outerTapdown:'',waterAdded:false,afterAddTapdown:'',isTestStart:false,comments:''};
+  t.entries.push(e);
+  const tb=$('tBody');
+  if(tb){
+    if(tb.querySelector('.empty')) tb.innerHTML='';
+    const tsIdx=t.entries.findIndex(x=>x.isTestStart);
+    tb.appendChild(buildRowEl(t,e,t.entries.length-1,tsIdx));
+  }
+  renderResults(); updateSidebarItem(t.id);
+  setTimeout(()=>{ const inp=$(`td-${t.id}-${e.id}`); if(inp) inp.focus(); },30);
+}
+function deleteEntry(tid,eid){
+  const t=getTestByID(tid); if(!t) return;
+  t.entries=t.entries.filter(e=>e.id!==eid);
+  renderTableBody(t); renderResults(); updateSidebarItem(tid);
+}
+function onFieldInput(tid,eid,field,val){
+  const t=getTestByID(tid); if(!t) return;
+  const e=t.entries.find(x=>x.id===eid); if(e) e[field]=val;
+  refreshChips(t,eid); renderResults(); updateSidebarItem(tid);
+}
+function toggleWater(tid,eid,checked){
+  const t=getTestByID(tid); if(!t) return;
+  const e=t.entries.find(x=>x.id===eid); if(!e) return;
+  e.waterAdded=checked; if(!checked) e.afterAddTapdown='';
+  const tb=$('tBody'); const rows=tb?.querySelectorAll('tr');
+  const idx=t.entries.findIndex(x=>x.id===eid);
+  const tsIdx=t.entries.findIndex(x=>x.isTestStart);
+  if(idx>=0&&rows&&rows[idx]){
+    tb.replaceChild(buildRowEl(t,e,idx,tsIdx),rows[idx]);
+    const cb=$(`wa-${tid}-${eid}`); if(cb) cb.focus();
+  }
+  renderResults();
+}
+function setTestStart(tid,eid,checked){
+  const t=getTestByID(tid); if(!t) return;
+  if(checked) t.entries.forEach(e=>e.isTestStart=false);
+  const entry=t.entries.find(e=>e.id===eid); if(entry) entry.isTestStart=checked;
+  const tsIdx=t.entries.findIndex(e=>e.isTestStart);
+  t.entries.forEach((e,i)=>{
+    const row=$(`row-${tid}-${e.id}`); if(!row) return;
+    row.classList.remove('soak-row','start-row','post-start-row');
+    if(tsIdx<0||i<tsIdx) row.classList.add('soak-row');
+    else if(i===tsIdx) row.classList.add('start-row');
+    else row.classList.add('post-start-row');
+    const cb=$(`tstart-${tid}-${e.id}`); if(cb) cb.checked=e.isTestStart;
+  });
+  renderResults(); updateSidebarItem(tid);
+}
+
+// ════════════════════════════════════════════
+//  CHIP REFRESH (no re-render)
+// ════════════════════════════════════════════
+function refreshChips(t,eid){
+  const e=t.entries.find(x=>x.id===eid); if(!e) return;
+  const tid=t.id;
+  const setC=(id,val,cls)=>{
+    const el=$(id); if(!el) return;
+    if(val!==null){el.className=`chip ${cls}`;el.textContent=val;}
+    else{el.className='chip-nil';el.textContent='—';}
+  };
+  setC(`head-${tid}-${eid}`,fmtH(calcHeadFor(t,e.tapdown)),'chip-inner');
+  setC(`ohead-${tid}-${eid}`,fmtH(calcHeadFor(t,e.outerTapdown)),'chip-outer');
+  if(e.waterAdded) setC(`aahead-${tid}-${eid}`,fmtH(calcHeadFor(t,e.afterAddTapdown)),'chip-after');
+  else{ const el=$(`aahead-${tid}-${eid}`); if(el){el.className='chip-nil';el.textContent='—';} }
+}
+
+// ════════════════════════════════════════════
+//  SIDEBAR RENDERING
+// ════════════════════════════════════════════
+function renderSidebar(){
+  const focused=document.activeElement, fid=focused?focused.id:null;
+  $('sidebar').innerHTML=buildSidebarHTML();
+  if(fid){ const el=$(fid); if(el) el.focus(); }
+}
+function buildSidebarHTML(){
+  let testListHTML='';
+  if(tests.length===0){
+    testListHTML='<div style="font-size:11px;color:var(--muted2);padding:6px 2px">No test sites yet.</div>';
+  } else {
+    tests.forEach(t=>{
+      const rates=calcRatesForTest(t);
+      const rateStr=rates.ssRate!==null?`${rates.ssRate.toFixed(2)} in/hr`:'—';
+      const typeBadge=t.testType==='double'?'DR':'SR';
+      const isAct=activeView==='test'&&activeTestId===t.id;
+      const lbl=t.locationId||`Test #${t.id}`;
+      const hasStart=t.entries.some(e=>e.isTestStart);
+      const warn=!hasStart&&t.entries.length>0?'<span class="si-warn" title="No Test Start marked">⚠</span>':'';
+      testListHTML+=`
+        <div class="si ${isAct?'si-active':''}" id="sidebar-item-${t.id}" onclick="activateTest(${t.id})">
+          <div class="si-main">
+            <div class="si-id">${esc(lbl)}</div>
+            <div class="si-meta">
+              <span class="si-badge ${t.testType==='double'?'si-badge-dr':''}">${typeBadge}</span>
+              <span class="si-rate ${rates.ssRate!==null?'si-rate-val':''}" id="si-rate-${t.id}">${rateStr}</span>
+              ${warn}
+            </div>
+          </div>
+          <button class="btn-si-del" onclick="event.stopPropagation();deleteTest(${t.id})">✕</button>
+        </div>`;
+    });
+  }
+  const sumActive=activeView==='summary';
+  return `
+    <div class="sb-sec">
+      <div class="sb-title">Project</div>
+      <div class="sb-field"><label>Job Name</label>
+        <input type="text" id="sb-jobName" value="${esc(project.jobName)}" placeholder="Project Name"
+          onchange="project.jobName=this.value;updateHdrSub()"></div>
+      <div class="sb-field"><label>Project No.</label>
+        <input type="text" id="sb-projectNo" value="${esc(project.projectNo)}" placeholder="XXXXX.000"
+          onchange="project.projectNo=this.value"></div>
+      <div class="sb-field"><label>Logged By</label>
+        <input type="text" id="sb-loggedBy" value="${esc(project.loggedBy)}" placeholder="Name"
+          onchange="project.loggedBy=this.value"></div>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-title">Test Sites <span class="sb-count">${tests.length}</span></div>
+      ${testListHTML}
+      <button class="btn-add-test" onclick="addTest()">+ Add Test Site</button>
+    </div>
+    <button class="btn-summary ${sumActive?'active':''}" onclick="showSummary()">📊 Project Summary</button>`;
+}
+function updateSidebarItem(tid){
+  const item=$(`sidebar-item-${tid}`); if(!item) return;
+  const t=getTestByID(tid); if(!t) return;
+  const rates=calcRatesForTest(t);
+  const rEl=$(`si-rate-${tid}`);
+  if(rEl){
+    rEl.textContent=rates.ssRate!==null?`${rates.ssRate.toFixed(2)} in/hr`:'—';
+    rEl.className=`si-rate ${rates.ssRate!==null?'si-rate-val':''}`;
+  }
+  // Update location label
+  const idEl=item.querySelector('.si-id');
+  if(idEl) idEl.textContent=t.locationId||`Test #${t.id}`;
+}
+function updateHdrSub(){
+  const el=$('hdrSub'); if(!el) return;
+  const n=project.jobName?` · ${project.jobName}`:'';
+  const p=project.projectNo?` · ${project.projectNo}`:'';
+  el.textContent=`RK&K GEOTECHNICAL · CONSTANT HEAD · v2.0${n}${p}`;
+}
+
+// ════════════════════════════════════════════
+//  MAIN PANEL RENDERING
+// ════════════════════════════════════════════
+function renderMainPanel(){
+  const mp=$('mainPanel'); if(!mp) return;
+  if(!tests.length||activeView==='empty'){
+    mp.innerHTML=`<div class="empty-main">
+      <div class="empty-main-icon">📊</div>
+      <div class="empty-main-text">No test sites yet</div>
+      <div class="empty-main-sub">Click <strong>+ Add Test Site</strong> in the left panel to begin logging.</div>
+      <button class="btn-add-test-main" onclick="addTest()">+ Add First Test Site</button>
+    </div>`; return;
+  }
+  if(activeView==='summary'){ mp.innerHTML=buildSummaryHTML(); return; }
+  const t=getActiveTest(); if(!t){ mp.innerHTML=''; return; }
+  mp.innerHTML=buildTestEditorHTML(t);
+}
+
+// ════════════════════════════════════════════
+//  TEST EDITOR HTML
+// ════════════════════════════════════════════
+function buildTestEditorHTML(t){
+  const tid=t.id;
+  const lbl=t.locationId||`Test #${tid}`;
+  return `
+  <!-- Test Site Info -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-l"><div class="dot"></div> Test Site Info</div>
+      <span style="font-size:10px;color:#aac4e0;font-family:var(--mono)">${esc(lbl)}</span>
+    </div>
+    <div class="card-body">
+      <div class="field-row">
+        <div class="field" style="flex:2;min-width:130px">
+          <label>Location ID</label>
+          <input type="text" value="${esc(t.locationId)}" placeholder="e.g. SWM-1"
+            onchange="updateTestField(${tid},'locationId',this.value)">
+        </div>
+        <div class="field" style="min-width:110px">
+          <label>G.S. Elevation <span class="sub">(ft)</span></label>
+          <input type="number" value="${esc(t.gsEl)}" placeholder="—" step="0.1"
+            onchange="updateTestField(${tid},'gsEl',this.value)">
+        </div>
+        <div class="field" style="min-width:130px">
+          <label>Pipe Install Date</label>
+          <input type="date" value="${esc(t.installDate)}"
+            onchange="updateTestField(${tid},'installDate',this.value)">
+        </div>
+        <div class="field">
+          <label>Test Type</label>
+          <div class="toggle-wrap">
+            <button class="tog ${t.testType==='single'?'on':''}" onclick="setTestTypeFor(${tid},'single')">Single-Ring</button>
+            <button class="tog ${t.testType==='double'?'on':''}" onclick="setTestTypeFor(${tid},'double')">Double-Ring</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Pipe Setup -->
+  <div class="card">
+    <div class="card-head"><div class="card-head-l"><div class="dot"></div> Pipe Setup &amp; Geometry</div></div>
+    <div class="card-body">
+      <div class="field-row">
+        <div class="field" style="min-width:160px">
+          <label>Pipe Length <span class="sub">(ft · top of pipe → test depth)</span></label>
+          <input type="number" value="${esc(t.pipeLength)}" placeholder="e.g. 6.50" step="0.01" min="0"
+            oninput="updateTestPipe(${tid},'pipeLength',this.value)">
+        </div>
+        <div class="field" style="min-width:130px">
+          <label>Stick-Up <span class="sub">(ft · above ground)</span></label>
+          <input type="number" value="${esc(t.stickup)}" placeholder="e.g. 0.50" step="0.01" min="0"
+            oninput="updateTestPipe(${tid},'stickup',this.value)">
+        </div>
+        <div class="field" style="min-width:95px">
+          <label>Seating <span class="sub">(in)</span></label>
+          <input type="number" value="${esc(t.seating)}" step="0.5" min="0"
+            oninput="updateTestPipe(${tid},'seating',this.value)">
+        </div>
+        <div class="field" style="min-width:110px">
+          <label>Inner Pipe Dia. <span class="sub">(in)</span></label>
+          <input type="number" value="${esc(t.innerDia)}" step="0.25" min="0.5"
+            oninput="updateTestPipe(${tid},'innerDia',this.value)">
+        </div>
+        ${t.testType==='double'?`
+        <div class="field" style="min-width:115px">
+          <label>Outer Ring Dia. <span class="sub">(in)</span></label>
+          <input type="number" value="${esc(t.outerDia)}" placeholder="e.g. 12" step="0.25" min="1"
+            oninput="updateTestPipe(${tid},'outerDia',this.value)">
+        </div>`:''}
+      </div>
+      <!-- Reference Panel -->
+      <div class="ref-panel" id="refPanel-${tid}">
+        <div class="ref-title">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><polygon points="6,1 11,6 6,11 1,6" stroke="#4a7daa" stroke-width="1.4" fill="none" stroke-linejoin="round"/></svg>
+          Calculated Reference Values
+        </div>
+        <div class="ref-grid">
+          <div class="ref-item">
+            <div class="ref-lbl">Test Depth Below Ground</div>
+            <div class="ref-val" id="refDepth-${tid}">${buildRefDepth(t)}</div>
+            <div class="ref-unit">ft</div>
+          </div>
+          <div class="ref-sep"></div>
+          <div class="ref-item">
+            <div class="ref-lbl">Target Tape-Down (2-ft Head)</div>
+            <div class="ref-val target" id="refTarget-${tid}">${buildRefTarget(t)}</div>
+            <div class="ref-unit">ft from top of pipe</div>
+          </div>
+          <div class="ref-sep"></div>
+          <div class="ref-item">
+            <div class="ref-lbl">Inner Ring Area</div>
+            <div class="ref-val" id="refInnerArea-${tid}">${buildRefInnerArea(t)}</div>
+            <div class="ref-unit">in²</div>
+          </div>
+          ${t.testType==='double'?`
+          <div class="ref-sep"></div>
+          <div class="ref-item">
+            <div class="ref-lbl">Outer Ring Area</div>
+            <div class="ref-val" id="refOuterArea-${tid}">${buildRefOuterArea(t)}</div>
+            <div class="ref-unit">in²</div>
+          </div>`:''}
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Readings -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-l"><div class="dot amber"></div> Test Readings</div>
+      <button class="btn-add-row" onclick="addEntry()">+ Add Reading</button>
+    </div>
+    <div class="card-body">
+      <div class="tbl-note">
+        Enter the measured distance from the <strong>top of pipe to the water surface</strong> (tape-down).
+        Mark the first reading of the actual test as <strong>Test Start</strong> — soak-period readings will
+        remain in the log but are excluded from infiltration rate calculations.
+      </div>
+      <div class="tbl-wrap">
+        <table class="readings" id="tbl">
+          <thead id="tHead">${buildTableHeadHTML(t)}</thead>
+          <tbody id="tBody">${buildTableBodyHTML(t)}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- Results -->
+  <div class="card">
+    <div class="card-head"><div class="card-head-l"><div class="dot green"></div> Infiltration Rate Analysis — Inner Ring</div></div>
+    <div class="card-body" id="resultsDiv">${buildResultsHTML(t)}</div>
+  </div>`;
+}
+
+function buildRefDepth(t){const pl=getPLfor(t),su=parseFloat(t.stickup)||0;return pl!==null?(pl-su).toFixed(2):'—';}
+function buildRefTarget(t){const pl=getPLfor(t);return pl!==null?(pl-2).toFixed(2):'—';}
+function buildRefInnerArea(t){const d=parseFloat(t.innerDia)||5;return (Math.PI*Math.pow(d/2,2)).toFixed(2);}
+function buildRefOuterArea(t){const d=parseFloat(t.outerDia);return d?(Math.PI*Math.pow(d/2,2)).toFixed(2):'—';}
+
+function updateRefPanelDOM(t){
+  const tid=t.id;
+  const s=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
+  s(`refDepth-${tid}`,buildRefDepth(t));
+  s(`refTarget-${tid}`,buildRefTarget(t));
+  s(`refInnerArea-${tid}`,buildRefInnerArea(t));
+  s(`refOuterArea-${tid}`,buildRefOuterArea(t));
+}
+
+// ════════════════════════════════════════════
+//  TABLE HTML
+// ════════════════════════════════════════════
+function buildTableHeadHTML(t){
+  let h=`<tr>
+    <th style="width:28px">#</th>
+    <th style="width:64px">Test<br>Start</th>
+    <th style="width:92px">Date</th>
+    <th style="width:74px">Time</th>
+    <th style="width:76px">Tape-Down<br>(ft)</th>
+    <th style="width:76px">Inner Head<br>(ft)</th>`;
+  if(t.testType==='double') h+=`<th style="width:82px">Outer Tape-Down<br>(ft)</th><th style="width:76px">Outer Head<br>(ft)</th>`;
+  h+=`<th style="width:58px">Water<br>Added?</th>
+    <th style="width:82px">After-Add<br>Tape-Down (ft)</th>
+    <th style="width:76px">After-Add<br>Head (ft)</th>
+    <th>Comments</th>
+    <th style="width:32px"></th></tr>`;
+  return h;
+}
+function buildTableBodyHTML(t){
+  if(!t.entries.length) return `<tr><td colspan="20"><div class="empty" style="text-align:center;padding:24px 16px;color:var(--muted)">No readings yet — click <strong>+ Add Reading</strong> to begin.</div></td></tr>`;
+  const tsIdx=t.entries.findIndex(e=>e.isTestStart);
+  return t.entries.map((e,i)=>buildRowHTML(t,e,i,tsIdx)).join('');
+}
+function renderTableBody(t){
+  const tb=$('tBody'); if(!tb) return;
+  tb.innerHTML=buildTableBodyHTML(t);
+}
+function buildRowHTML(t,e,i,tsIdx){
+  const el=buildRowEl(t,e,i,tsIdx); return el.outerHTML;
+}
+function buildRowEl(t,e,i,tsIdx){
+  const tid=t.id, eid=e.id;
+  const tr=document.createElement('tr');
+  tr.id=`row-${tid}-${eid}`;
+  if(tsIdx<0||i<tsIdx) tr.classList.add('soak-row');
+  else if(i===tsIdx) tr.classList.add('start-row');
+  if(e.waterAdded) tr.classList.add('water-row');
+
+  const innerH=fmtH(calcHeadFor(t,e.tapdown));
+  const outerH=fmtH(calcHeadFor(t,e.outerTapdown));
+  const afterH=(e.waterAdded&&e.afterAddTapdown!=='')?fmtH(calcHeadFor(t,e.afterAddTapdown)):null;
+
+  const chip=(val,cls)=>val!==null?`<span class="chip ${cls}">${val}</span>`:`<span class="chip-nil">—</span>`;
+  const outerCols=t.testType==='double'?`
+    <td style="text-align:center;padding:3px 4px"><input class="inp-td" type="number" id="otd-${tid}-${eid}" value="${esc(e.outerTapdown)}" step="0.01" placeholder="0.00" oninput="onFieldInput(${tid},${eid},'outerTapdown',this.value)"></td>
+    <td style="text-align:center;padding:3px 6px"><span id="ohead-${tid}-${eid}" class="${outerH!==null?'chip chip-outer':'chip-nil'}">${outerH!==null?outerH:'—'}</span></td>`:'';
+  const aaTdCell=e.waterAdded?`<input class="inp-td" type="number" id="aatd-${tid}-${eid}" value="${esc(e.afterAddTapdown)}" step="0.01" placeholder="0.00" oninput="onFieldInput(${tid},${eid},'afterAddTapdown',this.value)">`:`<span class="chip-nil">—</span>`;
+
+  tr.innerHTML=`
+    <td style="text-align:center;font-family:var(--mono);font-size:10.5px;color:var(--muted2);padding:3px 5px">${i+1}</td>
+    <td class="td-chk"><input type="checkbox" class="chk-start" id="tstart-${tid}-${eid}" ${e.isTestStart?'checked':''} onchange="setTestStart(${tid},${eid},this.checked)" title="Mark as Test Start"></td>
+    <td style="text-align:center;padding:3px 3px"><input class="inp-dt" type="text" id="date-${tid}-${eid}" value="${esc(e.date)}" onchange="t_entries_update(${tid},${eid},'date',this.value)"></td>
+    <td style="text-align:center;padding:3px 3px"><input class="inp-tm" type="text" id="time-${tid}-${eid}" value="${esc(e.time)}" onchange="t_entries_update(${tid},${eid},'time',this.value)"></td>
+    <td style="text-align:center;padding:3px 3px"><input class="inp-td" type="number" id="td-${tid}-${eid}" value="${esc(e.tapdown)}" step="0.01" placeholder="0.00" oninput="onFieldInput(${tid},${eid},'tapdown',this.value)"></td>
+    <td style="text-align:center;padding:3px 6px"><span id="head-${tid}-${eid}" class="${innerH!==null?'chip chip-inner':'chip-nil'}">${innerH!==null?innerH:'—'}</span></td>
+    ${outerCols}
+    <td class="td-chk"><input type="checkbox" id="wa-${tid}-${eid}" ${e.waterAdded?'checked':''} onchange="toggleWater(${tid},${eid},this.checked)"></td>
+    <td style="text-align:center;padding:3px 3px">${aaTdCell}</td>
+    <td style="text-align:center;padding:3px 6px"><span id="aahead-${tid}-${eid}" class="${(e.waterAdded&&afterH!==null)?'chip chip-after':'chip-nil'}">${(e.waterAdded&&afterH!==null)?afterH:'—'}</span></td>
+    <td style="padding:3px 3px"><input class="inp-cmt" type="text" id="cmt-${tid}-${eid}" value="${esc(e.comments)}" placeholder="Notes…" onchange="t_entries_update(${tid},${eid},'comments',this.value)"></td>
+    <td style="padding:3px 4px;text-align:center"><button class="btn-del" onclick="deleteEntry(${tid},${eid})">✕</button></td>`;
+  return tr;
+}
+// lightweight field update (no re-render needed)
+function t_entries_update(tid,eid,field,val){
+  const t=getTestByID(tid); if(!t) return;
+  const e=t.entries.find(x=>x.id===eid); if(e) e[field]=val;
+  if(field==='date'||field==='time') renderResults();
+}
+
+// ════════════════════════════════════════════
+//  RESULTS HTML
+// ════════════════════════════════════════════
+function renderResults(){
+  const div=$('resultsDiv'); if(!div) return;
+  const t=getActiveTest(); if(!t) return;
+  div.innerHTML=buildResultsHTML(t);
+  updateSidebarItem(t.id);
+}
+function buildResultsHTML(t){
+  const pl=getPLfor(t);
+  if(!pl) return '<div style="text-align:center;padding:20px;color:var(--amber)">Enter pipe length to enable rate calculations.</div>';
+  if(t.entries.length<2) return '<div style="text-align:center;padding:20px;color:var(--muted)">Add at least 2 readings to calculate the infiltration rate.</div>';
+  const tsIdx=t.entries.findIndex(e=>e.isTestStart);
+  const {intervals,avgRate,ssRate,testRates}=calcRatesForTest(t);
+  if(!intervals.filter(Boolean).length) return '<div style="text-align:center;padding:20px;color:var(--muted)">Could not calculate rates — verify dates, times, and tape-down values.</div>';
+
+  const noStartNote=tsIdx<0?`<div class="no-start-note">ℹ No <strong>Test Start</strong> has been marked — all intervals are being treated as soak/pre-test readings and are excluded from the rate summary. Mark a reading as Test Start to enable calculations.</div>`:'';
+
+  let rows='';
+  intervals.forEach((iv,i)=>{
+    const lbl=`Reading ${i+1} → ${i+2}`;
+    if(!iv){ rows+=`<tr class="soak-iv"><td>${lbl}</td><td colspan="5" style="text-align:center;font-family:var(--sans);font-size:11px">Skipped — missing or invalid data</td></tr>`; return; }
+    const isSoak=!iv.isTest;
+    const pillClass=iv.rate>0.001?'pill-pos':(iv.rate<-0.001?'pill-neg':'pill-zero');
+    const soakTag=isSoak?`<span class="soak-tag">Soak</span>`:'';
+    rows+=`<tr class="${isSoak?'soak-iv':''}">
+      <td>${lbl}${soakTag}</td>
+      <td>${iv.dt.toFixed(3)}</td>
+      <td>${(iv.sh*12).toFixed(2)}</td>
+      <td>${(iv.eh*12).toFixed(2)}</td>
+      <td>${iv.dh.toFixed(3)}</td>
+      <td>${isSoak?`<span class="chip-nil" style="font-size:11px">excluded</span>`:`<span class="rate-pill ${pillClass}">${iv.rate.toFixed(3)}</span>`}</td>
+    </tr>`;
+  });
+
+  const hasNeg=intervals.some(iv=>iv&&iv.isTest&&iv.rate<-0.001);
+  const summaryHTML=(tsIdx>=0&&(avgRate!==null||ssRate!==null))?`
+    <div class="summary-row" style="margin-top:14px">
+      ${avgRate!==null?`<div class="sbox"><div class="sl">Overall Average Rate</div><div class="sv">${avgRate.toFixed(3)}</div><div class="su">in/hr · ${testRates.filter(r=>r>0).length} test interval${testRates.filter(r=>r>0).length!==1?'s':''}</div></div>`:''}
+      ${ssRate!==null?`<div class="sbox hl"><div class="sl">Steady-State Rate · last ${Math.min(2,testRates.filter(r=>r>0).length)} interval${Math.min(2,testRates.filter(r=>r>0).length)!==1?'s':''}</div><div class="sv">${ssRate.toFixed(3)}</div><div class="su">in/hr</div></div>`:''}
+    </div>`:'';
+  const warnHTML=hasNeg?`<div class="warn-note">⚠ One or more test intervals show a negative rate — verify tape-down measurements and timestamps.</div>`:'';
+
+  return `${noStartNote}
+    <div class="formula-note">Rate calculated as <code>f = Δh / Δt</code> — Δh = drop in inner head (in), Δt = elapsed time (hr). Intervals following a water addition use the <strong>after-add head</strong> as the start head. <strong>Soak-period rows are excluded.</strong></div>
+    <div class="tbl-wrap"><table class="rates">
+      <thead><tr><th>Interval</th><th>Δt (hr)</th><th>Start Head (in)</th><th>End Head (in)</th><th>Δh (in)</th><th>Rate (in/hr)</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    ${summaryHTML}${warnHTML}`;
+}
+
+// ════════════════════════════════════════════
+//  SUMMARY VIEW
+// ════════════════════════════════════════════
+function buildSummaryHTML(){
+  const validRates=[];
+  const rows=tests.map((t,i)=>{
+    const pl=getPLfor(t), su=parseFloat(t.stickup)||0;
+    const depth=pl!==null?(pl-su).toFixed(2):'—';
+    const tsIdx=t.entries.findIndex(e=>e.isTestStart);
+    const tsEntry=tsIdx>=0?t.entries[tsIdx]:null;
+    const tsLabel=tsEntry?`${tsEntry.date} ${tsEntry.time}`:'—';
+    const {intervals,avgRate,ssRate,testRates}=calcRatesForTest(t);
+    const postIvCount=(testRates||[]).filter(r=>r>0).length;
+    const noStart=tsIdx<0&&t.entries.length>0;
+    const lbl=t.locationId||`Test #${t.id}`;
+    const typeBadge=t.testType==='double'?'<span style="font-size:9px;background:var(--green-lt);color:var(--green);padding:1px 5px;border-radius:2px;font-weight:700">Double</span>':'<span style="font-size:9px;background:var(--blue-lt);color:var(--blue2);padding:1px 5px;border-radius:2px;font-weight:700">Single</span>';
+    if(ssRate!==null) validRates.push(ssRate);
+    const installFmt=t.installDate?new Date(t.installDate+'T00:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}):'—';
+    return `<tr>
+      <td>${i+1}</td>
+      <td class="loc-id" style="cursor:pointer" onclick="activateTest(${t.id})">${esc(lbl)}</td>
+      <td style="text-align:center">${typeBadge}</td>
+      <td class="mono" style="text-align:center">${depth}</td>
+      <td class="mono" style="text-align:center;font-size:11px">${installFmt}</td>
+      <td class="mono" style="text-align:center;font-size:10.5px">${esc(tsLabel)}</td>
+      <td class="mono" style="text-align:center">${tsIdx>=0?postIvCount:'<span class="no-rate">—</span>'}</td>
+      <td style="text-align:center">${avgRate!==null?`<span class="rate-val">${avgRate.toFixed(3)}</span>`:`<span class="no-rate">${noStart?'No test start':'—'}</span>`}</td>
+      <td style="text-align:center">${ssRate!==null?`<span class="rate-val">${ssRate.toFixed(3)}</span>`:`<span class="no-rate">${noStart?'No test start':'—'}</span>`}${noStart?'<span class="warn-icon" style="margin-left:4px">⚠</span>':''}</td>
+    </tr>`;
+  }).join('');
+
+  const n=validRates.length;
+  const minR=n?Math.min(...validRates).toFixed(3):'—';
+  const maxR=n?Math.max(...validRates).toFixed(3):'—';
+  const avgR=n?(validRates.reduce((a,b)=>a+b,0)/n).toFixed(3):'—';
+
+  return `
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-l"><div class="dot"></div> Project Summary</div>
+      <span style="font-size:10px;color:#aac4e0;font-family:var(--mono)">${esc(project.jobName||'—')}${project.projectNo?' · '+esc(project.projectNo):''}</span>
+    </div>
+    <div class="card-body">
+      <div class="sum-stats">
+        <div class="stat-box"><div class="stat-lbl">Total Test Sites</div><div class="stat-val">${tests.length}</div></div>
+        <div class="stat-box"><div class="stat-lbl">Sites w/ Valid Rate</div><div class="stat-val">${n}</div></div>
+        <div class="stat-box"><div class="stat-lbl">SS Rate Range</div><div class="stat-val" style="font-size:14px">${n?`${minR} – ${maxR}`:'—'}</div><div class="stat-unit">in/hr</div></div>
+        <div class="stat-box" style="background:var(--blue-lt);border-color:#4a7daa"><div class="stat-lbl">Avg SS Rate</div><div class="stat-val" style="color:var(--blue)">${avgR}</div><div class="stat-unit">in/hr</div></div>
+      </div>
+      <div class="tbl-wrap"><table class="sum-tbl">
+        <thead><tr>
+          <th>#</th><th>Location ID</th><th>Test Type</th><th>Test Depth (ft)</th>
+          <th>Install Date</th><th>Test Start</th><th>Post-Test Intervals</th>
+          <th>Avg. Rate (in/hr)</th><th>SS Rate (in/hr)</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+      ${tests.some(t=>!t.entries.some(e=>e.isTestStart)&&t.entries.length>0)?`<div class="warn-note" style="margin-top:10px">⚠ One or more test sites have readings but no Test Start marked — open the test and mark the first test reading to enable rate calculations.</div>`:''}
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════
+//  SAVE / LOAD / PRINT
+// ════════════════════════════════════════════
+function saveJSON(){
+  const snap={_tool:'Field Infiltration Test Log v2',_version:'2.0',_saved:new Date().toISOString(),
+    project,tests:JSON.parse(JSON.stringify(tests)),nextTestId};
+  const fname=`InfiltrationLog_${(project.projectNo||'project').replace(/[^a-zA-Z0-9_-]/g,'_')}_${new Date().toISOString().slice(0,10)}.json`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(snap,null,2)],{type:'application/json'}));
+  a.download=fname; a.click(); URL.revokeObjectURL(a.href);
+}
+function loadJSON(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
+  inp.onchange=evt=>{
+    const f=evt.target.files[0]; if(!f) return;
+    const r=new FileReader(); r.onload=e=>{
+      try{
+        const s=JSON.parse(e.target.result);
+        if(!s._tool||!s._tool.includes('Field Infiltration Test Log')){alert('Not a valid Field Infiltration Test Log file.');return;}
+        project=s.project||{jobName:'',projectNo:'',loggedBy:''};
+        tests=s.tests||[]; nextTestId=s.nextTestId||(tests.length?Math.max(...tests.map(t=>t.id))+1:1);
+        activeTestId=tests.length?tests[0].id:null;
+        activeView=tests.length?'test':'empty';
+        renderSidebar(); renderMainPanel(); updateHdrSub();
+      }catch(err){alert('Could not read file: '+err.message);}
+    }; r.readAsText(f);
+  }; inp.click();
+}
+function newProject(){
+  if((tests.length||project.jobName)&&!confirm('Start a new project? All current data will be cleared.')) return;
+  project={jobName:'',projectNo:'',loggedBy:''}; tests=[]; nextTestId=1;
+  activeTestId=null; activeView='empty';
+  renderSidebar(); renderMainPanel(); updateHdrSub();
+}
+
+function printAll(){
+  $('printContent').innerHTML=buildPrintHTML();
+  window.print();
+}
+function buildPrintHTML(){
+  const proj=`${project.jobName||'—'}`;
+  const projNo=project.projectNo||'—';
+  const loggedBy=project.loggedBy||'—';
+  const printed=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  // Summary table
+  let sumRows=tests.map((t,i)=>{
+    const pl=getPLfor(t),su=parseFloat(t.stickup)||0;
+    const depth=pl!==null?(pl-su).toFixed(2):'—';
+    const tsIdx=t.entries.findIndex(e=>e.isTestStart);
+    const tsEntry=tsIdx>=0?t.entries[tsIdx]:null;
+    const tsLabel=tsEntry?`${tsEntry.date} ${tsEntry.time}`:'—';
+    const {avgRate,ssRate,testRates}=calcRatesForTest(t);
+    const postIvCount=(testRates||[]).filter(r=>r>0).length;
+    const lbl=t.locationId||`Test #${t.id}`;
+    const installFmt=t.installDate?new Date(t.installDate+'T00:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}):'—';
+    return `<tr>
+      <td>${i+1}</td><td>${lbl}</td>
+      <td>${t.testType==='double'?'Double-Ring':'Single-Ring'}</td>
+      <td>${depth}</td><td>${installFmt}</td><td>${tsLabel}</td>
+      <td>${tsIdx>=0?postIvCount:'—'}</td>
+      <td>${avgRate!==null?avgRate.toFixed(3):'—'}</td>
+      <td>${ssRate!==null?ssRate.toFixed(3):'—'}</td>
+    </tr>`;
+  }).join('');
+
+  // Individual test logs
+  let testPages=tests.map(t=>{
+    const pl=getPLfor(t),su=parseFloat(t.stickup)||0;
+    const tsIdx=t.entries.findIndex(e=>e.isTestStart);
+    const lbl=t.locationId||`Test #${t.id}`;
+    const installFmt=t.installDate?new Date(t.installDate+'T00:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}):'—';
+
+    let readingRows=t.entries.map((e,i)=>{
+      const head=calcHeadFor(t,e.tapdown);
+      const aaHead=(e.waterAdded&&e.afterAddTapdown!=='')?calcHeadFor(t,e.afterAddTapdown):null;
+      const isSoak=tsIdx<0||i<tsIdx, isStart=i===tsIdx;
+      const rowCls=isStart?'p-start-row':isSoak?'p-soak':'';
+      const tsCell=e.isTestStart?'✓':'';
+      let row=`<tr class="${rowCls}">
+        <td>${i+1}</td><td style="text-align:center">${tsCell}</td>
+        <td>${e.date}</td><td>${e.time}</td>
+        <td style="text-align:right">${e.tapdown!==''?e.tapdown:'—'}</td>
+        <td style="text-align:right">${head!==null?head.toFixed(2):'—'}</td>`;
+      if(t.testType==='double'){const oh=calcHeadFor(t,e.outerTapdown);row+=`<td style="text-align:right">${e.outerTapdown!==''?e.outerTapdown:'—'}</td><td style="text-align:right">${oh!==null?oh.toFixed(2):'—'}</td>`;}
+      row+=`<td style="text-align:center">${e.waterAdded?'✓':''}</td>
+        <td style="text-align:right">${e.waterAdded&&e.afterAddTapdown!==''?e.afterAddTapdown:'—'}</td>
+        <td style="text-align:right">${aaHead!==null?aaHead.toFixed(2):'—'}</td>
+        <td>${e.comments}</td></tr>`;
+      return row;
+    }).join('');
+
+    const outerReadingHead=t.testType==='double'?`<th>Outer Tape-Down (ft)</th><th>Outer Head (ft)</th>`:'';
+
+    const {intervals,avgRate,ssRate}=calcRatesForTest(t);
+    let rateRows=intervals.map((iv,i)=>{
+      const lbl2=`Reading ${i+1} → ${i+2}`;
+      if(!iv) return `<tr><td>${lbl2}</td><td colspan="5" style="font-style:italic;color:#8ba3bb">Skipped</td></tr>`;
+      const isSoak=!iv.isTest;
+      return `<tr class="${isSoak?'p-soak':''}">
+        <td>${lbl2}${isSoak?' (Soak)':''}</td>
+        <td>${iv.dt.toFixed(3)}</td>
+        <td>${(iv.sh*12).toFixed(2)}</td>
+        <td>${(iv.eh*12).toFixed(2)}</td>
+        <td>${iv.dh.toFixed(3)}</td>
+        <td>${isSoak?'—':iv.rate.toFixed(3)}</td></tr>`;
+    }).join('');
+
+    return `<div class="p-page">
+      <div class="p-sub-title">Test Site: <span>${lbl}</span></div>
+      <div class="p-info-grid">
+        <div class="p-info-cell"><div class="p-info-lbl">Location ID</div><div class="p-info-val">${lbl}</div></div>
+        <div class="p-info-cell"><div class="p-info-lbl">Test Type</div><div class="p-info-val">${t.testType==='double'?'Double-Ring':'Single-Ring'}</div></div>
+        <div class="p-info-cell"><div class="p-info-lbl">Test Depth</div><div class="p-info-val">${pl!==null?(pl-su).toFixed(2):'—'} ft</div></div>
+        <div class="p-info-cell"><div class="p-info-lbl">G.S. Elevation</div><div class="p-info-val">${t.gsEl||'—'} ft</div></div>
+        <div class="p-info-cell"><div class="p-info-lbl">Install Date</div><div class="p-info-val">${installFmt}</div></div>
+        <div class="p-info-cell"><div class="p-info-lbl">Pipe Length</div><div class="p-info-val">${t.pipeLength||'—'} ft</div></div>
+        <div class="p-info-cell"><div class="p-info-lbl">Stick-Up</div><div class="p-info-val">${t.stickup||'—'} ft</div></div>
+        <div class="p-info-cell"><div class="p-info-lbl">Seating</div><div class="p-info-val">${t.seating||'6'} in</div></div>
+        <div class="p-info-cell"><div class="p-info-lbl">Inner Pipe Dia.</div><div class="p-info-val">${t.innerDia||'5'} in</div></div>
+        ${t.testType==='double'?`<div class="p-info-cell"><div class="p-info-lbl">Outer Ring Dia.</div><div class="p-info-val">${t.outerDia||'—'} in</div></div>`:''}
+      </div>
+      <div class="p-section-title">Test Readings</div>
+      <table>
+        <thead><tr>
+          <th>#</th><th>Test Start</th><th>Date</th><th>Time</th>
+          <th>Tape-Down (ft)</th><th>Inner Head (ft)</th>
+          ${outerReadingHead}
+          <th>Water Added?</th><th>After-Add Tape-Down (ft)</th><th>After-Add Head (ft)</th><th>Comments</th>
+        </tr></thead>
+        <tbody>${readingRows}</tbody>
+      </table>
+      ${tsIdx<0?`<p class="p-no-start">Note: No Test Start marked — all intervals treated as soak period.</p>`:''}
+      <div class="p-section-title">Infiltration Rate Analysis — Inner Ring</div>
+      <table>
+        <thead><tr><th>Interval</th><th>Δt (hr)</th><th>Start Head (in)</th><th>End Head (in)</th><th>Δh (in)</th><th>Rate (in/hr)</th></tr></thead>
+        <tbody>${rateRows}</tbody>
+      </table>
+      ${(avgRate!==null||ssRate!==null)?`<div class="p-rates-row">
+        ${avgRate!==null?`<div class="p-rate-box"><div class="p-rate-lbl">Overall Average Rate</div><div class="p-rate-val">${avgRate.toFixed(3)}</div><div class="p-rate-unit">in/hr</div></div>`:''}
+        ${ssRate!==null?`<div class="p-rate-box"><div class="p-rate-lbl">Steady-State Rate (last 2 intervals)</div><div class="p-rate-val">${ssRate.toFixed(3)}</div><div class="p-rate-unit">in/hr</div></div>`:''}
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  return `<div class="p-doc">
+    <div class="p-hdr">
+      <div>
+        <div class="p-hdr-title">Field Infiltration Test <span>Log</span></div>
+        <div style="font-size:9.5px;color:#5a738a;font-family:'IBM Plex Mono',monospace;margin-top:2px">RK&K GEOTECHNICAL · CONSTANT HEAD · v2.0</div>
+      </div>
+      <div class="p-hdr-meta">
+        Job: ${proj} · No: ${projNo}<br>
+        Logged By: ${loggedBy} · Printed: ${printed}
+      </div>
+    </div>
+    <div class="p-section">
+      <div class="p-section-title">Project Summary — All Test Sites</div>
+      <table>
+        <thead><tr>
+          <th>#</th><th>Location ID</th><th>Test Type</th><th>Test Depth (ft)</th>
+          <th>Install Date</th><th>Test Start</th><th>Post-Test Intervals</th>
+          <th>Avg. Rate (in/hr)</th><th>SS Rate (in/hr)</th>
+        </tr></thead>
+        <tbody>${sumRows}</tbody>
+      </table>
+    </div>
+    ${testPages}
+  </div>`;
+}
+
+// ════════════════════════════════════════════
+//  MOBILE SIDEBAR TOGGLE
+// ════════════════════════════════════════════
+function toggleSidebar(){
+  $('sidebar').classList.toggle('open');
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+function init(){
+  renderSidebar();
+  renderMainPanel();
+}
+init();
+</script>
+</body>
+</html>
