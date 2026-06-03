@@ -507,6 +507,48 @@ header {
 
 <!-- (boring modal removed - add boring is now inline in Boring Info tab) -->
 
+<!-- ── LITH LINK MODAL ── -->
+<div class="modal-overlay hidden" id="lith-link-modal" onclick="if(event.target===this)skipLithLink()">
+  <div class="modal">
+    <div class="modal-title" style="color:var(--accent2)">New Stratum</div>
+
+    <!-- Previous stratum context -->
+    <div id="lith-link-prev-info" style="font-size:12px;color:var(--muted);margin-bottom:14px;padding:9px 11px;background:var(--bg);border-radius:5px;border-left:3px solid var(--accent2);font-family:var(--mono);line-height:1.5"></div>
+
+    <!-- Line type -->
+    <div class="field">
+      <label>Line Type — Top of Stratum</label>
+      <select id="lith-link-linetype">
+        <option value="Dash">Dashed — Inferred</option>
+        <option value="Solid">Solid — Observed</option>
+        <option value="None">None — Mid-Stratum Change</option>
+      </select>
+    </div>
+
+    <!-- Top depth of new stratum -->
+    <div class="field">
+      <label>Top Depth of New Stratum (ft)</label>
+      <input type="number" step="0.1" id="lith-link-topdepth" placeholder="e.g. 5.0"
+        style="font-family:var(--mono)">
+    </div>
+
+    <!-- Depth link toggle -->
+    <div class="toggle-row" style="padding:10px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:10px 0">
+      <span class="toggle-label" style="font-size:13px;padding-right:12px;line-height:1.4">Set bottom depth of previous stratum to match?</span>
+      <label class="toggle">
+        <input type="checkbox" id="lith-link-depth" checked>
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-green" style="flex:1" onclick="confirmLithLink()">Add &amp; Link</button>
+      <button class="btn btn-ghost" onclick="skipLithLink()">Skip</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── STATUS BAR ── -->
 <div class="status-bar">
   <div><span class="status-dot"></span>OFFLINE READY</div>
@@ -1247,10 +1289,62 @@ function updRec(id) {
 
 // ── LITHOLOGY ────────────────────────────────────────────────────
 let lithId = 0;
+let _pendingLithId = null;
+
 function addLith() {
   if (!requireBoring()) return;
-  const id = ++lithId;
-  ab().lith.push({ id, lineType:'Dash', stratum:'', topDepth:'', botDepth:'',
+  _pendingLithId = ++lithId;
+  const lith = ab().lith;
+
+  if (lith.length > 0) {
+    // Build previous stratum context label
+    const prev = lith[lith.length - 1];
+    const prevDepth = (prev.topDepth !== '' && prev.botDepth !== '')
+      ? `${prev.topDepth} – ${prev.botDepth} ft`
+      : prev.topDepth !== '' ? `${prev.topDepth} ft – (open)` : '(depths not set)';
+    const prevUscs  = prev.uscs || 'No classification';
+    document.getElementById('lith-link-prev-info').innerHTML =
+      `<span style="color:var(--label);font-size:10px;letter-spacing:.8px;text-transform:uppercase">Previous Stratum</span><br>` +
+      `${prevDepth} &nbsp;·&nbsp; ${prevUscs}`;
+
+    // Reset inputs
+    document.getElementById('lith-link-linetype').value = 'Dash';
+    document.getElementById('lith-link-topdepth').value  = prev.botDepth || '';
+    document.getElementById('lith-link-depth').checked   = true;
+
+    document.getElementById('lith-link-modal').classList.remove('hidden');
+    setTimeout(() => document.getElementById('lith-link-topdepth').focus(), 100);
+  } else {
+    // First stratum — no previous to link, add directly
+    _pushNewLith(_pendingLithId, '');
+  }
+}
+
+function confirmLithLink() {
+  const lineType  = document.getElementById('lith-link-linetype').value;
+  const topDepth  = document.getElementById('lith-link-topdepth').value.trim();
+  const linkDepth = document.getElementById('lith-link-depth').checked;
+
+  document.getElementById('lith-link-modal').classList.add('hidden');
+
+  const lith = ab()?.lith;
+  if (lith && lith.length > 0) {
+    const prev = lith[lith.length - 1];
+    prev.lineType = lineType;                           // critical: save line type to previous stratum
+    if (linkDepth && topDepth !== '') prev.botDepth = topDepth; // optionally link depths
+    renderLith();                                       // refresh previous card so values show
+  }
+
+  _pushNewLith(_pendingLithId, topDepth);
+}
+
+function skipLithLink() {
+  document.getElementById('lith-link-modal').classList.add('hidden');
+  _pushNewLith(_pendingLithId, '');
+}
+
+function _pushNewLith(id, topDepth) {
+  ab().lith.push({ id, lineType:'Dash', stratum:'', topDepth: topDepth || '', botDepth:'',
     uscs:'', aashto:'', moisture:'', densityConsist:'',
     color:'', c1desc:'', c1part:'',
     c2pct:'', c2desc:'', c2part:'',
@@ -1327,7 +1421,7 @@ function renderLith() {
       <div class="entry-body">
         <div class="grid-2">
           <div class="field">
-            <label>Line Type — Bottom of Stratum</label>
+            <label>Line Type — Top of Stratum</label>
             <select onchange="updLith(${l.id},'lineType',this.value)">
               <option${l.lineType==='Dash'?' selected':''} value="Dash">Dashed — Inferred</option>
               <option${l.lineType==='Solid'?' selected':''} value="Solid">Solid — Observed</option>
