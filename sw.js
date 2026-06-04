@@ -1,7 +1,7 @@
 // FieldLog Service Worker
 // Cache name — bump the version string whenever you deploy an update
 // so users automatically get the new files.
-const CACHE = 'fieldlog-v2.7';
+const CACHE = 'fieldlog-v2.8';
 
 // Everything the app needs to run offline
 const ASSETS = [
