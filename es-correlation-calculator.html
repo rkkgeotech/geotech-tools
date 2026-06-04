@@ -204,7 +204,7 @@
     <div class="formula-bar">
       <span><em>N₆₀ = N × C<sub>E</sub></em> &nbsp;|&nbsp; <em>C<sub>E</sub> = ER / 60</em></span>
       <span>(N<sub>1</sub>)<sub>60</sub> = N₆₀ × C<sub>N</sub></span>
-      <span>C<sub>N</sub> = min(2.0, √(2116 / σ′<sub>v,psf</sub>))</span>
+      <span>C<sub>N</sub> = 0.77·log(20 / σ′<sub>v,tsf</sub>)</span>
       <span>σ′<sub>v</sub> = γ·z<sub>dry</sub> + (γ − γ<sub>w</sub>)·z<sub>wet</sub></span>
       <span>kPa → ksf: ÷ 47.88 &nbsp;|&nbsp; ksi → ksf: × 144</span>
     </div>
@@ -619,7 +619,9 @@ function calcSamp(bkey, r) {
   if (sk && strata[sk]?.gamma && dep > 0) {
     sigV = computeCumulativeSigmaV(bkey, r);
     if (sigV !== null) {
-      CN   = sigV > 0 ? Math.min(2.0, Math.sqrt(2116.2 / sigV)) : 2.0;
+      const sigV_tsf = sigV / 2000;
+      CN = sigV > 0 ? 0.77 * Math.log10(20 / sigV_tsf) : null;
+      if (CN !== null && CN < 0) CN = 0;
       N160 = N60 ? N60 * CN : null;
     }
   }
@@ -775,7 +777,9 @@ function readBoringRows(bkey) {
     if (strat.gamma && dep > 0) {
       const zD = Math.min(dep, gw), zW = Math.max(0, dep - gw);
       sigV = strat.gamma*zD + (strat.gamma-gwV)*zW;
-      CN   = sigV > 0 ? Math.min(2.0, Math.sqrt(2116.2/sigV)) : 2.0;
+      const sigV_tsf = sigV / 2000;
+      CN = sigV > 0 ? 0.77 * Math.log10(20 / sigV_tsf) : null;
+      if (CN !== null && CN < 0) CN = 0;
       N160 = N60 * CN;
     }
     const CN60r = (N60 && CN !== null) ? CE * CN : null;
@@ -878,7 +882,7 @@ function calcBoring(bkey) {
 
   document.getElementById(`btbl-${bkey}`).innerHTML = buildResTable(rows, vis);
   document.getElementById(`bnote-${bkey}`).innerHTML =
-    `* Begemann bilinear at N₆₀=15. Pa=${Pa.toFixed(3)} ksf. ${B>0?`USACE: B=${B} ft, D=${D} ft`:'USACE U1: excluded (set B in Global Parameters to include)'}. C<sub>N</sub>=min(2.0,√(2116/σ′<sub>v,psf</sub>)) — Liao &amp; Whitman (1986).`;
+    `* Begemann bilinear at N₆₀=15. Pa=${Pa.toFixed(3)} ksf. ${B>0?`USACE: B=${B} ft, D=${D} ft`:'USACE U1: excluded (set B in Global Parameters to include)'}. C<sub>N</sub>=0.77·log(20/σ′<sub>v,tsf</sub>) — Peck, Hanson &amp; Thornburn (1974).`;
   document.getElementById(`breslbl-${bkey}`).textContent = borLabel;
   document.getElementById(`bres-${bkey}`).classList.remove('hidden');
   buildBoringPlot(bkey, rows);
@@ -1227,6 +1231,7 @@ function hidePlotTip() {
 // PLOT HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
 const BOR_COLORS = ['#1d5fa8','#166534','#991b1b','#7c3aed','#d97706','#0369a1','#065f46','#9f1239','#4b5563','#134e4a'];
+const BOR_DASH   = ['none','5,4','2,3','8,3,2,3','1,4'];
 
 function getApplicableEs(row) {
   const vals = CORRS
@@ -1387,7 +1392,7 @@ function buildSummaryPlot(allSamples) {
                N: row.N, N60: row.N60, N160: row.N160, soilType: row.soilType };
     }).filter(Boolean);
     pts.sort((a, b) => useElev ? b.yVal - a.yVal : a.yVal - b.yVal);
-    return { bkey, blabel, pts };
+    return { bkey, blabel, pts, dash: BOR_DASH[bi % BOR_DASH.length] };
   }).filter(g => g.pts.length > 0);
 
   if (!borGroups.length) {
@@ -1420,7 +1425,7 @@ function buildSummaryPlot(allSamples) {
     // connecting mean lines (segment color = "from" pt's stratum)
     for (let i = 1; i < g.pts.length; i++) {
       const a = g.pts[i-1], b = g.pts[i];
-      data += `<line x1="${sx(a.mean)}" y1="${sy(a.yVal)}" x2="${sx(b.mean)}" y2="${sy(b.yVal)}" stroke="${a.sc.br}" stroke-width="2" opacity="0.85"/>`;
+      data += `<line x1="${sx(a.mean)}" y1="${sy(a.yVal)}" x2="${sx(b.mean)}" y2="${sy(b.yVal)}" stroke="${a.sc.br}" stroke-width="2" opacity="0.85" stroke-dasharray="${g.dash}"/>`;
     }
     // invisible hit rects for tooltips (full width strip at each sample's y)
     g.pts.forEach(p => {
@@ -1452,13 +1457,16 @@ function buildSummaryPlot(allSamples) {
   svg += `<text x="${ML+(VW-ML-MR)/2}" y="${MT-12}" text-anchor="middle" font-size="14" font-weight="700" fill="#0c1f35">Es vs. ${useElev?'Elevation':'Depth'} \u2014 All Borings</text>`;
   svg += '</svg>';
 
-  // Legend: unique strata (not borings)
+  // Legend: strata (color swatches) + borings (line styles)
   const seenStrat = new Set();
   const legendPts = allPts.filter(p => { if (seenStrat.has(p.stratKey)) return false; seenStrat.add(p.stratKey); return true; });
   let legend = '<div class="plot-legend">';
   legendPts.forEach(p => {
     const lbl = (p.stratKey && strata[p.stratKey]?.label) ? escHtml(strata[p.stratKey].label) : (p.stratKey || '?');
     legend += `<div class="plot-legend-item"><div class="plot-legend-swatch" style="background:${p.sc.bg};border-color:${p.sc.br}"></div><span>${lbl}</span></div>`;
+  });
+  borGroups.forEach(g => {
+    legend += `<div class="plot-legend-item"><svg width="26" height="10" style="flex-shrink:0"><line x1="0" y1="5" x2="26" y2="5" stroke="#5a738a" stroke-width="2" stroke-dasharray="${g.dash}"/></svg><span>${escHtml(g.blabel)}</span></div>`;
   });
   legend += `<span class="plot-hint">\u2014 mean line &nbsp;|&nbsp; \u27f5\u27f6 applicable Es range &nbsp;|&nbsp; hover for sample info${depNote}</span></div>`;
 
@@ -1637,14 +1645,14 @@ function bibRefHTML() {
 <tr><td class="c">7</td><td>CN correction</td><td><strong>Liao, S.S.C. and Whitman, R.V. (1986).</strong> Overburden Correction Factors for SPT in Sand. <em>J. Geotech. Eng.,</em> ASCE, 112(3), 373–377.</td><td>CN = min(2.0, √(Pa/σ'v,psf)), Pa = 2116 psf.</td></tr>
 <tr><td class="c">8</td><td>N₆₀, CE</td><td><strong>Skempton, A.W. (1986).</strong> Standard Penetration Test Procedures. <em>Géotechnique,</em> 36(3), 425–447.</td><td>N₆₀ = N × CE; CE = ER/60. 60% energy reference baseline.</td></tr>
 <tr><td class="c">9</td><td>UFC reference</td><td><strong>U.S. Army Corps of Engineers (2022).</strong> <em>Soil Mechanics.</em> UFC 3-220-10. Department of Defense.</td><td>Tabulates K&M, Webb, and Begemann in UFC Table 3-6.</td></tr>
-<tr><td class="c">10</td><td>General</td><td><strong>Peck, R.B., Hanson, W.E., and Thornburn, T.H. (1974).</strong> <em>Foundation Engineering,</em> 2nd Ed. Wiley.</td><td>Alt. CN: 0.77·log(20/σ'v,tsf). Not used here; cited for comparison.</td></tr>
+<tr><td class="c">10</td><td>CN correction</td><td><strong>Peck, R.B., Hanson, W.E., and Thornburn, T.H. (1974).</strong> <em>Foundation Engineering,</em> 2nd Ed. Wiley.</td><td>Active CN formula: 0.77·log(20/σ'v,tsf). Consistent with Shear Strength Correlation Calculator.</td></tr>
 </tbody></table>`;
 }
 
 function assumptionsNote() {
   return `<strong>Assumptions and limitations:</strong>
   (1) σ′v uses cumulative layer-by-layer calculation; γ treated as γsat below GWT.
-  (2) CN capped at 2.0 per Liao &amp; Whitman (1986); governs for z &lt; ~4–6 ft.
+  (2) CN = 0.77·log(20/σ′v,tsf) per Peck, Hanson &amp; Thornburn (1974); set to 0 if σ′v is large enough that the formula would return a negative value (very deep samples).
   (3) All Es correlations are empirical; typical scatter 2–5×. The applicable range should guide design value selection, not replace engineering judgment.
   (4) "App. Es" in print tables = min/max/mean of all correlations applicable to the assigned soil type for each sample.`;
 }
@@ -1692,7 +1700,7 @@ function buildRef() {
   <td>Tabulates Kulhawy &amp; Mayne, Webb, and Begemann correlations in UFC Table 3-6.</td></tr>
 <tr><td>10</td><td>General reference</td>
   <td><strong>Peck, R.B., Hanson, W.E., and Thornburn, T.H. (1974).</strong> <em>Foundation Engineering,</em> 2nd Ed. Wiley, New York.</td>
-  <td>Alternative C<sub>N</sub>: <code>0.77·log(20/σ′<sub>v,tsf</sub>)</code>. Not used here; cited for comparison.</td></tr>
+  <td>Active C<sub>N</sub> formula: <code>0.77·log(20/σ′<sub>v,tsf</sub>)</code>. Consistent with Shear Strength Correlation Calculator.</td></tr>
 </tbody></table>
 <div class="tbl-note" style="margin-top:12px">${assumptionsNote()}</div>`;
   document.getElementById('refBody').dataset.built = '1';
