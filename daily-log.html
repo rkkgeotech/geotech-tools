@@ -196,7 +196,19 @@ textarea.finput.tall{min-height:100px}
   body{background:white}
   .card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid;margin-bottom:8px}
   .finput,.dtable td input,.dtable td select{background:transparent!important}
+  .print-empty{display:none!important}
 }
+
+/* ── SUMMARY MODAL TOOLBAR ── */
+.modal-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid var(--border);background:#fafbfc;gap:12px;flex-shrink:0;flex-wrap:wrap}
+.modal-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.modal-filter label{font-family:var(--cond);font-weight:700;font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.modal-filter input[type=date]{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-family:var(--sans);font-size:12px;color:var(--text);transition:border-color .15s,box-shadow .15s}
+.modal-filter input[type=date]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(27,79,138,.12)}
+.btn-filter-reset{background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--cond);font-weight:600;font-size:10px;letter-spacing:.6px;text-transform:uppercase;padding:5px 10px;border-radius:4px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-filter-reset:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-lt)}
+.btn-print-summary{background:var(--accent);color:white;border:none;font-family:var(--cond);font-weight:700;font-size:11px;letter-spacing:.7px;text-transform:uppercase;padding:6px 14px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;white-space:nowrap;flex-shrink:0}
+.btn-print-summary:hover{background:var(--accent-dk)}
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
@@ -287,10 +299,6 @@ textarea.finput.tall{min-height:100px}
       <button class="btn-sb summary" onclick="openSummary()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         Project Summary
-      </button>
-      <button class="btn-sb summary" onclick="printSummary()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Print Summary
       </button>
       <div class="btn-sb-row">
         <button class="btn-sb io" onclick="document.getElementById('json-file-input').click()">
@@ -522,6 +530,19 @@ textarea.finput.tall{min-height:100px}
 <div class="modal-overlay" id="summary-modal">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-hdr"><span id="summary-title">Project Summary</span><button class="modal-close" onclick="closeSummary()">×</button></div>
+    <div class="modal-toolbar">
+      <div class="modal-filter">
+        <label>From</label>
+        <input type="date" id="summary-from" oninput="updateSummaryFilter()">
+        <label>To</label>
+        <input type="date" id="summary-to" oninput="updateSummaryFilter()">
+        <button class="btn-filter-reset" onclick="resetSummaryFilter()">All Dates</button>
+      </div>
+      <button class="btn-print-summary" onclick="printSummaryFiltered()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print Summary
+      </button>
+    </div>
     <div class="modal-body" id="summary-body"></div>
   </div>
 </div>
@@ -887,41 +908,76 @@ function addNoteEntry(time,note){ const c=document.getElementById('notes-entries
 /* =====================================================================
    PROJECT SUMMARY
 ===================================================================== */
+let _summaryLogs = []; // all logs for current modal session, sorted by date
+
 function openSummary(){
   saveCurrentLogToState();
-  const itemMap={};
-  project.logs.forEach(log=>{ (log.tasks||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(!k) return; if(!itemMap[k]) itemMap[k]={description:t.description||'',unit:t.unit||'',byLog:{}}; if(t.description&&!itemMap[k].description) itemMap[k].description=t.description; itemMap[k].byLog[log.id]=(parseFloat(t.qty)||0); }); });
-  const sortedLogs=[...project.logs].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  const items=Object.keys(itemMap).sort((a,b)=>parseFloat(a)-parseFloat(b)||a.localeCompare(b));
+  _summaryLogs=[...project.logs].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  document.getElementById('summary-from').value='';
+  document.getElementById('summary-to').value='';
   const label=[project.name,project.no].filter(Boolean).join(' — ')||'Unnamed Project';
   document.getElementById('summary-title').textContent=`Project Summary · ${label}`;
-  if(!items.length){ document.getElementById('summary-body').innerHTML='<div class="no-items">No task items logged yet.</div>'; document.getElementById('summary-modal').classList.add('open'); return; }
-  const dc=sortedLogs.map(l=>`<th>${l.date?formatDate(l.date):'No date'}</th>`).join('');
-  const rows=items.map(k=>{
-    const item=itemMap[k];
-    const tot=sortedLogs.reduce((s,l)=>s+(item.byLog[l.id]||0),0);
-    const qc=sortedLogs.map(l=>{ const v=item.byLog[l.id]; return v?`<td class="num">${v%1===0?v:v.toFixed(2)}</td>`:'<td class="num" style="color:var(--border2)">—</td>'; }).join('');
-    return `<tr><td class="num">${k}</td><td>${item.description||'<span style="color:var(--muted)">—</span>'}</td><td class="num">${item.unit||'—'}</td>${qc}<td class="tot">${tot%1===0?tot:tot.toFixed(2)}</td></tr>`;
-  }).join('');
-  document.getElementById('summary-body').innerHTML=`<p style="font-size:12px;color:var(--muted);font-family:var(--cond);margin-bottom:12px">${sortedLogs.length} log${sortedLogs.length!==1?'s':''} · quantities by Item No.</p><table class="summary-table"><thead><tr><th class="left" style="width:60px">Item No.</th><th class="left">Description</th><th style="width:60px">Unit</th>${dc}<th style="width:80px">Total</th></tr></thead><tbody>${rows}</tbody></table>`;
+  renderSummaryTable(_summaryLogs);
   document.getElementById('summary-modal').classList.add('open');
 }
+
+function getSummaryFilteredLogs(){
+  const from=document.getElementById('summary-from').value;
+  const to=document.getElementById('summary-to').value;
+  return _summaryLogs.filter(l=>{
+    if(!l.date) return true;
+    if(from&&l.date<from) return false;
+    if(to&&l.date>to) return false;
+    return true;
+  });
+}
+
+function updateSummaryFilter(){ renderSummaryTable(getSummaryFilteredLogs()); }
+
+function resetSummaryFilter(){
+  document.getElementById('summary-from').value='';
+  document.getElementById('summary-to').value='';
+  renderSummaryTable(_summaryLogs);
+}
+
+function renderSummaryTable(filteredLogs){
+  const itemMap={};
+  filteredLogs.forEach(log=>{ (log.tasks||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(!k) return; if(!itemMap[k]) itemMap[k]={description:t.description||'',unit:t.unit||'',byLog:{}}; if(t.description&&!itemMap[k].description) itemMap[k].description=t.description; itemMap[k].byLog[log.id]=(parseFloat(t.qty)||0); }); });
+  const items=Object.keys(itemMap).sort((a,b)=>parseFloat(a)-parseFloat(b)||a.localeCompare(b));
+  if(!items.length){ document.getElementById('summary-body').innerHTML='<div class="no-items">No task items logged yet.</div>'; return; }
+  const from=document.getElementById('summary-from').value;
+  const to=document.getElementById('summary-to').value;
+  let rangeLabel='';
+  if(from||to){ rangeLabel=` · ${from?formatDate(from):'start'} – ${to?formatDate(to):'end'}`; }
+  const dc=filteredLogs.map(l=>`<th>${l.date?formatDate(l.date):'No date'}</th>`).join('');
+  const rows=items.map(k=>{
+    const item=itemMap[k];
+    const tot=filteredLogs.reduce((s,l)=>s+(item.byLog[l.id]||0),0);
+    const qc=filteredLogs.map(l=>{ const v=item.byLog[l.id]; return v?`<td class="num">${v%1===0?v:v.toFixed(2)}</td>`:'<td class="num" style="color:var(--border2)">—</td>'; }).join('');
+    return `<tr><td class="num">${k}</td><td>${item.description||'<span style="color:var(--muted)">—</span>'}</td><td class="num">${item.unit||'—'}</td>${qc}<td class="tot">${tot%1===0?tot:tot.toFixed(2)}</td></tr>`;
+  }).join('');
+  document.getElementById('summary-body').innerHTML=`<p style="font-size:12px;color:var(--muted);font-family:var(--cond);margin-bottom:12px">${filteredLogs.length} log${filteredLogs.length!==1?'s':''}${rangeLabel} · quantities by Item No.</p><table class="summary-table"><thead><tr><th class="left" style="width:60px">Item No.</th><th class="left">Description</th><th style="width:60px">Unit</th>${dc}<th style="width:80px">Total</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
 function closeSummary(){ document.getElementById('summary-modal').classList.remove('open'); }
 document.getElementById('summary-modal').addEventListener('click',function(e){ if(e.target===this) closeSummary(); });
 
-function printSummary(){
-  saveCurrentLogToState();
+function printSummaryFiltered(){
+  const filteredLogs=getSummaryFilteredLogs();
   const itemMap={};
-  project.logs.forEach(log=>{ (log.tasks||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(!k) return; if(!itemMap[k]) itemMap[k]={description:t.description||'',unit:t.unit||'',byLog:{}}; if(t.description&&!itemMap[k].description) itemMap[k].description=t.description; itemMap[k].byLog[log.id]=(parseFloat(t.qty)||0); }); });
-  const sortedLogs=[...project.logs].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  filteredLogs.forEach(log=>{ (log.tasks||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(!k) return; if(!itemMap[k]) itemMap[k]={description:t.description||'',unit:t.unit||'',byLog:{}}; if(t.description&&!itemMap[k].description) itemMap[k].description=t.description; itemMap[k].byLog[log.id]=(parseFloat(t.qty)||0); }); });
   const items=Object.keys(itemMap).sort((a,b)=>parseFloat(a)-parseFloat(b)||a.localeCompare(b));
   const projLabel=[project.name,project.no].filter(Boolean).join(' — ')||'Unnamed Project';
   const contractor=project.contractor?`<div style="font-size:12px;color:#6b7490;margin-top:2px">Drilling Contractor: ${project.contractor}</div>`:'';
-  const dc=sortedLogs.map(l=>`<th>${l.date?formatDate(l.date):'No date'}</th>`).join('');
+  const from=document.getElementById('summary-from').value;
+  const to=document.getElementById('summary-to').value;
+  let rangeStr='';
+  if(from||to){ rangeStr=` · ${from?formatDate(from):'start'} – ${to?formatDate(to):'end'}`; }
+  const dc=filteredLogs.map(l=>`<th>${l.date?formatDate(l.date):'No date'}</th>`).join('');
   const rows=items.length ? items.map(k=>{
     const item=itemMap[k];
-    const tot=sortedLogs.reduce((s,l)=>s+(item.byLog[l.id]||0),0);
-    const qc=sortedLogs.map(l=>{ const v=item.byLog[l.id]; return v?`<td>${v%1===0?v:v.toFixed(2)}</td>`:'<td style="color:#ccc">—</td>'; }).join('');
+    const tot=filteredLogs.reduce((s,l)=>s+(item.byLog[l.id]||0),0);
+    const qc=filteredLogs.map(l=>{ const v=item.byLog[l.id]; return v?`<td>${v%1===0?v:v.toFixed(2)}</td>`:'<td style="color:#ccc">—</td>'; }).join('');
     return `<tr><td>${k}</td><td>${item.description||'—'}</td><td>${item.unit||'—'}</td>${qc}<td class="tot">${tot%1===0?tot:tot.toFixed(2)}</td></tr>`;
   }).join('') : `<tr><td colspan="100" style="text-align:center;color:#999;padding:20px">No task items logged yet.</td></tr>`;
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Project Summary – ${projLabel}</title>
@@ -939,7 +995,7 @@ function printSummary(){
     @media print{body{padding:0} button{display:none}}
   </style></head><body>
   <h1>${projLabel}</h1>${contractor}
-  <div class="sub">${sortedLogs.length} log${sortedLogs.length!==1?'s':''} · quantities by Item No. · printed ${new Date().toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})}</div>
+  <div class="sub">${filteredLogs.length} log${filteredLogs.length!==1?'s':''}${rangeStr} · quantities by Item No. · printed ${new Date().toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})}</div>
   <table><thead><tr><th style="width:60px">Item No.</th><th>Description</th><th style="width:55px">Unit</th>${dc}<th style="width:75px">Total</th></tr></thead><tbody>${rows}</tbody></table>
   <script>window.onload=()=>window.print()<\/script></body></html>`;
   const w=window.open('','_blank','width=900,height=600');
@@ -1047,6 +1103,42 @@ function restoreAutosave(){
 function dismissAutosaveBanner(){ const b=document.getElementById('autosave-banner'); if(b) b.remove(); window._pendingAutosave=null; }
 
 setInterval(autosave, AUTOSAVE_MS);
+
+/* =====================================================================
+   PRINT: HIDE EMPTY / PLACEHOLDER ROWS
+===================================================================== */
+window.addEventListener('beforeprint', function(){
+  // Borings: hide rows where boring number is blank
+  document.getElementById('borings-body').querySelectorAll('tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    if(Array.from(inputs).every(i=>!i.value.trim())) tr.classList.add('print-empty');
+  });
+  // Labor: hide rows where classification is blank
+  document.getElementById('labor-body').querySelectorAll('tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    if(Array.from(inputs).every(i=>!i.value.trim())) tr.classList.add('print-empty');
+  });
+  // Equipment: hide rows where classification is blank
+  document.getElementById('equip-body').querySelectorAll('tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    if(Array.from(inputs).every(i=>!i.value.trim())) tr.classList.add('print-empty');
+  });
+  // Tasks: hide rows where both item no. and description are blank
+  document.getElementById('tasks-body').querySelectorAll('tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    const itemNo=inputs[0]?.value?.trim()||'';
+    const desc=inputs[1]?.value?.trim()||'';
+    if(!itemNo&&!desc) tr.classList.add('print-empty');
+  });
+  // Notes: hide entries where both time and note text are blank
+  document.getElementById('notes-entries').querySelectorAll('[data-note]').forEach(entry=>{
+    const fields=entry.querySelectorAll('input,textarea');
+    if(Array.from(fields).every(f=>!f.value.trim())) entry.classList.add('print-empty');
+  });
+});
+window.addEventListener('afterprint', function(){
+  document.querySelectorAll('.print-empty').forEach(el=>el.classList.remove('print-empty'));
+});
 
 /* =====================================================================
    INIT
