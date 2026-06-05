@@ -942,7 +942,13 @@ function addTaskRow(itemNo,desc,qty,unit,cu){
 function recalcTotals(){
   const other={};
   const otherUnit={};
-  project.logs.forEach(log=>{ if(log.id===activeLogId) return; (log.tasks||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(!k) return; other[k]=(other[k]||0)+(parseFloat(t.qty)||0); if(t.unit) otherUnit[k]=t.unit; }); });
+  const upToOther={}; // only logs with date ≤ active log's date (for Qty Remaining snapshot)
+  const activeLog=project.logs.find(l=>l.id===activeLogId);
+  const activeDate=activeLog?.date||'';
+  project.logs.forEach(log=>{ if(log.id===activeLogId) return; (log.tasks||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(!k) return; other[k]=(other[k]||0)+(parseFloat(t.qty)||0); if(t.unit) otherUnit[k]=t.unit;
+    // For Qty Remaining: only count logs on or before this log's date
+    if(!activeDate||!log.date||log.date<=activeDate){ upToOther[k]=(upToOther[k]||0)+(parseFloat(t.qty)||0); }
+  }); });
   // Build template lookup for remaining qty
   const tmplMap={};
   (project.taskTemplate||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(k) tmplMap[k]={ quantity:parseFloat(t.quantity)||0, hasQty:t.quantity!==''&&t.quantity!==undefined&&t.quantity!==null }; });
@@ -974,7 +980,8 @@ function recalcTotals(){
       // Remaining cell
       const tmpl=tmplMap[itemNo];
       if(tmpl&&tmpl.hasQty&&tmpl.quantity>0){
-        const rem=tmpl.quantity-total;
+        const totalUpToNow=(upToOther[itemNo]||0)+qty;
+        const rem=tmpl.quantity-totalUpToNow;
         const dispRem=(rem%1===0?rem:rem.toFixed(2));
         if(rem>0){ rc.textContent='+'+dispRem; rc.className='rem-cell under'; }
         else if(rem===0){ rc.textContent='0'; rc.className='rem-cell exact'; }
