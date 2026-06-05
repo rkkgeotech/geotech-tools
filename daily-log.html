@@ -150,6 +150,32 @@ textarea.finput.tall{min-height:100px}
 .claimed-badge svg{flex-shrink:0}
 .unit-custom{display:none;background:transparent;border:none;border-bottom:1px solid var(--border2);font-family:var(--sans);font-size:12px;color:var(--text);width:72px;padding:2px 4px}
 .unit-custom:focus{outline:none;border-bottom-color:var(--accent)}
+
+/* ── TEMPLATE COST COLUMNS ── */
+.tmpl-rate{width:108px}.tmpl-qty-col{width:80px}
+.tmpl-cost-cell{background:#f0f7f4!important;color:var(--green);font-family:var(--mono);font-size:12px;font-weight:600;text-align:right;padding:5px 10px!important;white-space:nowrap;pointer-events:none;border:1px solid var(--border)}
+.tmpl-cost-cell.zero{background:#fafbfc!important;color:var(--muted);font-weight:400}
+.tmpl-total-row td{border-top:2px solid var(--border2)!important;background:var(--accent-lt)!important;font-family:var(--cond);font-weight:700;font-size:11px;letter-spacing:.4px;color:var(--accent)}
+.tmpl-total-row .tmpl-cost-cell{background:var(--accent-lt)!important;color:var(--accent);font-size:13px}
+.rate-input{background:transparent;border:none;width:100%;font-family:var(--mono);font-size:12px;color:var(--text);padding:4px 6px;border-radius:3px;text-align:right}
+.rate-input:focus{outline:none;background:var(--accent-lt)}
+
+/* ── REMAINING CELL (daily log tasks) ── */
+.wrem{width:96px}
+.rem-hdr{text-align:center!important}
+.rem-cell{text-align:center;font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 8px!important;white-space:nowrap;border:1px solid var(--border)}
+.rem-cell.under{background:#e6f4ef;color:#1a7a5e}
+.rem-cell.over{background:#fdecea;color:#c0392b}
+.rem-cell.exact{background:#f6f7f9;color:var(--muted);font-weight:400}
+.rem-cell.none{color:var(--border2);font-weight:400;background:transparent}
+
+/* ── SUMMARY COST/REMAINING ── */
+.summary-table td.cost{text-align:right;font-family:var(--mono);font-size:12px}
+.summary-table td.rem-pos{text-align:center;font-family:var(--mono);font-size:12px;color:var(--green);background:#e6f4ef}
+.summary-table td.rem-neg{text-align:center;font-family:var(--mono);font-size:12px;color:#c0392b;background:#fdecea}
+.summary-table td.rem-zero{text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);background:#f6f7f9}
+.summary-table tfoot td{background:var(--accent-lt)!important;font-family:var(--cond);font-weight:700;font-size:12px;color:var(--accent);border:1px solid var(--border);padding:8px 10px}
+.summary-table tfoot td.spend{text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--green)}
 .btn-add{display:flex;align-items:center;gap:5px;justify-content:center;background:none;border:1px dashed var(--border2);color:var(--muted);font-family:var(--cond);font-weight:600;font-size:11px;letter-spacing:.6px;text-transform:uppercase;padding:6px 12px;border-radius:5px;cursor:pointer;margin-top:8px;transition:all .15s;width:100%}
 .btn-add:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-lt)}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
@@ -331,7 +357,7 @@ textarea.finput.tall{min-height:100px}
       <div class="tmpl-view-hdr">
         <div>
           <div class="tmpl-view-title">Task Template</div>
-          <div class="tmpl-view-sub">Define the project's task items once here. When you create a new daily log, these tasks will be pre-populated with a blank Qty Today field — ready to fill in each day.</div>
+          <div class="tmpl-view-sub">Define the project's task items, planned quantities, and unit rates here. When you create a new daily log, these tasks will be pre-populated — ready to fill in each day. Total Cost and remaining quantity are tracked automatically.</div>
         </div>
         <div class="tmpl-view-actions">
           <button class="btn-tmpl-back" onclick="closeTemplateView()">
@@ -356,9 +382,17 @@ textarea.finput.tall{min-height:100px}
               <th class="wno">Item No.</th>
               <th>Description</th>
               <th class="wunit">Unit</th>
+              <th class="tmpl-rate" style="text-align:right">Unit Rate ($)</th>
+              <th class="tmpl-qty-col" style="text-align:right">Init. Qty</th>
+              <th style="text-align:right;min-width:110px">Total Cost</th>
               <th class="tmpl-del"></th>
             </tr></thead>
             <tbody id="tmpl-rows"></tbody>
+            <tfoot><tr class="tmpl-total-row" id="tmpl-total-row">
+              <td colspan="5" style="text-align:right;padding:6px 10px">Project Total Budget</td>
+              <td class="tmpl-cost-cell zero" id="tmpl-grand-total">—</td>
+              <td style="background:var(--accent-lt)!important"></td>
+            </tr></tfoot>
           </table>
           <button class="btn-add" onclick="addTemplateRow()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -410,6 +444,7 @@ textarea.finput.tall{min-height:100px}
               <th class="wno">Item No.</th><th>Description</th>
               <th class="wqty">Qty Today</th><th class="wunit">Unit</th>
               <th class="total-cell" style="font-family:var(--cond);font-weight:700;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);background:var(--accent-lt);border:1px solid var(--border);padding:7px 10px">Running Total</th>
+              <th class="rem-hdr wrem" style="font-family:var(--cond);font-weight:700;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);background:var(--accent-lt);border:1px solid var(--border);padding:7px 10px">Qty Remaining</th>
             </tr></thead>
             <tbody id="tasks-body"></tbody>
           </table>
@@ -638,6 +673,7 @@ function openTemplateView(){
   document.getElementById('log-save-bar').classList.add('hidden');
   document.getElementById('btn-tmpl-sb').classList.add('active');
   renderLogList(); // deselect active log highlight
+  recalcTemplateCosts();
   window.scrollTo(0,0);
   if(window.innerWidth<768) document.getElementById('sidebar').classList.remove('open');
 }
@@ -661,32 +697,70 @@ function saveTemplateView(){
   markClean();
 }
 
-function addTemplateRow(itemNo, desc, unit){
+function addTemplateRow(itemNo, desc, unit, unitRate, quantity){
   const tbody=document.getElementById('tmpl-rows');
   const n=tbody.rows.length+1;
   const UNITS=['LS','EA','LF','HR','Custom…'];
   const opts=UNITS.map(u=>`<option value="${u}"${u===(unit||'LS')?' selected':''}>${u}</option>`).join('');
+  const rate=unitRate!==undefined&&unitRate!==''?unitRate:'';
+  const qty=quantity!==undefined&&quantity!==''?quantity:'';
   const tr=document.createElement('tr');
   tr.innerHTML=
     `<td class="wno"><input type="text" value="${itemNo||n}" placeholder="${n}" oninput="syncTemplate()"></td>`+
     `<td><input type="text" value="${desc||''}" placeholder="Description…" oninput="syncTemplate()"></td>`+
     `<td class="wunit"><select onchange="syncTemplate()">${opts}</select></td>`+
-    `<td class="tmpl-del"><button onclick="this.closest('tr').remove();syncTemplate()" title="Remove row">×</button></td>`;
+    `<td class="tmpl-rate"><input type="number" class="rate-input" min="0" step="0.01" value="${rate}" placeholder="0.00" oninput="recalcTemplateCosts()"></td>`+
+    `<td class="tmpl-qty-col"><input type="number" class="rate-input" min="0" step="any" value="${qty}" placeholder="0" oninput="recalcTemplateCosts()"></td>`+
+    `<td class="tmpl-cost-cell zero" id="">—</td>`+
+    `<td class="tmpl-del"><button onclick="this.closest('tr').remove();syncTemplate();recalcTemplateCosts()" title="Remove row">×</button></td>`;
   tbody.appendChild(tr);
   syncTemplate();
+  recalcTemplateCosts();
+}
+
+function recalcTemplateCosts(){
+  let grandTotal=0;
+  let anyRate=false;
+  document.getElementById('tmpl-rows').querySelectorAll('tr').forEach(tr=>{
+    const inputs=tr.querySelectorAll('input');
+    const rateEl=inputs[2]; const qtyEl=inputs[3]; const costCell=tr.querySelectorAll('td')[5];
+    if(!costCell) return;
+    const rate=parseFloat(rateEl?.value)||0;
+    const qty=parseFloat(qtyEl?.value)||0;
+    if(rate>0||qty>0){ anyRate=true; }
+    const cost=rate*qty;
+    if(cost>0){
+      costCell.textContent='$'+cost.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      costCell.className='tmpl-cost-cell';
+    } else {
+      costCell.textContent='—';
+      costCell.className='tmpl-cost-cell zero';
+    }
+    grandTotal+=cost;
+  });
+  const gt=document.getElementById('tmpl-grand-total');
+  if(gt){
+    if(grandTotal>0){
+      gt.textContent='$'+grandTotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      gt.className='tmpl-cost-cell';
+    } else {
+      gt.textContent='—';
+      gt.className='tmpl-cost-cell zero';
+    }
+  }
 }
 
 function syncTemplate(){
   project.taskTemplate=[];
   document.getElementById('tmpl-rows').querySelectorAll('tr').forEach(tr=>{
     const inputs=tr.querySelectorAll('input,select');
-    project.taskTemplate.push({ itemNo:inputs[0]?.value||'', description:inputs[1]?.value||'', unit:inputs[2]?.value||'LS' });
+    project.taskTemplate.push({ itemNo:inputs[0]?.value||'', description:inputs[1]?.value||'', unit:inputs[2]?.value||'LS', unitRate:inputs[3]?.value||'', quantity:inputs[4]?.value||'' });
   });
 }
 
 function loadTemplateToSidebar(tmpl){
   document.getElementById('tmpl-rows').innerHTML='';
-  (tmpl||[]).forEach(t=>addTemplateRow(t.itemNo,t.description,t.unit));
+  (tmpl||[]).forEach(t=>addTemplateRow(t.itemNo,t.description,t.unit,t.unitRate,t.quantity));
 }
 
 /* =====================================================================
@@ -862,25 +936,28 @@ function addTaskRow(itemNo,desc,qty,unit,cu){
   taskRowCount++;
   const no=(itemNo!==undefined&&itemNo!=='') ? itemNo : taskRowCount;
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td class="wno"><input type="text" value="${no}" oninput="recalcTotals()"></td>`+`<td><input type="text" value="${desc||''}" placeholder="Description…"></td>`+`<td class="wqty"><input type="number" min="0" step="any" value="${qty||''}" placeholder="0" oninput="recalcTotals()"></td>`+`<td class="wunit">${unitHTML(unit,cu)}</td>`+`<td class="total-cell zero">—</td>`;
+  tr.innerHTML=`<td class="wno"><input type="text" value="${no}" oninput="recalcTotals()"></td>`+`<td><input type="text" value="${desc||''}" placeholder="Description…"></td>`+`<td class="wqty"><input type="number" min="0" step="any" value="${qty||''}" placeholder="0" oninput="recalcTotals()"></td>`+`<td class="wunit">${unitHTML(unit,cu)}</td>`+`<td class="total-cell zero">—</td>`+`<td class="rem-cell none">—</td>`;
   document.getElementById('tasks-body').appendChild(tr);
 }
 function recalcTotals(){
   const other={};
   const otherUnit={};
   project.logs.forEach(log=>{ if(log.id===activeLogId) return; (log.tasks||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(!k) return; other[k]=(other[k]||0)+(parseFloat(t.qty)||0); if(t.unit) otherUnit[k]=t.unit; }); });
+  // Build template lookup for remaining qty
+  const tmplMap={};
+  (project.taskTemplate||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(k) tmplMap[k]={ quantity:parseFloat(t.quantity)||0, hasQty:t.quantity!==''&&t.quantity!==undefined&&t.quantity!==null }; });
   document.getElementById('tasks-body').querySelectorAll('tr').forEach(tr=>{
-    const cells=tr.querySelectorAll('td'); if(cells.length<5) return;
+    const cells=tr.querySelectorAll('td'); if(cells.length<6) return;
     const itemNo=cells[0].querySelector('input')?.value?.trim()||'';
     const qtyInput=cells[2].querySelector('input');
     const unitSel=cells[3].querySelector('select');
     const tc=cells[4];
+    const rc=cells[5];
     tr.classList.remove('row-claimed');
     if(qtyInput){ qtyInput.classList.remove('qty-input'); qtyInput.disabled=false; qtyInput.title=''; }
-    if(!itemNo){ tc.textContent='—'; tc.className='total-cell zero'; return; }
+    if(!itemNo){ tc.textContent='—'; tc.className='total-cell zero'; rc.textContent='—'; rc.className='rem-cell none'; return; }
     const qty=parseFloat(qtyInput?.value)||0;
     const total=(other[itemNo]||0)+qty;
-    // Determine current unit from select or fall back to what other logs recorded
     const currentUnit=unitSel?.value||otherUnit[itemNo]||'';
     const isLS=currentUnit==='LS';
     const otherTotal=other[itemNo]||0;
@@ -890,9 +967,21 @@ function recalcTotals(){
       if(qtyInput){ qtyInput.classList.add('qty-input'); qtyInput.disabled=true; qtyInput.value=''; qtyInput.title='LS item already claimed in another log'; }
       tc.innerHTML='<span class="claimed-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Claimed</span>';
       tc.className='total-cell';
+      rc.textContent='—'; rc.className='rem-cell none';
     } else {
       tc.textContent=total%1===0?total:total.toFixed(2);
       tc.className=total>0?'total-cell':'total-cell zero';
+      // Remaining cell
+      const tmpl=tmplMap[itemNo];
+      if(tmpl&&tmpl.hasQty&&tmpl.quantity>0){
+        const rem=tmpl.quantity-total;
+        const dispRem=(rem%1===0?rem:rem.toFixed(2));
+        if(rem>0){ rc.textContent='+'+dispRem; rc.className='rem-cell under'; }
+        else if(rem===0){ rc.textContent='0'; rc.className='rem-cell exact'; }
+        else { rc.textContent=String(dispRem); rc.className='rem-cell over'; }
+      } else {
+        rc.textContent='—'; rc.className='rem-cell none';
+      }
     }
   });
 }
@@ -947,16 +1036,61 @@ function renderSummaryTable(filteredLogs){
   if(!items.length){ document.getElementById('summary-body').innerHTML='<div class="no-items">No task items logged yet.</div>'; return; }
   const from=document.getElementById('summary-from').value;
   const to=document.getElementById('summary-to').value;
+  const isFiltered=!!(from||to);
   let rangeLabel='';
   if(from||to){ rangeLabel=` · ${from?formatDate(from):'start'} – ${to?formatDate(to):'end'}`; }
+
+  // Build template lookup
+  const tmplMap={};
+  (project.taskTemplate||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(k) tmplMap[k]={ unitRate:parseFloat(t.unitRate)||0, quantity:parseFloat(t.quantity)||0, hasRate:t.unitRate!==''&&t.unitRate!==undefined, hasQty:t.quantity!==''&&t.quantity!==undefined }; });
+
+  function fmtCost(v){ return v>0?'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'; }
+  function fmtNum(v){ return v%1===0?String(v):v.toFixed(2); }
+
   const dc=filteredLogs.map(l=>`<th>${l.date?formatDate(l.date):'No date'}</th>`).join('');
-  const rows=items.map(k=>{
-    const item=itemMap[k];
-    const tot=filteredLogs.reduce((s,l)=>s+(item.byLog[l.id]||0),0);
-    const qc=filteredLogs.map(l=>{ const v=item.byLog[l.id]; return v?`<td class="num">${v%1===0?v:v.toFixed(2)}</td>`:'<td class="num" style="color:var(--border2)">—</td>'; }).join('');
-    return `<tr><td class="num">${k}</td><td>${item.description||'<span style="color:var(--muted)">—</span>'}</td><td class="num">${item.unit||'—'}</td>${qc}<td class="tot">${tot%1===0?tot:tot.toFixed(2)}</td></tr>`;
-  }).join('');
-  document.getElementById('summary-body').innerHTML=`<p style="font-size:12px;color:var(--muted);font-family:var(--cond);margin-bottom:12px">${filteredLogs.length} log${filteredLogs.length!==1?'s':''}${rangeLabel} · quantities by Item No.</p><table class="summary-table"><thead><tr><th class="left" style="width:60px">Item No.</th><th class="left">Description</th><th style="width:60px">Unit</th>${dc}<th style="width:80px">Total</th></tr></thead><tbody>${rows}</tbody></table>`;
+
+  if(!isFiltered){
+    // ALL DATES MODE: show init qty, qty to date, remaining, cost to date
+    let totalSpend=0;
+    const rows=items.map(k=>{
+      const item=itemMap[k];
+      const qtyToDate=filteredLogs.reduce((s,l)=>s+(item.byLog[l.id]||0),0);
+      const qc=filteredLogs.map(l=>{ const v=item.byLog[l.id]; return v?`<td class="num">${fmtNum(v)}</td>`:'<td class="num" style="color:var(--border2)">—</td>'; }).join('');
+      const tmpl=tmplMap[k]||{};
+      const initQty=tmpl.hasQty?tmpl.quantity:null;
+      const unitRate=tmpl.hasRate?tmpl.unitRate:null;
+      const costToDate=unitRate!==null?qtyToDate*unitRate:null;
+      if(costToDate!==null) totalSpend+=costToDate;
+      const initCell=initQty!==null?`<td class="num">${fmtNum(initQty)}</td>`:'<td class="num" style="color:var(--border2)">—</td>';
+      let remCell;
+      if(initQty!==null){
+        const rem=initQty-qtyToDate;
+        if(rem>0) remCell=`<td class="rem-pos">${rem%1===0?rem:rem.toFixed(2)}</td>`;
+        else if(rem===0) remCell=`<td class="rem-zero">0</td>`;
+        else remCell=`<td class="rem-neg">${rem%1===0?rem:rem.toFixed(2)}</td>`;
+      } else { remCell='<td class="num" style="color:var(--border2)">—</td>'; }
+      const costCell=costToDate!==null?`<td class="cost">${fmtCost(costToDate)}</td>`:'<td class="num" style="color:var(--border2)">—</td>';
+      return `<tr><td class="num">${k}</td><td>${item.description||'<span style="color:var(--muted)">—</span>'}</td><td class="num">${item.unit||'—'}</td>${qc}<td class="tot">${fmtNum(qtyToDate)}</td>${initCell}${remCell}${costCell}</tr>`;
+    }).join('');
+    const spendFooter=totalSpend>0?`<tfoot><tr><td colspan="${3+filteredLogs.length+2}" style="text-align:right">Total Spend to Date</td><td class="spend">${fmtCost(totalSpend)}</td></tr></tfoot>`:'';
+    document.getElementById('summary-body').innerHTML=`<p style="font-size:12px;color:var(--muted);font-family:var(--cond);margin-bottom:12px">${filteredLogs.length} log${filteredLogs.length!==1?'s':''}${rangeLabel} · quantities by Item No.</p><table class="summary-table"><thead><tr><th class="left" style="width:60px">Item No.</th><th class="left">Description</th><th style="width:60px">Unit</th>${dc}<th style="width:80px">Qty to Date</th><th style="width:70px">Init. Qty</th><th style="width:80px">Remaining</th><th style="width:110px;text-align:right">Cost to Date</th></tr></thead><tbody>${rows}</tbody>${spendFooter}</table>`;
+  } else {
+    // DATE RANGE MODE: show qty in range and cost in range only
+    let totalSpend=0;
+    const rows=items.map(k=>{
+      const item=itemMap[k];
+      const qtyInRange=filteredLogs.reduce((s,l)=>s+(item.byLog[l.id]||0),0);
+      const qc=filteredLogs.map(l=>{ const v=item.byLog[l.id]; return v?`<td class="num">${fmtNum(v)}</td>`:'<td class="num" style="color:var(--border2)">—</td>'; }).join('');
+      const tmpl=tmplMap[k]||{};
+      const unitRate=tmpl.hasRate?tmpl.unitRate:null;
+      const costInRange=unitRate!==null?qtyInRange*unitRate:null;
+      if(costInRange!==null) totalSpend+=costInRange;
+      const costCell=costInRange!==null?`<td class="cost">${fmtCost(costInRange)}</td>`:'<td class="num" style="color:var(--border2)">—</td>';
+      return `<tr><td class="num">${k}</td><td>${item.description||'<span style="color:var(--muted)">—</span>'}</td><td class="num">${item.unit||'—'}</td>${qc}<td class="tot">${fmtNum(qtyInRange)}</td>${costCell}</tr>`;
+    }).join('');
+    const spendFooter=totalSpend>0?`<tfoot><tr><td colspan="${3+filteredLogs.length+1}" style="text-align:right">Total Spend for Period</td><td class="spend">${fmtCost(totalSpend)}</td></tr></tfoot>`:'';
+    document.getElementById('summary-body').innerHTML=`<p style="font-size:12px;color:var(--muted);font-family:var(--cond);margin-bottom:12px">${filteredLogs.length} log${filteredLogs.length!==1?'s':''}${rangeLabel} · quantities by Item No.</p><table class="summary-table"><thead><tr><th class="left" style="width:60px">Item No.</th><th class="left">Description</th><th style="width:60px">Unit</th>${dc}<th style="width:80px">Qty in Period</th><th style="width:110px;text-align:right">Cost in Period</th></tr></thead><tbody>${rows}</tbody>${spendFooter}</table>`;
+  }
 }
 
 function closeSummary(){ document.getElementById('summary-modal').classList.remove('open'); }
@@ -971,15 +1105,40 @@ function printSummaryFiltered(){
   const contractor=project.contractor?`<div style="font-size:12px;color:#6b7490;margin-top:2px">Drilling Contractor: ${project.contractor}</div>`:'';
   const from=document.getElementById('summary-from').value;
   const to=document.getElementById('summary-to').value;
+  const isFiltered=!!(from||to);
   let rangeStr='';
   if(from||to){ rangeStr=` · ${from?formatDate(from):'start'} – ${to?formatDate(to):'end'}`; }
   const dc=filteredLogs.map(l=>`<th>${l.date?formatDate(l.date):'No date'}</th>`).join('');
+  const tmplMap={};
+  (project.taskTemplate||[]).forEach(t=>{ const k=String(t.itemNo).trim(); if(k) tmplMap[k]={ unitRate:parseFloat(t.unitRate)||0, quantity:parseFloat(t.quantity)||0, hasRate:t.unitRate!==''&&t.unitRate!==undefined, hasQty:t.quantity!==''&&t.quantity!==undefined }; });
+  function fmtCost(v){ return v>0?'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'; }
+  function fmtNum(v){ return v%1===0?String(v):v.toFixed(2); }
+  let totalSpend=0;
+  let extraHeaders='';
   const rows=items.length ? items.map(k=>{
     const item=itemMap[k];
-    const tot=filteredLogs.reduce((s,l)=>s+(item.byLog[l.id]||0),0);
-    const qc=filteredLogs.map(l=>{ const v=item.byLog[l.id]; return v?`<td>${v%1===0?v:v.toFixed(2)}</td>`:'<td style="color:#ccc">—</td>'; }).join('');
-    return `<tr><td>${k}</td><td>${item.description||'—'}</td><td>${item.unit||'—'}</td>${qc}<td class="tot">${tot%1===0?tot:tot.toFixed(2)}</td></tr>`;
+    const tmpl=tmplMap[k]||{};
+    const unitRate=tmpl.hasRate?tmpl.unitRate:null;
+    const qc=filteredLogs.map(l=>{ const v=item.byLog[l.id]; return v?`<td>${fmtNum(v)}</td>`:'<td style="color:#ccc">—</td>'; }).join('');
+    if(!isFiltered){
+      const qtyToDate=filteredLogs.reduce((s,l)=>s+(item.byLog[l.id]||0),0);
+      const initQty=tmpl.hasQty?tmpl.quantity:null;
+      const costToDate=unitRate!==null?qtyToDate*unitRate:null;
+      if(costToDate!==null) totalSpend+=costToDate;
+      const initCell=initQty!==null?`<td>${fmtNum(initQty)}</td>`:'<td style="color:#ccc">—</td>';
+      let remCell; if(initQty!==null){ const rem=initQty-qtyToDate; const s=rem>0?'color:#1a7a5e':rem<0?'color:#c0392b':'color:#999'; remCell=`<td style="${s}">${fmtNum(rem)}</td>`; } else remCell='<td style="color:#ccc">—</td>';
+      return `<tr><td>${k}</td><td>${item.description||'—'}</td><td>${item.unit||'—'}</td>${qc}<td class="tot">${fmtNum(qtyToDate)}</td>${initCell}${remCell}<td class="tot" style="text-align:right">${fmtCost(costToDate)}</td></tr>`;
+    } else {
+      const qtyInRange=filteredLogs.reduce((s,l)=>s+(item.byLog[l.id]||0),0);
+      const costInRange=unitRate!==null?qtyInRange*unitRate:null;
+      if(costInRange!==null) totalSpend+=costInRange;
+      return `<tr><td>${k}</td><td>${item.description||'—'}</td><td>${item.unit||'—'}</td>${qc}<td class="tot">${fmtNum(qtyInRange)}</td><td class="tot" style="text-align:right">${fmtCost(costInRange)}</td></tr>`;
+    }
   }).join('') : `<tr><td colspan="100" style="text-align:center;color:#999;padding:20px">No task items logged yet.</td></tr>`;
+  const spendLabel=isFiltered?'Total Spend for Period':'Total Spend to Date';
+  const spendColspan=isFiltered?3+filteredLogs.length+1:3+filteredLogs.length+3;
+  const spendRow=totalSpend>0?`<tr><td colspan="${spendColspan}" style="text-align:right;font-weight:700">${spendLabel}</td><td style="text-align:right;font-weight:700;color:#1a7a5e;background:#e6f4ef">${fmtCost(totalSpend)}</td></tr>`:'';
+  const extraTH=isFiltered?`<th style="width:80px">Qty in Period</th><th style="width:110px;text-align:right">Cost in Period</th>`:`<th style="width:80px">Qty to Date</th><th style="width:70px">Init. Qty</th><th style="width:80px">Remaining</th><th style="width:110px;text-align:right">Cost to Date</th>`;
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Project Summary – ${projLabel}</title>
   <style>
     body{font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#1a1f2e;margin:0;padding:24px}
@@ -996,9 +1155,9 @@ function printSummaryFiltered(){
   </style></head><body>
   <h1>${projLabel}</h1>${contractor}
   <div class="sub">${filteredLogs.length} log${filteredLogs.length!==1?'s':''}${rangeStr} · quantities by Item No. · printed ${new Date().toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})}</div>
-  <table><thead><tr><th style="width:60px">Item No.</th><th>Description</th><th style="width:55px">Unit</th>${dc}<th style="width:75px">Total</th></tr></thead><tbody>${rows}</tbody></table>
+  <table><thead><tr><th style="width:60px">Item No.</th><th>Description</th><th style="width:55px">Unit</th>${dc}${extraTH}</tr></thead><tbody>${rows}</tbody><tfoot>${spendRow}</tfoot></table>
   <script>window.onload=()=>window.print()<\/script></body></html>`;
-  const w=window.open('','_blank','width=900,height=600');
+  const w=window.open('','_blank','width=1000,height=650');
   if(w){ w.document.write(html); w.document.close(); }
 }
 
