@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wolman Pebble Count — RKK Geotech Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #0c1f35;
+  --navy2:  #152d4a;
+  --blue:   #1d5fa8;
+  --blue2:  #2471c9;
+  --steel:  #4a7daa;
+  --amber:  #d97706;
+  --green:  #166534;
+  --green2: #15803d;
+  --red:    #991b1b;
+  --bg:     #f0f4f8;
+  --bg2:    #ffffff;
+  --border: #c8d6e5;
+  --text:   #1a2b3c;
+  --muted:  #5a738a;
+  --muted2: #8ba3bb;
+  --mono:   'IBM Plex Mono', 'Courier New', monospace;
+  --sans:   'IBM Plex Sans', 'Segoe UI', sans-serif;
+  --cond:   'IBM Plex Sans Condensed', 'IBM Plex Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); font-size: 13px; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+/* ── HEADER ── */
+.header { background: var(--navy); color: #fff; border-bottom: 3px solid var(--blue2); }
+.header-inner {
+  max-width: 1280px; margin: 0 auto; padding: 16px 24px 12px;
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;
+}
+.header-left h1 { font-family: var(--cond); font-size: 17px; font-weight: 700; letter-spacing: -0.2px; }
+.header-left h1 span { color: #6db3f5; }
+.header-sub { font-family: var(--mono); font-size: 10px; color: #7a9fc0; margin-top: 3px; }
+.header-tag {
+  font-family: var(--mono); font-size: 10px; color: #5a8ab0;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  padding: 3px 8px; white-space: nowrap;
+}
+
+/* ── LAYOUT ── */
+.container { max-width: 1280px; margin: 20px auto; padding: 0 20px 60px; }
+
+/* ── CARD ── */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 3px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.card-head {
+  background: var(--navy2); color: #fff;
+  padding: 8px 16px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-head .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue2); flex-shrink: 0; }
+.card-head .head-right { margin-left: auto; font-weight: 400; font-size: 10px; color: #7a9fc0; letter-spacing: 0.4px; text-transform: none; }
+.card-body { padding: 16px 20px; }
+
+/* ── FIELDS ── */
+.field-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+.field label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+.field input, .field select, .field textarea {
+  padding: 7px 10px; border: 1px solid var(--border); border-radius: 3px;
+  font-size: 12.5px; font-family: var(--sans); color: var(--text); background: #fff;
+  width: 100%; transition: border-color .15s, box-shadow .15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--blue2); box-shadow: 0 0 0 3px rgba(36,113,201,0.12);
+}
+.field textarea { resize: vertical; min-height: 52px; font-size: 12px; }
+
+/* ── PROCEDURE ── */
+.procedure-toggle {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 10px 20px; border-top: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--blue); letter-spacing: 0.3px;
+  user-select: none; transition: background .12s;
+}
+.procedure-toggle:hover { background: #f4f8fc; }
+.procedure-toggle .chevron { font-size: 9px; transition: transform .2s; }
+.procedure-toggle.open .chevron { transform: rotate(90deg); }
+.procedure-body { display: none; padding: 16px 20px; border-top: 1px solid var(--border); background: #fafcff; }
+.procedure-body.open { display: block; }
+.proc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.proc-steps { display: flex; flex-direction: column; gap: 10px; }
+.proc-step { display: flex; gap: 10px; align-items: flex-start; }
+.proc-num {
+  min-width: 22px; height: 22px; background: var(--blue); color: #fff;
+  border-radius: 2px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 10px; font-weight: 600; flex-shrink: 0; margin-top: 1px;
+}
+.proc-text { font-size: 12px; color: var(--muted); line-height: 1.55; }
+.proc-text strong { color: var(--text); font-weight: 600; }
+.note-box {
+  font-size: 11.5px; color: var(--muted); background: #f4f8fc;
+  border-left: 3px solid var(--steel); padding: 9px 12px; line-height: 1.6; border-radius: 0 2px 2px 0;
+}
+.note-box strong { color: var(--text); }
+.wolman-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
+.wolman-table th { background: #dce8f4; color: var(--navy); padding: 5px 8px; text-align: left; border: 1px solid var(--border); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+.wolman-table td { padding: 4px 8px; border: 1px solid #d8e4ee; font-family: var(--mono); font-size: 11px; }
+.wolman-table tr:nth-child(even) td { background: #f6f9fc; }
+.wolman-table td:first-child { font-family: var(--sans); font-weight: 500; font-size: 11px; }
+
+/* ── LOCATION GRID ── */
+.loc-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.loc-card {
+  border: 1.5px solid var(--border); border-radius: 3px; padding: 10px 10px 9px;
+  cursor: pointer; transition: border-color .15s, background .15s;
+  background: #fff; position: relative;
+}
+.loc-card:hover { border-color: var(--blue2); background: #f0f6ff; }
+.loc-card.active { border-color: var(--blue2); background: #e8f2ff; border-width: 2px; }
+.loc-card.has-data::after {
+  content: ''; position: absolute; top: 6px; right: 6px;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green2);
+}
+.loc-num { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--blue2); margin-bottom: 3px; }
+.loc-name { font-size: 11px; font-weight: 600; color: var(--navy); line-height: 1.3; margin-bottom: 3px; }
+.loc-desc { font-size: 10px; color: var(--muted); line-height: 1.4; }
+.loc-count { font-family: var(--mono); font-size: 10px; color: var(--muted2); margin-top: 5px; }
+.loc-count.filled { color: var(--green2); font-weight: 600; }
+
+/* ── TWO-COL MAIN GRID ── */
+.main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ── ENTRY PANEL ── */
+.entry-area { display: flex; flex-direction: column; gap: 12px; }
+
+.size-row { display: flex; gap: 8px; }
+.size-input-wrap { flex: 1; position: relative; }
+.size-input-wrap input {
+  width: 100%; padding: 10px 38px 10px 12px;
+  border: 1px solid var(--border); border-radius: 3px;
+  font-family: var(--mono); font-size: 22px; font-weight: 600;
+  color: var(--navy); background: #fff; text-align: center;
+  transition: border-color .15s, box-shadow .15s;
+}
+.size-input-wrap input:focus { outline: none; border-color: var(--blue2); box-shadow: 0 0 0 3px rgba(36,113,201,0.12); }
+.size-unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--muted2); pointer-events: none; }
+
+.btn-add {
+  background: var(--blue); color: #fff; border: none; border-radius: 3px;
+  font-family: var(--sans); font-size: 12px; font-weight: 600; padding: 0 20px;
+  cursor: pointer; white-space: nowrap; transition: background .12s; letter-spacing: 0.3px;
+}
+.btn-add:hover { background: var(--navy2); }
+.btn-add:active { transform: scale(0.98); }
+
+.section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 5px; }
+
+/* Wolman gravelometer quick buttons */
+.gravel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.g-btn {
+  background: #f4f8fc; border: 1px solid var(--border); border-radius: 3px;
+  padding: 6px 4px; cursor: pointer; text-align: center;
+  transition: background .1s, border-color .1s; line-height: 1.3;
+}
+.g-btn:hover { background: #dce8f4; border-color: var(--blue); }
+.g-btn:active { background: #c8d8f0; }
+.g-class { font-size: 9px; color: var(--muted); display: block; }
+.g-range { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--navy); display: block; }
+
+.btn-sand {
+  width: 100%; background: #f4f8fc; border: 1px solid var(--border); border-radius: 3px;
+  font-family: var(--sans); font-size: 11.5px; color: var(--muted); padding: 7px;
+  cursor: pointer; text-align: center; transition: background .1s, border-color .1s;
+}
+.btn-sand:hover { background: #e0ecf8; border-color: var(--steel); color: var(--text); }
+
+.action-row { display: flex; gap: 6px; }
+.btn-sm {
+  font-family: var(--sans); font-size: 11px; font-weight: 600; padding: 6px 12px;
+  border-radius: 3px; cursor: pointer; border: 1px solid var(--border);
+  background: #fff; color: var(--muted); transition: all .12s; letter-spacing: 0.2px;
+}
+.btn-sm:hover { background: var(--bg); }
+.btn-sm.undo:hover { background: #fff8f0; border-color: var(--amber); color: var(--amber); }
+.btn-sm.clear:hover { background: #fff0f0; border-color: var(--red); color: var(--red); }
+
+/* ── STATS PANEL ── */
+.stats-area { display: flex; flex-direction: column; gap: 10px; }
+.progress-wrap { margin-bottom: 2px; }
+.progress-labels { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); margin-bottom: 4px; }
+.progress-labels .count-val { font-family: var(--mono); font-weight: 600; color: var(--navy); }
+.progress-bar { height: 6px; background: #dce8f4; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--blue2); border-radius: 3px; transition: width .3s ease; }
+
+.pills-row { display: flex; gap: 8px; }
+.pill { background: #f0f6ff; border: 1px solid #c0d8f0; border-radius: 3px; padding: 8px 12px; flex: 1; }
+.pill.primary { background: var(--navy2); border-color: var(--navy); }
+.pill-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+.pill.primary .pill-label { color: #6d9ec4; }
+.pill-value { font-family: var(--mono); font-size: 18px; font-weight: 600; color: var(--navy); margin: 3px 0 1px; line-height: 1; }
+.pill.primary .pill-value { color: #fff; font-size: 22px; }
+.pill-unit { font-size: 10px; color: var(--muted2); }
+.pill.primary .pill-unit { color: #6d9ec4; }
+
+.class-box {
+  background: #f0f9f4; border: 1px solid #a8d8b8; border-left: 3px solid var(--green2);
+  border-radius: 0 3px 3px 0; padding: 9px 12px;
+  font-size: 11.5px; color: var(--green); line-height: 1.55;
+}
+.class-box strong { font-size: 13px; display: block; color: var(--green); margin-bottom: 2px; }
+
+.sha-ref { background: #f4f8fc; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+.sha-ref-head { background: #dce8f4; padding: 5px 10px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--navy); }
+.sha-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.sha-table td { padding: 4px 10px; border-bottom: 1px solid #e4eef6; }
+.sha-table td:first-child { font-weight: 500; color: var(--text); }
+.sha-table td:nth-child(2) { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+.sha-table td:last-child { font-size: 10px; color: var(--muted2); }
+.sha-table tr:last-child td { border-bottom: none; }
+.sha-table tr.highlight td { background: #e0f0e8; }
+.sha-table tr.highlight td:first-child { color: var(--green); font-weight: 700; }
+
+/* ── CHART ── */
+.chart-wrap { padding: 16px 20px; }
+canvas#psd-chart { width: 100%; border: 1px solid var(--border); border-radius: 2px; display: block; background: #fff; }
+
+/* ── LOG ── */
+.log-toolbar { display: flex; align-items: center; gap: 10px; padding: 8px 20px; border-bottom: 1px solid var(--border); background: #fafcff; }
+.log-toolbar .loc-tabs { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
+.log-tab {
+  font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 4px 9px;
+  border: 1px solid var(--border); border-radius: 3px; cursor: pointer; background: #fff;
+  color: var(--muted); transition: all .12s; white-space: nowrap;
+}
+.log-tab:hover { background: #eef4fc; border-color: var(--steel); }
+.log-tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+.log-tab.has-data { border-color: var(--steel); color: var(--blue); }
+.log-list { max-height: 200px; overflow-y: auto; }
+.log-entry { display: flex; align-items: center; gap: 8px; padding: 5px 20px; border-bottom: 1px solid #eef2f6; font-size: 11.5px; }
+.log-entry:last-child { border-bottom: none; }
+.log-n { font-family: var(--mono); font-size: 10px; color: var(--muted2); min-width: 30px; text-align: right; }
+.log-size { font-family: var(--mono); font-weight: 600; font-size: 12px; color: var(--blue2); min-width: 58px; }
+.log-class { color: var(--muted); font-size: 11px; }
+.log-empty { padding: 20px; text-align: center; color: var(--muted2); font-size: 12px; font-style: italic; }
+
+/* ── EXPORT ── */
+.export-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+.btn-export {
+  font-family: var(--sans); font-size: 11.5px; font-weight: 600; padding: 9px 12px;
+  border-radius: 3px; cursor: pointer; text-align: center; letter-spacing: 0.2px;
+  border: 1.5px solid var(--border); background: #fff; color: var(--text);
+  transition: all .12s;
+}
+.btn-export:hover { background: var(--bg); border-color: var(--steel); }
+.btn-export.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-export.primary:hover { background: var(--navy2); border-color: var(--navy2); }
+.btn-export.json { border-color: var(--steel); color: var(--blue); }
+.btn-export.json:hover { background: #eef6ff; }
+.export-note { font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--navy); color: #fff; padding: 9px 18px;
+  font-size: 12px; font-family: var(--mono); letter-spacing: 0.04em;
+  border-radius: 3px; border-bottom: 2px solid var(--blue2);
+  transition: transform .25s ease; pointer-events: none; z-index: 999;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 800px) {
+  .loc-grid { grid-template-columns: repeat(3, 1fr); }
+  .main-grid { grid-template-columns: 1fr; }
+  .gravel-grid { grid-template-columns: repeat(3, 1fr); }
+  .export-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .loc-grid { grid-template-columns: repeat(2, 1fr); }
+  .pills-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <h1>Wolman Pebble Count <span>/ D50 Field Tool</span></h1>
+      <div class="header-sub">Wolman (1954) · SHA App. 14-B · RKK Geotech Tools</div>
+    </div>
+    <div class="header-tag">GRAIN SIZE / SCOUR</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- PROJECT INFO -->
+  <div class="card">
+    <div class="card-head"><div class="dot"></div> Project Information</div>
+    <div class="card-body">
+      <div class="field-row" style="margin-bottom:10px">
+        <div class="field" style="flex:2">
+          <label>Project / Bridge Name</label>
+          <input type="text" id="proj-name" placeholder="e.g. Route 40 over Patapsco River">
+        </div>
+        <div class="field">
+          <label>SHA Structure No.</label>
+          <input type="text" id="proj-struct" placeholder="e.g. BA-234">
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="proj-date">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Observer</label>
+          <input type="text" id="proj-observer" placeholder="Name">
+        </div>
+        <div class="field">
+          <label>Weather / Flow Conditions</label>
+          <input type="text" id="proj-conditions" placeholder="e.g. Clear, low flow">
+        </div>
+        <div class="field" style="flex:2">
+          <label>General Site Notes</label>
+          <input type="text" id="proj-notes" placeholder="Observations, vegetation, channel character, etc.">
+        </div>
+      </div>
+    </div>
+
+    <!-- PROCEDURE (collapsible, attached to project card) -->
+    <div class="procedure-toggle" id="proc-toggle" onclick="toggleProcedure()">
+      <span class="chevron">▶</span>
+      <span>Wolman Pebble Count Procedure &amp; Reference</span>
+      <span style="margin-left:auto;font-size:10px;color:var(--muted2);font-weight:400">Click to expand</span>
+    </div>
+    <div class="procedure-body" id="proc-body">
+      <div class="proc-grid">
+        <div>
+          <div class="section-label" style="margin-bottom:8px">Field Procedure (Wolman 1954)</div>
+          <div class="proc-steps">
+            <div class="proc-step">
+              <div class="proc-num">1</div>
+              <div class="proc-text"><strong>Select the reach.</strong> For stream characterization, sample pools and riffles at the same proportion they occur in the reach.</div>
+            </div>
+            <div class="proc-step">
+              <div class="proc-num">2</div>
+              <div class="proc-text"><strong>Start at a random point.</strong> Throw a pebble along the stream edge to pick the starting transect location. Take one step into the water perpendicular to flow.</div>
+            </div>
+            <div class="proc-step">
+              <div class="proc-num">3</div>
+              <div class="proc-text"><strong>Blind selection.</strong> Avert your eyes, then pick up the first pebble touching your index finger next to your big toe. Do <em>not</em> visually select particles.</div>
+            </div>
+            <div class="proc-step">
+              <div class="proc-num">4</div>
+              <div class="proc-text"><strong>Measure the b-axis</strong> (intermediate / width axis). Use a gravelometer — record which hole the pebble fits through. For embedded or immovable pebbles, measure the shortest visible axis.</div>
+            </div>
+            <div class="proc-step">
+              <div class="proc-num">5</div>
+              <div class="proc-text"><strong>Step and repeat.</strong> Take another step across the stream and repeat until you reach the opposite bank. Establish a new transect and begin again. For narrow reaches (&lt;2 m), walk upstream in a zig-zag pattern.</div>
+            </div>
+            <div class="proc-step">
+              <div class="proc-num">6</div>
+              <div class="proc-text"><strong>Collect ≥ 100 measurements</strong> per location to accurately quantify particle size distributions. Plot data on a log₂ scale.</div>
+            </div>
+          </div>
+          <div class="note-box" style="margin-top:12px">
+            <strong>SHA Note (App. 14-B):</strong> The D50 from channel bed material at the bridge section (Locs 4–6) is used directly in ABSCOUR 9 clear-water scour equations. The upstream riffle sample (Loc 2) informs the live-bed vs. clear-water scour determination. Maryland stream morphology studies suggest clear-water scour conditions predominate in many non-tidal streams.
+          </div>
+        </div>
+        <div>
+          <div class="section-label" style="margin-bottom:8px">Wolman Size Classes (gravelometer)</div>
+          <table class="wolman-table">
+            <thead><tr><th>Class</th><th>Range (mm)</th></tr></thead>
+            <tbody>
+              <tr><td>Sand</td><td>&lt; 2</td></tr>
+              <tr><td>Very Fine Gravel</td><td>2 – 4</td></tr>
+              <tr><td>Fine Gravel</td><td>4 – 6</td></tr>
+              <tr><td>Fine Gravel</td><td>6 – 8</td></tr>
+              <tr><td>Medium Gravel</td><td>8 – 11</td></tr>
+              <tr><td>Medium Gravel</td><td>11 – 16</td></tr>
+              <tr><td>Coarse Gravel</td><td>16 – 22</td></tr>
+              <tr><td>Coarse Gravel</td><td>22 – 32</td></tr>
+              <tr><td>Very Coarse Gravel</td><td>32 – 45</td></tr>
+              <tr><td>Very Coarse Gravel</td><td>45 – 64</td></tr>
+              <tr><td>Small Cobble</td><td>64 – 90</td></tr>
+              <tr><td>Medium Cobble</td><td>90 – 128</td></tr>
+              <tr><td>Large Cobble</td><td>128 – 180</td></tr>
+              <tr><td>Very Large Cobble</td><td>180 – 256</td></tr>
+              <tr><td>Small Boulder</td><td>256 – 512</td></tr>
+              <tr><td>Medium Boulder</td><td>512 – 1024</td></tr>
+              <tr><td>Large Boulder</td><td>1024 – 2048</td></tr>
+              <tr><td>Very Large Boulder</td><td>2048 – 4096</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOCATION SELECTOR -->
+  <div class="card">
+    <div class="card-head">
+      <div class="dot"></div> Sample Location
+      <span class="head-right">Select a location to begin recording — data is stored per location · ● = data recorded</span>
+    </div>
+    <div class="card-body">
+      <div class="loc-grid">
+        <div class="loc-card" data-loc="1" onclick="setLocation(1)">
+          <div class="loc-num">LOC 1</div>
+          <div class="loc-name">Left Flood Plain</div>
+          <div class="loc-desc">Approach section — pebble count + vegetation notes</div>
+          <div class="loc-count" id="loc-count-1">0 pebbles</div>
+        </div>
+        <div class="loc-card" data-loc="2" onclick="setLocation(2)">
+          <div class="loc-num">LOC 2</div>
+          <div class="loc-name">Upstream Channel</div>
+          <div class="loc-desc">Riffle upstream of bridge — key for scour type</div>
+          <div class="loc-count" id="loc-count-2">0 pebbles</div>
+        </div>
+        <div class="loc-card" data-loc="3" onclick="setLocation(3)">
+          <div class="loc-num">LOC 3</div>
+          <div class="loc-name">Right Flood Plain</div>
+          <div class="loc-desc">Approach section — pebble count + vegetation notes</div>
+          <div class="loc-count" id="loc-count-3">0 pebbles</div>
+        </div>
+        <div class="loc-card" data-loc="4" onclick="setLocation(4)">
+          <div class="loc-num">LOC 4</div>
+          <div class="loc-name">Right Channel (Bridge)</div>
+          <div class="loc-desc">Bridge section — D50 for clear-water scour</div>
+          <div class="loc-count" id="loc-count-4">0 pebbles</div>
+        </div>
+        <div class="loc-card" data-loc="5" onclick="setLocation(5)">
+          <div class="loc-num">LOC 5</div>
+          <div class="loc-name">Center Channel (Bridge)</div>
+          <div class="loc-desc">Bridge section — main channel bed material</div>
+          <div class="loc-count" id="loc-count-5">0 pebbles</div>
+        </div>
+        <div class="loc-card" data-loc="6" onclick="setLocation(6)">
+          <div class="loc-num">LOC 6</div>
+          <div class="loc-name">Left Channel (Bridge)</div>
+          <div class="loc-desc">Bridge section — D50 for clear-water scour</div>
+          <div class="loc-count" id="loc-count-6">0 pebbles</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTRY + STATS (two-col) -->
+  <div class="main-grid">
+
+    <!-- ENTRY -->
+    <div class="card">
+      <div class="card-head"><div class="dot"></div> Enter Pebble Size <span class="head-right" id="entry-loc-label">No location selected</span></div>
+      <div class="card-body">
+        <div class="entry-area">
+
+          <div>
+            <div class="section-label">Exact Measurement (mm)</div>
+            <div class="size-row">
+              <div class="size-input-wrap">
+                <input type="number" id="pebble-input" placeholder="0.0" min="0.01" max="4096" step="0.1"
+                  onkeydown="if(event.key==='Enter') addPebble()">
+                <span class="size-unit">mm</span>
+              </div>
+              <button class="btn-add" onclick="addPebble()">+ Add</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-label">Gravelometer Quick-Entry — Gravel Classes</div>
+            <div class="gravel-grid">
+              <button class="g-btn" onclick="addMidpoint(2,4)"><span class="g-class">V.Fine Gravel</span><span class="g-range">2–4</span></button>
+              <button class="g-btn" onclick="addMidpoint(4,6)"><span class="g-class">Fine Gravel</span><span class="g-range">4–6</span></button>
+              <button class="g-btn" onclick="addMidpoint(6,8)"><span class="g-class">Fine Gravel</span><span class="g-range">6–8</span></button>
+              <button class="g-btn" onclick="addMidpoint(8,11)"><span class="g-class">Med. Gravel</span><span class="g-range">8–11</span></button>
+              <button class="g-btn" onclick="addMidpoint(11,16)"><span class="g-class">Med. Gravel</span><span class="g-range">11–16</span></button>
+              <button class="g-btn" onclick="addMidpoint(16,22)"><span class="g-class">Crs. Gravel</span><span class="g-range">16–22</span></button>
+              <button class="g-btn" onclick="addMidpoint(22,32)"><span class="g-class">Crs. Gravel</span><span class="g-range">22–32</span></button>
+              <button class="g-btn" onclick="addMidpoint(32,45)"><span class="g-class">V.Crs. Gravel</span><span class="g-range">32–45</span></button>
+              <button class="g-btn" onclick="addMidpoint(45,64)"><span class="g-class">V.Crs. Gravel</span><span class="g-range">45–64</span></button>
+              <button class="g-btn" onclick="addMidpoint(64,90)"><span class="g-class">Sm. Cobble</span><span class="g-range">64–90</span></button>
+              <button class="g-btn" onclick="addMidpoint(90,128)"><span class="g-class">Med. Cobble</span><span class="g-range">90–128</span></button>
+              <button class="g-btn" onclick="addMidpoint(128,180)"><span class="g-class">Lg. Cobble</span><span class="g-range">128–180</span></button>
+              <button class="g-btn" onclick="addMidpoint(180,256)"><span class="g-class">V.Lg. Cobble</span><span class="g-range">180–256</span></button>
+              <button class="g-btn" onclick="addMidpoint(256,512)"><span class="g-class">Sm. Boulder</span><span class="g-range">256–512</span></button>
+              <button class="g-btn" onclick="addMidpoint(512,1024)"><span class="g-class">Med. Boulder</span><span class="g-range">512–1024</span></button>
+              <button class="g-btn" onclick="addMidpoint(1024,2048)"><span class="g-class">Lg. Boulder</span><span class="g-range">1024–2048</span></button>
+            </div>
+            <div style="margin-top:4px">
+              <button class="g-btn" style="width:100%;grid-column:1/-1" onclick="addMidpoint(0,2)"><span class="g-class">Sand / Fine material</span><span class="g-range">&lt; 2 mm</span></button>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-sm undo" onclick="undoLast()">↩ Undo Last</button>
+            <button class="btn-sm clear" onclick="clearLocation()">✕ Clear Location</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="card">
+      <div class="card-head"><div class="dot"></div> Live Statistics <span class="head-right" id="stats-loc-label">—</span></div>
+      <div class="card-body">
+        <div class="stats-area">
+
+          <div class="progress-wrap">
+            <div class="progress-labels">
+              <span><span class="count-val" id="count-label">0</span> pebbles recorded</span>
+              <span>Target: 100 min.</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+          </div>
+
+          <div class="pills-row">
+            <div class="pill primary">
+              <div class="pill-label">D50 Median</div>
+              <div class="pill-value" id="stat-d50">—</div>
+              <div class="pill-unit">mm</div>
+            </div>
+            <div class="pill">
+              <div class="pill-label">D84</div>
+              <div class="pill-value" id="stat-d84">—</div>
+              <div class="pill-unit">mm</div>
+            </div>
+            <div class="pill">
+              <div class="pill-label">D95</div>
+              <div class="pill-value" id="stat-d95">—</div>
+              <div class="pill-unit">mm</div>
+            </div>
+          </div>
+
+          <div id="class-box" class="class-box" style="display:none">
+            <strong id="class-name"></strong>
+            <span id="class-note"></span>
+          </div>
+
+          <div class="sha-ref">
+            <div class="sha-ref-head">SHA App. 14-B — Material Classification</div>
+            <table class="sha-table" id="sha-table">
+              <tbody>
+                <tr data-min="0" data-max="0.25"><td>Fine Sand</td><td>0.06 – 0.25 mm</td><td>Pebble count</td></tr>
+                <tr data-min="0.25" data-max="2"><td>Coarse / Med. Sand</td><td>0.25 – 2 mm</td><td>Pebble count</td></tr>
+                <tr data-min="2" data-max="64"><td>Gravel</td><td>2 – 64 mm</td><td>Pebble count</td></tr>
+                <tr data-min="64" data-max="256"><td>Cobble</td><td>64 – 256 mm</td><td>Pebble count</td></tr>
+                <tr data-min="256" data-max="99999"><td>Boulder</td><td>&gt; 256 mm</td><td>Pebble count</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-grid -->
+
+  <!-- PSD CHART -->
+  <div class="card">
+    <div class="card-head"><div class="dot"></div> Particle Size Distribution <span class="head-right" id="chart-loc-label">—</span></div>
+    <div class="chart-wrap">
+      <canvas id="psd-chart" height="260"></canvas>
+    </div>
+  </div>
+
+  <!-- PEBBLE LOG -->
+  <div class="card">
+    <div class="card-head"><div class="dot"></div> Pebble Log <span class="head-right">Click a location tab to review its data</span></div>
+    <div class="log-toolbar">
+      <div class="loc-tabs" id="log-tabs">
+        <button class="log-tab active" data-tab="current" onclick="showLogTab('current')">Current Location</button>
+        <button class="log-tab" data-tab="1" onclick="showLogTab(1)">Loc 1</button>
+        <button class="log-tab" data-tab="2" onclick="showLogTab(2)">Loc 2</button>
+        <button class="log-tab" data-tab="3" onclick="showLogTab(3)">Loc 3</button>
+        <button class="log-tab" data-tab="4" onclick="showLogTab(4)">Loc 4</button>
+        <button class="log-tab" data-tab="5" onclick="showLogTab(5)">Loc 5</button>
+        <button class="log-tab" data-tab="6" onclick="showLogTab(6)">Loc 6</button>
+      </div>
+    </div>
+    <div class="log-list" id="pebble-log">
+      <div class="log-empty">No location selected. Choose a sample location above to begin.</div>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="card">
+    <div class="card-head"><div class="dot"></div> Save &amp; Export</div>
+    <div class="card-body">
+      <div class="export-grid">
+        <button class="btn-export primary" onclick="exportCSV()">Export CSV (Current Loc.)</button>
+        <button class="btn-export primary" onclick="exportSummaryHTML()">Summary Report (HTML)</button>
+        <button class="btn-export json" onclick="saveJSON()">⬇ Save All Data (JSON)</button>
+        <button class="btn-export json" onclick="loadJSONPrompt()">⬆ Load Data (JSON)</button>
+      </div>
+      <div class="export-note">
+        <strong>CSV</strong> — raw pebble log for current location. &nbsp;
+        <strong>Summary Report</strong> — printable HTML with D50/D84/D95, material classification, and frequency table for all locations with data. &nbsp;
+        <strong>JSON</strong> — saves or restores the complete session (all six locations + project info) for field continuity across devices or sessions.
+      </div>
+      <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="loadJSONFile(event)">
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div id="toast"></div>
+
+<script>
+// ─── DATA MODEL ───────────────────────────────────────────────────────────────
+const locationData = {
+  1: { pebbles: [], notes: '' },
+  2: { pebbles: [], notes: '' },
+  3: { pebbles: [], notes: '' },
+  4: { pebbles: [], notes: '' },
+  5: { pebbles: [], notes: '' },
+  6: { pebbles: [], notes: '' }
+};
+
+const LOC_NAMES = {
+  1: 'Left Flood Plain (Approach)',
+  2: 'Upstream Channel',
+  3: 'Right Flood Plain (Approach)',
+  4: 'Right Channel (Bridge)',
+  5: 'Center Channel (Bridge)',
+  6: 'Left Channel (Bridge)'
+};
+
+let currentLocation = null;
+let activeLogTab = 'current';
+const TARGET = 100;
+
+// ─── LOCATION SWITCHING ───────────────────────────────────────────────────────
+function setLocation(n) {
+  currentLocation = n;
+
+  document.querySelectorAll('.loc-card').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[data-loc="${n}"]`).classList.add('active');
+
+  const locName = `Loc ${n} — ${LOC_NAMES[n]}`;
+  document.getElementById('entry-loc-label').textContent = locName;
+  document.getElementById('stats-loc-label').textContent = locName;
+  document.getElementById('chart-loc-label').textContent = locName;
+
+  // Switch log tab to current
+  showLogTab('current');
+  updateAll();
+}
+
+// ─── WOLMAN CLASS ─────────────────────────────────────────────────────────────
+function wolmanClass(mm) {
+  if (mm < 2) return 'Sand';
+  if (mm < 4) return 'Very Fine Gravel';
+  if (mm < 6) return 'Fine Gravel';
+  if (mm < 8) return 'Fine Gravel';
+  if (mm < 11) return 'Medium Gravel';
+  if (mm < 16) return 'Medium Gravel';
+  if (mm < 22) return 'Coarse Gravel';
+  if (mm < 32) return 'Coarse Gravel';
+  if (mm < 45) return 'Very Coarse Gravel';
+  if (mm < 64) return 'Very Coarse Gravel';
+  if (mm < 90) return 'Small Cobble';
+  if (mm < 128) return 'Medium Cobble';
+  if (mm < 180) return 'Large Cobble';
+  if (mm < 256) return 'Very Large Cobble';
+  if (mm < 512) return 'Small Boulder';
+  if (mm < 1024) return 'Medium Boulder';
+  if (mm < 2048) return 'Large Boulder';
+  return 'Very Large Boulder';
+}
+
+function shaClass(d50) {
+  if (d50 === null) return null;
+  if (d50 < 0.06) return ['Silt / Clay', 'Below pebble count resolution. Classify by visual observation and field tests.'];
+  if (d50 < 0.25) return ['Fine Sand', 'D₅₀ 0.06–0.25 mm. Use in ABSCOUR 9 clear-water scour equations.'];
+  if (d50 < 2)    return ['Coarse / Medium Sand', 'D₅₀ 0.25–2 mm. Use in ABSCOUR 9 clear-water scour equations.'];
+  if (d50 < 64)   return ['Gravel', 'D₅₀ 2–64 mm. Typically clear-water scour conditions in MD non-tidal streams.'];
+  if (d50 < 256)  return ['Cobble', 'D₅₀ 64–256 mm. Clear-water scour conditions expected.'];
+  return ['Boulder', 'D₅₀ > 256 mm. Likely scour-resistant — verify with SHA geologist.'];
+}
+
+// ─── PERCENTILE ───────────────────────────────────────────────────────────────
+function percentile(sorted, p) {
+  if (!sorted.length) return null;
+  const idx = (p / 100) * (sorted.length - 1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  if (lo === hi) return sorted[lo];
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+}
+
+function fmtMM(v) {
+  if (v === null) return '—';
+  return v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.round(v).toString();
+}
+
+// ─── ENTRY ────────────────────────────────────────────────────────────────────
+function getCurrentPebbles() {
+  if (!currentLocation) return null;
+  return locationData[currentLocation].pebbles;
+}
+
+function addPebble() {
+  if (!currentLocation) { showToast('Select a sample location first'); return; }
+  const input = document.getElementById('pebble-input');
+  const val = parseFloat(input.value);
+  if (isNaN(val) || val <= 0) { showToast('Enter a valid size in mm'); return; }
+  locationData[currentLocation].pebbles.push(val);
+  input.value = '';
+  input.focus();
+  updateAll();
+  flashInput();
+}
+
+function addMidpoint(lo, hi) {
+  if (!currentLocation) { showToast('Select a sample location first'); return; }
+  // Use log midpoint for more accurate PSD representation
+  const mid = lo === 0 ? 1 : Math.sqrt(lo * hi);
+  locationData[currentLocation].pebbles.push(parseFloat(mid.toFixed(2)));
+  updateAll();
+  flashInput();
+}
+
+function undoLast() {
+  const p = getCurrentPebbles();
+  if (!p || !p.length) { showToast('Nothing to undo'); return; }
+  const removed = p.pop();
+  showToast(`Removed: ${fmtMM(removed)} mm`);
+  updateAll();
+}
+
+function clearLocation() {
+  if (!currentLocation) return;
+  const p = locationData[currentLocation].pebbles;
+  if (!p.length) return;
+  if (!confirm(`Clear all ${p.length} pebbles for Location ${currentLocation}?`)) return;
+  locationData[currentLocation].pebbles = [];
+  updateAll();
+}
+
+function flashInput() {
+  const i = document.getElementById('pebble-input');
+  i.style.borderColor = 'var(--green2)';
+  i.style.boxShadow = '0 0 0 3px rgba(21,128,61,0.12)';
+  setTimeout(() => { i.style.borderColor = ''; i.style.boxShadow = ''; }, 350);
+}
+
+// ─── UPDATE ───────────────────────────────────────────────────────────────────
+function updateAll() {
+  const pebbles = currentLocation ? locationData[currentLocation].pebbles : [];
+  const sorted = [...pebbles].sort((a, b) => a - b);
+  const n = pebbles.length;
+
+  // Progress
+  document.getElementById('progress-fill').style.width = Math.min(100, (n / TARGET) * 100) + '%';
+  document.getElementById('count-label').textContent = n;
+
+  // Stats
+  const d50 = percentile(sorted, 50);
+  const d84 = percentile(sorted, 84);
+  const d95 = percentile(sorted, 95);
+  document.getElementById('stat-d50').textContent = fmtMM(d50);
+  document.getElementById('stat-d84').textContent = fmtMM(d84);
+  document.getElementById('stat-d95').textContent = fmtMM(d95);
+
+  // Class box
+  const cls = shaClass(d50);
+  const box = document.getElementById('class-box');
+  if (cls) {
+    document.getElementById('class-name').textContent = 'SHA Class: ' + cls[0];
+    document.getElementById('class-note').textContent = cls[1];
+    box.style.display = '';
+  } else {
+    box.style.display = 'none';
+  }
+
+  // SHA table highlight
+  document.querySelectorAll('#sha-table tr').forEach(tr => {
+    tr.classList.remove('highlight');
+    if (d50 !== null) {
+      const mn = parseFloat(tr.dataset.min), mx = parseFloat(tr.dataset.max);
+      if (d50 >= mn && d50 < mx) tr.classList.add('highlight');
+    }
+  });
+
+  // Location cards — count badges + data indicator
+  for (let i = 1; i <= 6; i++) {
+    const cnt = locationData[i].pebbles.length;
+    const el = document.getElementById(`loc-count-${i}`);
+    el.textContent = cnt ? `${cnt} pebble${cnt !== 1 ? 's' : ''}` : '0 pebbles';
+    el.className = 'loc-count' + (cnt ? ' filled' : '');
+    const card = document.querySelector(`[data-loc="${i}"]`);
+    if (cnt > 0) card.classList.add('has-data'); else card.classList.remove('has-data');
+  }
+
+  // Log tabs — mark which have data
+  document.querySelectorAll('.log-tab[data-tab]').forEach(btn => {
+    const t = btn.dataset.tab;
+    if (t !== 'current' && parseInt(t)) {
+      const cnt = locationData[parseInt(t)].pebbles.length;
+      if (cnt > 0) btn.classList.add('has-data'); else btn.classList.remove('has-data');
+      btn.textContent = cnt ? `Loc ${t} (${cnt})` : `Loc ${t}`;
+    }
+  });
+
+  // Log list
+  renderLog();
+
+  // Chart
+  drawChart(sorted, d50, d84, d95);
+}
+
+// ─── LOG ──────────────────────────────────────────────────────────────────────
+function showLogTab(tab) {
+  activeLogTab = tab;
+  document.querySelectorAll('.log-tab').forEach(b => b.classList.remove('active'));
+  const el = document.querySelector(`.log-tab[data-tab="${tab}"]`);
+  if (el) el.classList.add('active');
+  renderLog();
+}
+
+function renderLog() {
+  const logEl = document.getElementById('pebble-log');
+  let pebbles;
+
+  if (activeLogTab === 'current') {
+    pebbles = currentLocation ? locationData[currentLocation].pebbles : [];
+  } else {
+    pebbles = locationData[parseInt(activeLogTab)]?.pebbles || [];
+  }
+
+  if (!pebbles.length) {
+    logEl.innerHTML = '<div class="log-empty">No pebbles recorded for this location.</div>';
+    return;
+  }
+
+  const display = [...pebbles].reverse().slice(0, 100);
+  const total = pebbles.length;
+  logEl.innerHTML = display.map((mm, i) => {
+    const idx = total - i;
+    return `<div class="log-entry">
+      <span class="log-n">#${idx}</span>
+      <span class="log-size">${fmtMM(mm)} mm</span>
+      <span class="log-class">${wolmanClass(mm)}</span>
+    </div>`;
+  }).join('');
+}
+
+// ─── PROCEDURE TOGGLE ────────────────────────────────────────────────────────
+function toggleProcedure() {
+  const body = document.getElementById('proc-body');
+  const toggle = document.getElementById('proc-toggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  toggle.classList.toggle('open', !isOpen);
+  toggle.querySelector('span:last-child').textContent = isOpen ? 'Click to expand' : 'Click to collapse';
+}
+
+// ─── CHART ───────────────────────────────────────────────────────────────────
+function drawChart(sorted, d50, d84, d95) {
+  const canvas = document.getElementById('psd-chart');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 800;
+  const H = 260;
+  const DPR = window.devicePixelRatio || 1;
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  canvas.style.height = H + 'px';
+  ctx.scale(DPR, DPR);
+
+  const PAD = { top: 20, right: 28, bottom: 52, left: 52 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top - PAD.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+
+  const logMin = Math.log10(0.5), logMax = Math.log10(5000);
+  const xS = v => PAD.left + (Math.log10(Math.max(v, 0.51)) - logMin) / (logMax - logMin) * cW;
+  const yS = p => PAD.top + (1 - p / 100) * cH;
+
+  // Grid
+  ctx.strokeStyle = '#e4ecf4'; ctx.lineWidth = 1;
+  [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048].forEach(v => {
+    const x = xS(v);
+    ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + cH); ctx.stroke();
+  });
+  [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].forEach(p => {
+    const y = yS(p);
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + cW, y); ctx.stroke();
+  });
+
+  // Wolman class dividers
+  const dividers = [
+    {v:2,label:'Sand'},{v:64,label:'Gravel'},{v:256,label:'Cobble'},{v:4096,label:'Boulder'}
+  ];
+  ctx.strokeStyle = '#c8d6e5'; ctx.lineWidth = 1;
+  ctx.setLineDash([3, 4]);
+  ctx.font = `9px 'IBM Plex Mono', monospace`;
+  dividers.forEach(d => {
+    const x = xS(d.v);
+    if (x > PAD.left && x < PAD.left + cW) {
+      ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + cH); ctx.stroke();
+      ctx.fillStyle = '#8ba3bb'; ctx.textAlign = 'center';
+      ctx.fillText(d.label, x, PAD.top + cH + 30);
+    }
+  });
+  ctx.setLineDash([]);
+
+  // Axes
+  ctx.strokeStyle = '#1a2b3c'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(PAD.left, PAD.top); ctx.lineTo(PAD.left, PAD.top + cH);
+  ctx.lineTo(PAD.left + cW, PAD.top + cH); ctx.stroke();
+
+  // X labels
+  ctx.fillStyle = '#5a738a'; ctx.font = `10px 'IBM Plex Mono', monospace`;
+  [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024].forEach(v => {
+    ctx.textAlign = 'center';
+    ctx.fillText(v >= 1000 ? (v/1000)+'k' : v, xS(v), PAD.top + cH + 14);
+  });
+
+  // Y labels
+  ctx.textAlign = 'right';
+  [0, 25, 50, 75, 100].forEach(p => {
+    ctx.fillText(p + '%', PAD.left - 7, yS(p) + 4);
+  });
+
+  // Axis titles
+  ctx.fillStyle = '#5a738a'; ctx.font = `10px 'IBM Plex Mono', monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Particle Size (mm)', PAD.left + cW / 2, H - 6);
+  ctx.save(); ctx.translate(12, PAD.top + cH / 2); ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Cumulative % Finer', 0, 0); ctx.restore();
+
+  if (!sorted.length) return;
+
+  // D-line markers
+  [[d50,'D50','#1d5fa8'],[d84,'D84','#166534'],[d95,'D95','#d97706']].forEach(([d,lbl,color]) => {
+    if (d === null) return;
+    const p = lbl === 'D50' ? 50 : lbl === 'D84' ? 84 : 95;
+    const x = xS(d), y = yS(p);
+    ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(x, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, PAD.top + cH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.font = `bold 9px 'IBM Plex Mono', monospace`; ctx.textAlign = 'left';
+    ctx.fillText(`${lbl}=${fmtMM(d)}`, x + 5, y - 4);
+  });
+
+  // CDF curve
+  if (sorted.length < 2) return;
+  ctx.strokeStyle = '#0c1f35'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  sorted.forEach((v, i) => {
+    const x = xS(v), y = yS(((i + 1) / sorted.length) * 100);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+function getProject() {
+  return {
+    name:       document.getElementById('proj-name').value || 'Unnamed Project',
+    struct:     document.getElementById('proj-struct').value || '',
+    date:       document.getElementById('proj-date').value || new Date().toISOString().slice(0,10),
+    observer:   document.getElementById('proj-observer').value || '',
+    conditions: document.getElementById('proj-conditions').value || '',
+    notes:      document.getElementById('proj-notes').value || ''
+  };
+}
+
+function exportCSV() {
+  if (!currentLocation) { showToast('Select a location first'); return; }
+  const p = locationData[currentLocation].pebbles;
+  if (!p.length) { showToast('No data for this location'); return; }
+  const proj = getProject();
+  const sorted = [...p].sort((a,b)=>a-b);
+  const d50 = percentile(sorted,50), d84=percentile(sorted,84), d95=percentile(sorted,95);
+
+  let csv = `# Wolman Pebble Count — SHA Appendix 14-B\n`;
+  csv += `# Project: ${proj.name}\n# Structure: ${proj.struct}\n# Date: ${proj.date}\n`;
+  csv += `# Observer: ${proj.observer}\n# Location: ${currentLocation} — ${LOC_NAMES[currentLocation]}\n`;
+  csv += `# D50: ${fmtMM(d50)} mm | D84: ${fmtMM(d84)} mm | D95: ${fmtMM(d95)} mm\n#\n`;
+  csv += `Sample_No,Size_mm,Wolman_Class,Cumulative_Pct_Finer\n`;
+  [...p].sort((a,b)=>a-b).forEach((mm,i) => {
+    csv += `${i+1},${mm},${wolmanClass(mm)},${((i+1)/p.length*100).toFixed(1)}\n`;
+  });
+  download(csv, `pebble_loc${currentLocation}_${proj.date}.csv`, 'text/csv');
+}
+
+function exportSummaryHTML() {
+  const proj = getProject();
+  const activeLocs = [1,2,3,4,5,6].filter(i => locationData[i].pebbles.length > 0);
+  if (!activeLocs.length) { showToast('No data recorded yet'); return; }
+
+  // Build per-location data blob for embedding in output HTML
+  const embedData = {};
+  activeLocs.forEach(i => {
+    const p = locationData[i].pebbles;
+    const sorted = [...p].sort((a,b) => a-b);
+    const d50 = percentile(sorted,50), d84 = percentile(sorted,84), d95 = percentile(sorted,95);
+    const cls = shaClass(d50);
+    const classCounts = {};
+    p.forEach(mm => { const c = wolmanClass(mm); classCounts[c] = (classCounts[c]||0)+1; });
+    embedData[i] = { sorted, d50, d84, d95, cls, classCounts, n: p.length };
+  });
+
+  // Build HTML sections (stats table + canvas placeholder + freq table)
+  const locSections = activeLocs.map(i => {
+    const { d50, d84, d95, cls, classCounts, n } = embedData[i];
+    const freqRows = Object.entries(classCounts)
+      .sort((a,b) => b[1]-a[1])
+      .map(([c,ct]) => `<tr><td>${c}</td><td>${ct}</td><td>${(ct/n*100).toFixed(1)}%</td></tr>`)
+      .join('');
+
+    return `
+<div class="loc-section">
+  <div class="loc-head">Location ${i} &mdash; ${LOC_NAMES[i]} &nbsp;<span class="loc-n">n = ${n}</span></div>
+
+  <div class="two-col">
+    <div>
+      <div class="sub-head">Grain Size Statistics</div>
+      <table>
+        <thead><tr><th>Parameter</th><th>Value (mm)</th><th>SHA App. 14-B Class</th></tr></thead>
+        <tbody>
+          <tr class="d50-row"><td><b>D&#x2085;&#x2080; (Median)</b></td><td><b>${fmtMM(d50)}</b></td><td><b>${cls?cls[0]:'—'}</b></td></tr>
+          <tr><td>D&#x2088;&#x2084;</td><td>${fmtMM(d84)}</td><td>84th percentile</td></tr>
+          <tr><td>D&#x2089;&#x2085;</td><td>${fmtMM(d95)}</td><td>95th percentile</td></tr>
+        </tbody>
+      </table>
+      ${cls ? `<div class="note">${cls[1]}</div>` : ''}
+
+      <div class="sub-head" style="margin-top:12px">Frequency by Wolman Class</div>
+      <table>
+        <thead><tr><th>Wolman Class</th><th>Count</th><th>% of Total</th></tr></thead>
+        <tbody>${freqRows}</tbody>
+      </table>
+    </div>
+
+    <div class="chart-col">
+      <div class="sub-head">Particle Size Distribution</div>
+      <canvas id="chart-${i}" class="psd-canvas" width="520" height="320"></canvas>
+      <div class="chart-legend">
+        <span class="leg d50">&#9632; D50</span>
+        <span class="leg d84">&#9632; D84</span>
+        <span class="leg d95">&#9632; D95</span>
+      </div>
+    </div>
+  </div>
+</div>`;
+  }).join('');
+
+  // Self-contained chart drawing script embedded in output HTML
+  const chartScript = `
+(function() {
+  var DATA = ${JSON.stringify(embedData)};
+  var LOC_NAMES = ${JSON.stringify(LOC_NAMES)};
+
+  function pct(sorted, p) {
+    if (!sorted.length) return null;
+    var idx = (p/100)*(sorted.length-1), lo = Math.floor(idx), hi = Math.ceil(idx);
+    return lo===hi ? sorted[lo] : sorted[lo]+(sorted[hi]-sorted[lo])*(idx-lo);
+  }
+  function fmt(v) {
+    if (v===null) return '—';
+    return v<10 ? v.toFixed(2) : v<100 ? v.toFixed(1) : Math.round(v)+'';
+  }
+
+  function drawChart(canvasId, sorted, d50, d84, d95) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    var PAD = {top:24, right:32, bottom:56, left:56};
+    var cW = W-PAD.left-PAD.right, cH = H-PAD.top-PAD.bottom;
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+
+    var logMin=Math.log10(0.5), logMax=Math.log10(5000);
+    function xS(v){ return PAD.left+(Math.log10(Math.max(v,0.51))-logMin)/(logMax-logMin)*cW; }
+    function yS(p){ return PAD.top+(1-p/100)*cH; }
+
+    // Grid
+    ctx.strokeStyle='#e4ecf4'; ctx.lineWidth=1;
+    [1,2,4,8,16,32,64,128,256,512,1024,2048].forEach(function(v){
+      var x=xS(v); ctx.beginPath(); ctx.moveTo(x,PAD.top); ctx.lineTo(x,PAD.top+cH); ctx.stroke();
+    });
+    [0,10,20,30,40,50,60,70,80,90,100].forEach(function(p){
+      var y=yS(p); ctx.beginPath(); ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+cW,y); ctx.stroke();
+    });
+
+    // Class dividers
+    var divs=[{v:2,lbl:'Sand'},{v:64,lbl:'Gravel'},{v:256,lbl:'Cobble'},{v:4096,lbl:'Boulder'}];
+    ctx.strokeStyle='#c8d6e5'; ctx.lineWidth=1; ctx.setLineDash([3,4]);
+    ctx.font="10px 'Segoe UI',sans-serif"; ctx.fillStyle='#8ba3bb';
+    divs.forEach(function(d){
+      var x=xS(d.v);
+      if(x>PAD.left && x<PAD.left+cW){
+        ctx.beginPath(); ctx.moveTo(x,PAD.top); ctx.lineTo(x,PAD.top+cH); ctx.stroke();
+        ctx.textAlign='center'; ctx.fillText(d.lbl,x,PAD.top+cH+32);
+      }
+    });
+    ctx.setLineDash([]);
+
+    // Axes
+    ctx.strokeStyle='#1a2b3c'; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+cH);
+    ctx.lineTo(PAD.left+cW,PAD.top+cH); ctx.stroke();
+
+    // X-axis labels
+    ctx.fillStyle='#5a738a'; ctx.font="10px 'Segoe UI',sans-serif";
+    [1,2,4,8,16,32,64,128,256,512,1024].forEach(function(v){
+      ctx.textAlign='center';
+      ctx.fillText(v>=1000?(v/1000)+'k':v, xS(v), PAD.top+cH+15);
+    });
+
+    // Y-axis labels
+    ctx.textAlign='right';
+    [0,25,50,75,100].forEach(function(p){
+      ctx.fillText(p+'%', PAD.left-7, yS(p)+4);
+    });
+
+    // Axis titles
+    ctx.fillStyle='#5a738a'; ctx.font="10px 'Segoe UI',sans-serif";
+    ctx.textAlign='center';
+    ctx.fillText('Particle Size (mm)', PAD.left+cW/2, H-8);
+    ctx.save(); ctx.translate(14,PAD.top+cH/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('Cumulative % Finer Than', 0, 0); ctx.restore();
+
+    if (!sorted || sorted.length < 2) return;
+
+    // CDF curve — filled area first
+    ctx.beginPath();
+    sorted.forEach(function(v,i){
+      var x=xS(v), y=yS((i+1)/sorted.length*100);
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    });
+    ctx.lineTo(xS(sorted[sorted.length-1]), PAD.top+cH);
+    ctx.lineTo(xS(sorted[0]), PAD.top+cH);
+    ctx.closePath();
+    ctx.fillStyle='rgba(29,95,168,0.07)'; ctx.fill();
+
+    // CDF curve line
+    ctx.beginPath();
+    sorted.forEach(function(v,i){
+      var x=xS(v), y=yS((i+1)/sorted.length*100);
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle='#0c1f35'; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+
+    // D-line markers
+    [[d50,'D50',50,'#1d5fa8'],[d84,'D84',84,'#166534'],[d95,'D95',95,'#d97706']].forEach(function(arr){
+      var d=arr[0], lbl=arr[1], perc=arr[2], color=arr[3];
+      if(d===null) return;
+      var x=xS(d), y=yS(perc);
+      ctx.strokeStyle=color; ctx.lineWidth=1.2; ctx.setLineDash([5,3]);
+      ctx.beginPath(); ctx.moveTo(PAD.left,y); ctx.lineTo(x,y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,PAD.top+cH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=color;
+      ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#fff';
+      ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle=color;
+      ctx.font='bold 10px \\'Segoe UI\\',sans-serif'; ctx.textAlign='left';
+      var labelX = x+7, labelY = y-5;
+      if (labelX + 60 > PAD.left+cW) labelX = x-62;
+      ctx.fillText(lbl+'='+fmt(d)+'mm', labelX, labelY);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    Object.keys(DATA).forEach(function(i){
+      var d = DATA[i];
+      drawChart('chart-'+i, d.sorted, d.d50, d.d84, d.d95);
+    });
+  });
+})();
+`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wolman Pebble Count — ${proj.name}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1a2b3c; background: #f0f4f8; }
+  .page { max-width: 960px; margin: 0 auto; padding: 32px 28px 60px; background: #fff; }
+
+  /* Header */
+  .rpt-header { border-bottom: 3px solid #2471c9; padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .rpt-title { font-size: 18px; font-weight: 700; color: #0c1f35; }
+  .rpt-title span { color: #2471c9; }
+  .rpt-meta { font-size: 10px; color: #8ba3bb; font-family: 'Courier New', monospace; text-align: right; line-height: 1.6; }
+
+  /* Project table */
+  .proj-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
+  .proj-table td { padding: 5px 10px; border: 1px solid #d8e4ee; }
+  .proj-table td:nth-child(odd) { font-weight: 600; background: #f4f8fc; color: #5a738a; width: 14%; white-space: nowrap; }
+
+  /* Location sections */
+  .loc-section { margin-bottom: 32px; page-break-inside: avoid; }
+  .loc-head {
+    background: #152d4a; color: #fff; padding: 8px 14px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.4px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .loc-n { font-weight: 400; color: #7a9fc0; font-size: 11px; }
+
+  /* Two-col layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; align-items: start; }
+  .chart-col { }
+
+  /* Sub-headings */
+  .sub-head { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #5a738a; margin-bottom: 6px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 11.5px; }
+  th { background: #dce8f4; color: #0c1f35; padding: 5px 8px; text-align: left; border: 1px solid #c8d6e5; font-size: 10.5px; font-weight: 700; }
+  td { padding: 4px 8px; border: 1px solid #d8e4ee; }
+  tr.d50-row td { background: #eaf4ff; }
+
+  /* Note box */
+  .note { font-size: 11px; color: #5a738a; background: #f4f8fc; border-left: 3px solid #4a7daa; padding: 7px 10px; margin: 6px 0 0; line-height: 1.55; }
+
+  /* Canvas */
+  .psd-canvas { display: block; width: 100%; border: 1px solid #c8d6e5; background: #fff; border-radius: 2px; }
+  .chart-legend { display: flex; gap: 16px; margin-top: 6px; font-size: 10px; color: #5a738a; }
+  .leg { display: flex; align-items: center; gap: 4px; }
+  .leg.d50 { color: #1d5fa8; } .leg.d84 { color: #166534; } .leg.d95 { color: #d97706; }
+
+  /* Footer */
+  .rpt-footer { font-size: 10px; color: #8ba3bb; margin-top: 28px; border-top: 1px solid #c8d6e5; padding-top: 10px; line-height: 1.7; }
+
+  @media print {
+    body { background: #fff; }
+    .page { padding: 16px; max-width: 100%; }
+    .loc-section { page-break-inside: avoid; }
+    .two-col { grid-template-columns: 1fr 1.3fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="rpt-header">
+    <div>
+      <div class="rpt-title">Wolman Pebble Count <span>/ Field Summary</span></div>
+      <div style="font-size:11px;color:#5a738a;margin-top:3px">SHA Appendix 14-B &nbsp;·&nbsp; Grain Size &amp; Scour Analysis</div>
+    </div>
+    <div class="rpt-meta">
+      RKK Geotech Tools<br>
+      Generated: ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}<br>
+      Wolman (1954) / SHA App. 14-B
+    </div>
+  </div>
+
+  <table class="proj-table">
+    <tbody>
+      <tr><td>Project</td><td>${proj.name}</td><td>Structure No.</td><td>${proj.struct||'—'}</td></tr>
+      <tr><td>Date</td><td>${proj.date}</td><td>Observer</td><td>${proj.observer||'—'}</td></tr>
+      <tr><td>Conditions</td><td>${proj.conditions||'—'}</td><td>Notes</td><td>${proj.notes||'—'}</td></tr>
+    </tbody>
+  </table>
+
+  ${locSections}
+
+  <div class="rpt-footer">
+    <b>Method:</b> Wolman (1954) step-toe pebble count procedure — intermediate (b) axis measured via gravelometer, ≥100 particles per location.
+    Sample locations per Maryland SHA Geotechnical Manual, Appendix 14-B (Fig. 14B-1).
+    D50 used in ABSCOUR 9 clear-water scour equations per SHA H&amp;H Manual, Chapter 11.
+    D95 reported per MD DOT boring sample requirements.
+    Size classes follow Wolman gravelometer classification table.
+  </div>
+</div>
+<script>${chartScript}<\/script>
+</body>
+</html>`;
+
+  download(html, `pebble_summary_${proj.date}.html`, 'text/html');
+}
+
+// ─── JSON SAVE / LOAD ────────────────────────────────────────────────────────
+function saveJSON() {
+  const payload = {
+    _tool: 'RKK Wolman Pebble Count v1',
+    _saved: new Date().toISOString(),
+    project: getProject(),
+    currentLocation,
+    locationData: Object.fromEntries(
+      Object.entries(locationData).map(([k,v]) => [k, { pebbles: [...v.pebbles] }])
+    )
+  };
+  download(JSON.stringify(payload, null, 2), `pebble_count_${payload.project.date}.json`, 'application/json');
+}
+
+function loadJSONPrompt() {
+  document.getElementById('json-file-input').click();
+}
+
+function loadJSONFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.locationData) throw new Error('Invalid format');
+      if (!confirm(`Load session from ${data._saved?.slice(0,10) || 'unknown date'}? This replaces all current data.`)) return;
+
+      // Restore project fields
+      if (data.project) {
+        ['name','struct','date','observer','conditions','notes'].forEach(k => {
+          const el = document.getElementById(`proj-${k}`);
+          if (el && data.project[k] !== undefined) el.value = data.project[k];
+        });
+      }
+
+      // Restore location data
+      Object.entries(data.locationData).forEach(([k, v]) => {
+        if (locationData[k]) locationData[k].pebbles = [...(v.pebbles || [])];
+      });
+
+      // Restore active location
+      if (data.currentLocation) setLocation(data.currentLocation);
+      else updateAll();
+
+      showToast(`Loaded: ${Object.values(data.locationData).reduce((s,l)=>s+l.pebbles.length,0)} total pebbles`);
+    } catch(err) {
+      showToast('Error loading file — invalid JSON');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ─── UTILITIES ───────────────────────────────────────────────────────────────
+function download(content, filename, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = filename;
+  a.click();
+  showToast('Downloaded: ' + filename);
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+document.getElementById('proj-date').value = new Date().toISOString().slice(0,10);
+document.getElementById('pebble-input').focus();
+window.addEventListener('resize', () => {
+  const p = currentLocation ? locationData[currentLocation].pebbles : [];
+  const s = [...p].sort((a,b)=>a-b);
+  drawChart(s, percentile(s,50), percentile(s,84), percentile(s,95));
+});
+updateAll();
+</script>
+</body>
+</html>
