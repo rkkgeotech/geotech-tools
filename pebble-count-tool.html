@@ -1033,22 +1033,24 @@ function exportSummaryHTML() {
         </tbody>
       </table>
       ${cls ? `<div class="note">${cls[1]}</div>` : ''}
+    </div>
 
-      <div class="sub-head" style="margin-top:12px">Frequency by Wolman Class</div>
+    <div>
+      <div class="sub-head">Frequency by Wolman Class</div>
       <table>
         <thead><tr><th>Wolman Class</th><th>Count</th><th>% of Total</th></tr></thead>
         <tbody>${freqRows}</tbody>
       </table>
     </div>
+  </div>
 
-    <div class="chart-col">
-      <div class="sub-head">Particle Size Distribution</div>
-      <canvas id="chart-${i}" class="psd-canvas" width="520" height="320"></canvas>
-      <div class="chart-legend">
-        <span class="leg d50">&#9632; D50</span>
-        <span class="leg d84">&#9632; D84</span>
-        <span class="leg d95">&#9632; D95</span>
-      </div>
+  <div style="margin-top:16px">
+    <div class="sub-head">Particle Size Distribution</div>
+    <canvas id="chart-${i}" class="psd-canvas" width="900" height="300"></canvas>
+    <div class="chart-legend">
+      <span class="leg d50">&#9632; D50</span>
+      <span class="leg d84">&#9632; D84</span>
+      <span class="leg d95">&#9632; D95</span>
     </div>
   </div>
 </div>`;
