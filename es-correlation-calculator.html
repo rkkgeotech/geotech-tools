@@ -339,6 +339,34 @@ const boringKeys = [];   // ordered
 let nextSK = 1, nextBK = 1;
 const designValues = {}; // stratKey → user-entered design value
 let _inCascade = false;  // prevents recursive σ'v profile cascade
+let kFactor = 1.0;       // reliability factor for suggested design value (mean − k·σ)
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATISTICAL HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+function arrMedian(arr) {
+  if (!arr.length) return null;
+  const s = [...arr].sort((a,b)=>a-b);
+  const m = Math.floor(s.length/2);
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
+}
+function arrStdDev(arr) {
+  if (arr.length < 2) return null;
+  const m = arr.reduce((a,b)=>a+b)/arr.length;
+  return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0)/(arr.length-1));
+}
+function arrCOV(arr) {
+  const m = arr.length ? arr.reduce((a,b)=>a+b)/arr.length : null;
+  const sd = arrStdDev(arr);
+  return (m && sd !== null && Math.abs(m) > 0.0001) ? sd/Math.abs(m) : null;
+}
+function covBadge(cov) {
+  if (cov === null) return '—';
+  const pct = (cov*100).toFixed(0)+'%';
+  if (cov < 0.20) return `<span class="badge" style="background:#dcfce7;color:#166534;border:1px solid #86efac" title="Low variability — mean is a reliable central tendency">${pct} ▾</span>`;
+  if (cov < 0.40) return `<span class="badge" style="background:#fef9c3;color:#854d0e;border:1px solid #fde047" title="Moderate variability — consider a conservative percentile">${pct} ◆</span>`;
+  return `<span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5" title="High variability — investigate possible mixed lithology or outliers">${pct} ▲</span>`;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STRATA
@@ -843,12 +871,13 @@ function buildResTable(rows, vis) {
       ${cells.join('')}<td class="cell-range">${rng}</td></tr>`;
   });
 
-  ['Min','Max','Avg'].forEach(stat => {
-    h+=`<tr class="row-sum"><td class="left sticky-l" style="background:#f0f4f8">${stat}</td><td></td><td></td><td></td><td></td><td></td>`;
+  ['Min','Max','Avg','Median'].forEach(stat => {
+    const isMed = stat==='Median';
+    h+=`<tr class="row-sum"><td class="left sticky-l" style="background:${isMed?'#f0f6ff':'#f0f4f8'};${isMed?'font-style:normal;color:var(--blue);font-weight:700':''}">${stat}</td><td></td><td></td><td></td><td></td><td></td>`;
     vis.forEach(c => {
       const vals=rows.map(r=>esCalc(r,c)).filter(v=>v!==null);
-      const v=vals.length?(stat==='Min'?Math.min(...vals):stat==='Max'?Math.max(...vals):vals.reduce((a,b)=>a+b)/vals.length):null;
-      h+=`<td style="color:var(--muted)">${v!==null?Math.round(v):'—'}</td>`;
+      const v=vals.length?(stat==='Min'?Math.min(...vals):stat==='Max'?Math.max(...vals):stat==='Median'?arrMedian(vals):vals.reduce((a,b)=>a+b)/vals.length):null;
+      h+=`<td style="color:${isMed?'var(--blue)':'var(--muted)'};${isMed?'font-weight:600':''}">${v!==null?Math.round(v):'—'}</td>`;
     });
     h+='<td></td></tr>';
   });
@@ -876,9 +905,12 @@ function calcBoring(bkey) {
   document.getElementById(`bpills-${bkey}`).innerHTML=`
     <div class="pill"><div class="pill-label">Samples</div><div class="pill-value">${rows.length}</div><div class="pill-sub">with N data</div></div>
     <div class="pill"><div class="pill-label">Correlations</div><div class="pill-value">${vis.length}</div><div class="pill-sub">of 21 shown</div></div>
-    ${allApp.length?`<div class="pill good"><div class="pill-label">Applicable E<sub>s</sub> Range</div>
+    ${allApp.length?`<div class="pill good"><div class="pill-label">App. E<sub>s</sub> Range</div>
       <div class="pill-value" style="font-size:12px">${Math.round(Math.min(...allApp))} – ${Math.round(Math.max(...allApp))}</div>
-      <div class="pill-sub">ksf, applicable correlations</div></div>`:''}`;
+      <div class="pill-sub">ksf · applicable corrs.</div></div>
+    <div class="pill" style="background:#eef5ff;border-color:#b3d0f5"><div class="pill-label">App. E<sub>s</sub> Mean / Median</div>
+      <div class="pill-value" style="font-size:12px;color:var(--navy2)">${Math.round(allApp.reduce((a,b)=>a+b)/allApp.length)} / ${Math.round(arrMedian(allApp))}</div>
+      <div class="pill-sub">ksf · applicable corrs.</div></div>`:''}  `;
 
   document.getElementById(`btbl-${bkey}`).innerHTML = buildResTable(rows, vis);
   document.getElementById(`bnote-${bkey}`).innerHTML =
@@ -901,16 +933,34 @@ function generateSummary() {
     readBoringRows(bkey).forEach(r => all.push({...r, boringLabel:blabel, bkey}));
   });
 
-  let html=`<div class="tbl-wrap"><table class="sum-tbl">
+  const kSel = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Reliability Factor k</span>
+    <select id="kFactorSel" style="padding:5px 10px;font-size:12px;border:1px solid var(--border);border-radius:3px;font-family:var(--mono)"
+      onchange="kFactor=parseFloat(this.value);generateSummary()">
+      <option value="0" ${kFactor===0?'selected':''}>0 — Mean (50th pct)</option>
+      <option value="0.5" ${kFactor===0.5?'selected':''}>0.5 — ~30th pct</option>
+      <option value="1.0" ${kFactor===1.0?'selected':''}>1.0 — ~16th pct</option>
+      <option value="1.282" ${kFactor===1.282?'selected':''}>1.282 — 10th pct</option>
+      <option value="1.645" ${kFactor===1.645?'selected':''}>1.645 — 5th pct</option>
+    </select>
+    <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">Suggested DV = Mean − k·σ</span>
+    <span style="margin-left:8px;font-size:10.5px;color:var(--muted)">COV: <span style="background:#dcfce7;color:#166534;border:1px solid #86efac;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700">&lt;20% Low</span> <span style="background:#fef9c3;color:#854d0e;border:1px solid #fde047;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700">20–40% Mod</span> <span style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700">&gt;40% High</span></span>
+  </div>`;
+
+  let html=kSel+`<div class="tbl-wrap"><table class="sum-tbl">
     <thead><tr>
       <th>Stratum</th><th>Soil Type</th><th style="text-align:center">γ (pcf)</th>
-      <th>Borings w/ Data</th><th style="text-align:center"># Samples</th>
+      <th>Borings w/ Data</th><th style="text-align:center">n</th>
       <th style="text-align:center">N Range</th>
       <th style="text-align:center">N₆₀ Avg</th>
       <th style="text-align:center">(N₁)₆₀ Avg</th>
       <th style="text-align:center">App. E<sub>s</sub> Min (ksf)</th>
       <th style="text-align:center">App. E<sub>s</sub> Max (ksf)</th>
-      <th style="text-align:center">App. E<sub>s</sub> Mean (ksf)</th>
+      <th style="text-align:center">Mean (ksf)</th>
+      <th style="text-align:center">Median (ksf)</th>
+      <th style="text-align:center">Std Dev (ksf)</th>
+      <th style="text-align:center">COV</th>
+      <th style="text-align:center">Suggested DV (ksf)</th>
       <th style="text-align:center;min-width:140px">Design Value (ksf)</th>
     </tr></thead><tbody>`;
 
@@ -925,8 +975,15 @@ function generateSummary() {
       if(!row.soilType) return;
       CORRS.filter(c=>c.app.includes(row.soilType)).forEach(c=>{const v=esCalc(row,c);if(v!==null)appV.push(v);});
     });
-    const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b)/arr.length).toFixed(1) : '—';
+    const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b)/arr.length) : null;
+    const mean = avg(appV);
+    const med  = arrMedian(appV);
+    const sd   = arrStdDev(appV);
+    const cov  = arrCOV(appV);
+    const suggested = (mean !== null && sd !== null) ? Math.max(mean - kFactor*sd, 0) : (mean !== null ? mean : null);
     const dv = designValues[sk] || '';
+    const sdTxt = sd !== null ? Math.round(sd) : (appV.length===1?'n/a':'—');
+    const sugNote = (mean !== null && sd !== null && kFactor > 0) ? `title="Mean − ${kFactor}·σ = ${Math.round(suggested)} ksf"` : '';
     html+=`<tr>
       <td><strong>${st.label||sk}</strong></td>
       <td style="font-size:11px">${SOIL_LABEL[st.soilType]||'—'}</td>
@@ -934,11 +991,15 @@ function generateSummary() {
       <td style="font-size:11px">${bors.length?bors.join(', '):'—'}</td>
       <td style="text-align:center;font-family:var(--mono)">${samps.length||'—'}</td>
       <td style="text-align:center;font-family:var(--mono)">${Ns.length?`${Math.min(...Ns)} – ${Math.max(...Ns)}`:'—'}</td>
-      <td style="text-align:center;font-family:var(--mono)">${avg(N60s)}</td>
-      <td style="text-align:center;font-family:var(--mono);font-weight:600;color:var(--navy2)">${avg(N160s)}</td>
+      <td style="text-align:center;font-family:var(--mono)">${avg(N60s)!==null?avg(N60s).toFixed(1):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);font-weight:600;color:var(--navy2)">${avg(N160s)!==null?avg(N160s).toFixed(1):'—'}</td>
       <td style="text-align:center;font-family:var(--mono);color:var(--gf)">${appV.length?Math.round(Math.min(...appV)):'—'}</td>
       <td style="text-align:center;font-family:var(--mono);color:var(--gf)">${appV.length?Math.round(Math.max(...appV)):'—'}</td>
-      <td style="text-align:center;font-family:var(--mono)">${appV.length?Math.round(appV.reduce((a,b)=>a+b)/appV.length):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${mean!==null?Math.round(mean):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);color:var(--blue);font-weight:600">${med!==null?Math.round(med):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);color:var(--muted)">${sdTxt}</td>
+      <td style="text-align:center">${covBadge(cov)}</td>
+      <td style="text-align:center;font-family:var(--mono);font-weight:600;color:var(--amber)" ${sugNote}>${suggested!==null?Math.round(suggested):'—'}</td>
       <td style="text-align:center">
         <input type="number" class="dv-input" step="1" value="${dv}" placeholder="enter value"
           onchange="designValues['${sk}']=this.value">
@@ -948,8 +1009,10 @@ function generateSummary() {
 
   html+=`</tbody></table></div>
     <div class="tbl-note" style="margin-top:10px">
-      Design values are user-defined — enter based on engineering judgment considering the applicable range, stratum variability, and project settlement method.
-      App. E<sub>s</sub> = min/max/mean of all applicable correlations across all samples assigned to each stratum.
+      Statistics computed over all applicable correlations across all samples assigned to each stratum.
+      <strong>Median</strong> is highlighted in blue — a Mean&thinsp;&gt;&thinsp;Median gap signals right-skewed data driven by high-N or outlier samples.
+      <strong>COV:</strong> &lt;20% low variability; 20–40% moderate; &gt;40% high (investigate mixed lithology or outliers).
+      <strong>Suggested DV</strong> = Mean − k·σ; adjust k above. Design values are user-defined — enter based on engineering judgment considering the applicable range and project settlement method.
       Run <strong>Calculate E<sub>s</sub></strong> in each boring tab to ensure results reflect current inputs.
     </div>`;
 
@@ -989,7 +1052,7 @@ function exportSummaryCSV() {
     const blabel=document.getElementById(`blabel-${bkey}`)?.value||bkey;
     readBoringRows(bkey).forEach(r=>all.push({...r,boringLabel:blabel}));
   });
-  const hdrs=['Stratum','Soil Type','gamma (pcf)','Borings','N Samples','N Min','N Max','N60 Avg','N160 Avg','App Es Min (ksf)','App Es Max (ksf)','App Es Mean (ksf)','Design Value (ksf)'];
+  const hdrs=['Stratum','Soil Type','gamma (pcf)','Borings','n','N Min','N Max','N60 Avg','N160 Avg','App Es Min (ksf)','App Es Max (ksf)','Mean (ksf)','Median (ksf)','Std Dev (ksf)','COV','Suggested DV (k='+kFactor+') (ksf)','Design Value (ksf)'];
   const body=Object.entries(strata).map(([sk,st])=>{
     const samps=all.filter(s=>s.stratKey===sk);
     const bors=[...new Set(samps.map(s=>s.boringLabel))];
@@ -1002,10 +1065,17 @@ function exportSummaryCSV() {
       CORRS.filter(c=>c.app.includes(row.soilType)).forEach(c=>{const v=esCalc(row,c);if(v!==null)appV.push(v);});
     });
     const avg=arr=>arr.length?(arr.reduce((a,b)=>a+b)/arr.length).toFixed(1):'';
+    const mean=appV.length?appV.reduce((a,b)=>a+b)/appV.length:null;
+    const sd=arrStdDev(appV);
+    const cov=arrCOV(appV);
+    const med=arrMedian(appV);
+    const sug=(mean!==null&&sd!==null)?Math.max(mean-kFactor*sd,0):(mean||'');
     return [st.label||sk,SOIL_LABEL[st.soilType]||'',st.gamma,bors.join('; '),samps.length,
       Ns.length?Math.min(...Ns):'',Ns.length?Math.max(...Ns):'',avg(N60s),avg(N160s),
       appV.length?Math.round(Math.min(...appV)):'',appV.length?Math.round(Math.max(...appV)):'',
-      appV.length?Math.round(appV.reduce((a,b)=>a+b)/appV.length):'',
+      mean!==null?Math.round(mean):'',med!==null?Math.round(med):'',
+      sd!==null?Math.round(sd):'',cov!==null?(cov*100).toFixed(1)+'%':'',
+      sug!==''?Math.round(sug):'',
       designValues[sk]||''
     ].join(',');
   });

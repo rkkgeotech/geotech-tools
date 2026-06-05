@@ -322,6 +322,41 @@ const boringKeys = [];   // ordered
 let nextSK = 1, nextBK = 1;
 const designValues = {}; // stratKey → user-entered design value
 let _inCascade = false;  // prevents recursive σ'v profile cascade
+let kFactor = 1.0;       // reliability factor for suggested design value (mean − k·σ)
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATISTICAL HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+function arrMedian(arr) {
+  if (!arr.length) return null;
+  const s = [...arr].sort((a,b)=>a-b);
+  const m = Math.floor(s.length/2);
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
+}
+function arrStdDev(arr) {
+  if (arr.length < 2) return null;
+  const m = arr.reduce((a,b)=>a+b)/arr.length;
+  return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0)/(arr.length-1));
+}
+function arrCOV(arr) {
+  const m = arr.length ? arr.reduce((a,b)=>a+b)/arr.length : null;
+  const sd = arrStdDev(arr);
+  return (m && sd !== null && Math.abs(m) > 0.0001) ? sd/Math.abs(m) : null;
+}
+function arrPct(arr, p) {
+  if (!arr.length) return null;
+  const s = [...arr].sort((a,b)=>a-b);
+  const idx = p*(s.length-1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  return lo===hi ? s[lo] : s[lo]+(s[hi]-s[lo])*(idx-lo);
+}
+function covBadge(cov) {
+  if (cov === null) return '—';
+  const pct = (cov*100).toFixed(0)+'%';
+  if (cov < 0.20) return `<span class="badge" style="background:#dcfce7;color:#166534;border:1px solid #86efac" title="Low variability — mean is a reliable central tendency">${pct} ▾</span>`;
+  if (cov < 0.40) return `<span class="badge" style="background:#fef9c3;color:#854d0e;border:1px solid #fde047" title="Moderate variability — consider a conservative percentile">${pct} ◆</span>`;
+  return `<span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5" title="High variability — investigate possible mixed lithology or outliers">${pct} ▲</span>`;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STRATA
@@ -862,15 +897,16 @@ function buildResTable(rows) {
       ${cells}</tr>`;
   });
 
-  // Summary rows: per-stratum Min/Max/Avg
-  const stat = (arr,kind)=>arr.length?(kind==='Min'?Math.min(...arr):kind==='Max'?Math.max(...arr):arr.reduce((a,b)=>a+b)/arr.length):null;
+  // Summary rows: per-stratum Min/Max/Avg/Median
+  const statFn = (arr,kind)=>arr.length?(kind==='Min'?Math.min(...arr):kind==='Max'?Math.max(...arr):kind==='Median'?arrMedian(arr):arr.reduce((a,b)=>a+b)/arr.length):null;
   const colVals = cols.map(c => rows.filter(r=>r.stratKey===c.sk).map(ssCalc).filter(v=>v!==null));
-  ['Min','Max','Avg'].forEach(s=>{
-    h+=`<tr class="row-sum"><td class="left sticky-l" style="background:#f0f4f8">${s}</td><td></td><td></td><td></td><td></td><td></td>`;
+  ['Min','Max','Avg','Median'].forEach(s=>{
+    const isMedian = s==='Median';
+    h+=`<tr class="row-sum"><td class="left sticky-l" style="background:${isMedian?'#f0f6ff':'#f0f4f8'};${isMedian?'font-style:normal;color:var(--blue);font-weight:700':''}">${s}</td><td></td><td></td><td></td><td></td><td></td>`;
     cols.forEach((c,i)=>{
-      const val = stat(colVals[i], s);
+      const val = statFn(colVals[i], s);
       const txt = val===null ? '—' : (c.cls==='coarse' ? Math.round(val)+'°' : val.toFixed(2));
-      h+=`<td style="background:${c.sc.bg};color:var(--navy)">${txt}</td>`;
+      h+=`<td style="background:${isMedian?'#e8f0fc':c.sc.bg};color:${isMedian?'var(--blue)':'var(--navy)'}">${txt}</td>`;
     });
     if (!cols.length) h+=`<td>—</td>`;
     h+='</tr>';
@@ -891,10 +927,10 @@ function calcBoring(bkey) {
     <div class="pill"><div class="pill-label">Samples</div><div class="pill-value">${rows.length}</div><div class="pill-sub">with N data</div></div>`;
   if (phiV.length) pills += `<div class="pill coarse"><div class="pill-label">φ Range (coarse)</div>
       <div class="pill-value" style="font-size:13px">${Math.round(Math.min(...phiV))}° – ${Math.round(Math.max(...phiV))}°</div>
-      <div class="pill-sub">mean ${Math.round(avg(phiV))}° · ${phiV.length} samples</div></div>`;
+      <div class="pill-sub">mean ${Math.round(avg(phiV))}° · median ${Math.round(arrMedian(phiV))}° · ${phiV.length} samples</div></div>`;
   if (suV.length) pills += `<div class="pill fine"><div class="pill-label">Sᵤ Range (fine)</div>
       <div class="pill-value" style="font-size:13px">${Math.min(...suV).toFixed(2)} – ${Math.max(...suV).toFixed(2)}</div>
-      <div class="pill-sub">ksf · mean ${avg(suV).toFixed(2)} · ${suV.length} samples</div></div>`;
+      <div class="pill-sub">ksf · mean ${avg(suV).toFixed(2)} · median ${arrMedian(suV).toFixed(2)} · ${suV.length} samp.</div></div>`;
 
   document.getElementById(`bpills-${bkey}`).innerHTML = pills;
   document.getElementById(`btbl-${bkey}`).innerHTML = buildResTable(rows);
@@ -919,15 +955,33 @@ function generateSummary() {
     readBoringRows(bkey).forEach(r => all.push({...r, boringLabel:blabel, bkey}));
   });
 
-  let html=`<div class="tbl-wrap"><table class="sum-tbl">
+  const kSel = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Reliability Factor k</span>
+    <select id="kFactorSel" style="padding:5px 10px;font-size:12px;border:1px solid var(--border);border-radius:3px;font-family:var(--mono)"
+      onchange="kFactor=parseFloat(this.value);generateSummary()">
+      <option value="0" ${kFactor===0?'selected':''}>0 — Mean (50th pct)</option>
+      <option value="0.5" ${kFactor===0.5?'selected':''}>0.5 — ~30th pct</option>
+      <option value="1.0" ${kFactor===1.0?'selected':''}>1.0 — ~16th pct</option>
+      <option value="1.282" ${kFactor===1.282?'selected':''}>1.282 — 10th pct</option>
+      <option value="1.645" ${kFactor===1.645?'selected':''}>1.645 — 5th pct</option>
+    </select>
+    <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">Suggested DV = Mean − k·σ</span>
+    <span style="margin-left:8px;font-size:10.5px;color:var(--muted)">COV: <span style="background:#dcfce7;color:#166534;border:1px solid #86efac;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700">&lt;20% Low</span> <span style="background:#fef9c3;color:#854d0e;border:1px solid #fde047;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700">20–40% Mod</span> <span style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700">&gt;40% High</span></span>
+  </div>`;
+
+  let html=kSel+`<div class="tbl-wrap"><table class="sum-tbl">
     <thead><tr>
       <th>Stratum</th><th>Soil Class</th><th style="text-align:center">γ (pcf)</th>
-      <th>Borings w/ Data</th><th style="text-align:center"># Samples</th>
+      <th>Borings w/ Data</th><th style="text-align:center">n</th>
       <th style="text-align:center">N Range</th>
       <th style="text-align:center">(N₁)₆₀ Avg</th>
-      <th style="text-align:center">Strength Min</th>
-      <th style="text-align:center">Strength Max</th>
-      <th style="text-align:center">Strength Mean</th>
+      <th style="text-align:center">Min</th>
+      <th style="text-align:center">Max</th>
+      <th style="text-align:center">Mean</th>
+      <th style="text-align:center">Median</th>
+      <th style="text-align:center">Std Dev</th>
+      <th style="text-align:center">COV</th>
+      <th style="text-align:center">Suggested DV</th>
       <th style="text-align:center;min-width:140px">Design Value</th>
     </tr></thead><tbody>`;
 
@@ -940,10 +994,18 @@ function generateSummary() {
     const vals  = samps.map(ssCalc).filter(v=>v!==null);
     const unit  = cls==='coarse' ? '°' : (cls==='fine' ? ' ksf' : '');
     const fmtV  = v => v===null ? '—' : (cls==='coarse' ? Math.round(v)+'°' : v.toFixed(2));
-    const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b)/arr.length) : null;
+    const avg   = arr => arr.length ? arr.reduce((a,b)=>a+b)/arr.length : null;
     const avgN160 = avg(N160s);
-    const dv = designValues[sk] || '';
+    const mean  = avg(vals);
+    const med   = arrMedian(vals);
+    const sd    = arrStdDev(vals);
+    const cov   = arrCOV(vals);
+    const suggested = (mean !== null && sd !== null) ? mean - kFactor*sd : (mean !== null ? mean : null);
+    const dv    = designValues[sk] || '';
     const dvUnit = cls==='coarse' ? 'deg' : (cls==='fine' ? 'ksf' : '');
+    const sdTxt = sd !== null ? (cls==='coarse' ? sd.toFixed(1)+'°' : sd.toFixed(3)+' ksf') : (vals.length===1?'n/a':'—');
+    const sugTxt = suggested !== null ? fmtV(Math.max(suggested, 0)) : '—';
+    const sugNote = (mean !== null && sd !== null && kFactor > 0) ? `title="Mean${kFactor>0?` − ${kFactor}·σ`:''}${cls==='coarse'?` = ${Math.round(Math.max(suggested,0))}°`:` = ${Math.max(suggested,0).toFixed(2)} ksf`}"` : '';
     html+=`<tr>
       <td><strong>${st.label||sk}</strong></td>
       <td>${st.soilType?clsBadge(st.soilType):'—'}</td>
@@ -954,7 +1016,11 @@ function generateSummary() {
       <td style="text-align:center;font-family:var(--mono);font-weight:600;color:var(--navy2)">${avgN160!==null?avgN160.toFixed(1):'—'}</td>
       <td style="text-align:center;font-family:var(--mono);color:${cls==='coarse'?'var(--gc)':'var(--gn)'}">${vals.length?fmtV(Math.min(...vals)):'—'}</td>
       <td style="text-align:center;font-family:var(--mono);color:${cls==='coarse'?'var(--gc)':'var(--gn)'}">${vals.length?fmtV(Math.max(...vals)):'—'}</td>
-      <td style="text-align:center;font-family:var(--mono)">${vals.length?fmtV(avg(vals)):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono)">${mean!==null?fmtV(mean):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);color:var(--blue);font-weight:600">${med!==null?fmtV(med):'—'}</td>
+      <td style="text-align:center;font-family:var(--mono);color:var(--muted)">${sdTxt}</td>
+      <td style="text-align:center">${covBadge(cov)}</td>
+      <td style="text-align:center;font-family:var(--mono);font-weight:600;color:var(--amber)" ${sugNote}>${sugTxt}</td>
       <td style="text-align:center;white-space:nowrap">
         <input type="number" class="dv-input" step="${cls==='coarse'?'0.5':'0.05'}" value="${dv}" placeholder="enter value"
           onchange="designValues['${sk}']=this.value"> <span style="font-size:10px;color:var(--muted)">${dvUnit}</span>
@@ -964,9 +1030,11 @@ function generateSummary() {
 
   html+=`</tbody></table></div>
     <div class="tbl-note" style="margin-top:10px">
-      Strength = φ (deg) for coarse-grained strata, S<sub>u</sub> (ksf) for fine-grained strata. Min/Max/Mean are taken over all included samples assigned to each stratum.
-      Design values are user-defined — enter based on engineering judgment considering the range, stratum variability, and the governing analysis.
-      Run <strong>Calculate</strong> in each boring tab to ensure results reflect current inputs.
+      Strength = φ (deg) for coarse-grained strata, S<sub>u</sub> (ksf) for fine-grained strata. Statistics computed over all included samples assigned to each stratum.
+      <strong>Median</strong> is highlighted in blue — a Mean&thinsp;&gt;&thinsp;Median gap signals right-skewed data driven by high-N outliers.
+      <strong>COV:</strong> &lt;20% low variability; 20–40% moderate; &gt;40% high (investigate mixed lithology or outliers).
+      <strong>Suggested DV</strong> = Mean − k·σ; adjust k above. Design values are user-defined — enter based on engineering judgment.
+      Run <strong>Calculate</strong> in each boring tab before generating the summary.
     </div>`;
 
   document.getElementById('summaryContent').innerHTML = html;
@@ -1002,7 +1070,7 @@ function exportSummaryCSV() {
     const blabel=document.getElementById(`blabel-${bkey}`)?.value||bkey;
     readBoringRows(bkey).forEach(r=>all.push({...r,boringLabel:blabel}));
   });
-  const hdrs=['Stratum','Soil Class','gamma (pcf)','Borings','N Samples','N Min','N Max','(N1)60 Avg','Strength Min','Strength Max','Strength Mean','Unit','Design Value'];
+  const hdrs=['Stratum','Soil Class','gamma (pcf)','Borings','n','N Min','N Max','(N1)60 Avg','Strength Min','Strength Max','Mean','Median','Std Dev','COV','Suggested DV (k='+kFactor+')','Unit','Design Value'];
   const body=Object.entries(strata).map(([sk,st])=>{
     const samps=all.filter(s=>s.stratKey===sk);
     const cls = SOIL_CLS[st.soilType]||null;
@@ -1012,12 +1080,17 @@ function exportSummaryCSV() {
     const vals=samps.map(ssCalc).filter(v=>v!==null);
     const avg=arr=>arr.length?(arr.reduce((a,b)=>a+b)/arr.length):null;
     const unit = cls==='coarse'?'deg':(cls==='fine'?'ksf':'');
-    const fmtV = v => v===null?'':(cls==='coarse'?Math.round(v):v.toFixed(2));
+    const fmtV = v => v===null?'':(cls==='coarse'?Math.round(v):v.toFixed(3));
+    const mean=avg(vals), sd=arrStdDev(vals), cov=arrCOV(vals), med=arrMedian(vals);
+    const sug=(mean!==null&&sd!==null)?Math.max(mean-kFactor*sd,0):(mean||'');
     return [st.label||sk,cls||'',st.gamma,bors.join('; '),samps.length,
       Ns.length?Math.min(...Ns):'',Ns.length?Math.max(...Ns):'',
       avg(N160s)!==null?avg(N160s).toFixed(1):'',
       vals.length?fmtV(Math.min(...vals)):'',vals.length?fmtV(Math.max(...vals)):'',
-      vals.length?fmtV(avg(vals)):'',unit,designValues[sk]||''
+      mean!==null?fmtV(mean):'',med!==null?fmtV(med):'',
+      sd!==null?fmtV(sd):'',cov!==null?(cov*100).toFixed(1)+'%':'',
+      sug!==''?fmtV(typeof sug==='number'?sug:null):'',
+      unit,designValues[sk]||''
     ].join(',');
   });
   dl([hdrs.join(','),...body].join('\n'), 'ShearStrength_Summary.csv');
