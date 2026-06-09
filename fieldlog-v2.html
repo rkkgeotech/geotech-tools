@@ -360,6 +360,7 @@ header {
     <div class="logo-sub" id="hdr-proj">No project loaded</div>
   </div>
   <div class="header-right">
+    <button class="btn btn-ghost btn-sm" onclick="location.href='index.html'" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">⌂ Home</button>
     <button class="btn btn-ghost btn-sm" onclick="switchTabById('tab-boring')" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">+ Boring</button>
     <button class="btn btn-ghost btn-sm" onclick="exportGINT()" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">gINT</button>
     <button class="btn btn-ghost btn-sm" onclick="saveJSON()" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">&#8659; JSON</button>
@@ -1362,23 +1363,6 @@ function buildSelect(opts, sel, id='') {
   return opts.map(o => `<option${sel===o?' selected':''}>${o}</option>`).join('');
 }
 
-function lithMeta(l) {
-  const parts = [];
-  if (l.moisture)       parts.push(l.moisture);
-  if (l.densityConsist) parts.push(l.densityConsist);
-  if (l.color)          parts.push(l.color);
-  const p1 = [l.c1desc, l.c1part].filter(Boolean).join(' ');
-  if (p1) parts.push(p1);
-  const p2 = [l.c2pct, l.c2desc, l.c2part].filter(Boolean).join(' ');
-  if (p2) parts.push(p2);
-  const p3 = [l.c3pct, l.c3desc, l.c3part].filter(Boolean).join(' ');
-  if (p3) parts.push(p3);
-  if (l.other)  parts.push(l.other);
-  if (l.uscs)   parts.push('(' + l.uscs.toLowerCase() + ')');
-  if (l.aashto) parts.push('[' + l.aashto.toLowerCase() + ']');
-  return parts.join(', ') || 'No description';
-}
-
 function renderLith() {
   const el = document.getElementById('lith-list');
   const b = ab();
@@ -1391,7 +1375,7 @@ function renderLith() {
       <div class="entry-header" onclick="toggleEntry('lith-${l.id}')">
         <div>
           <div class="entry-depth" style="color:var(--accent2)">${l.topDepth||'?'} – ${l.botDepth||'?'} ft</div>
-          <div class="entry-meta">${lithMeta(l)}</div>
+          <div class="entry-meta">${l.uscs||'No classification'} ${l.lineType==='Solid'?'[Solid]':'[Dashed]'}${l.color?' · '+l.color:''}</div>
         </div>
         <span class="entry-chevron">›</span>
       </div>

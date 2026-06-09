@@ -44,6 +44,10 @@ body { font-family: var(--sans); font-size: 13px; background: var(--bg); color: 
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
   padding: 3px 8px; white-space: nowrap;
 }
+.hdr-home { font-family: var(--mono); font-size: 11px; color: #7a9fc0;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18);
+  padding: 4px 11px; border-radius: 3px; cursor: pointer; white-space: nowrap; transition: background .13s; }
+.hdr-home:hover { background: rgba(255,255,255,.16); color: #b8d4ef; }
 
 /* ── LAYOUT ── */
 .container { max-width: 1280px; margin: 20px auto; padding: 0 20px 60px; }
@@ -289,7 +293,10 @@ canvas#psd-chart { width: 100%; border: 1px solid var(--border); border-radius: 
       <h1>Wolman Pebble Count <span>/ D50 Field Tool</span></h1>
       <div class="header-sub">Wolman (1954) · SHA App. 14-B · RKK Geotech Tools</div>
     </div>
-    <div class="header-tag">GRAIN SIZE / SCOUR</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="hdr-home" onclick="location.href='index.html'">⌂ Home</button>
+      <div class="header-tag">GRAIN SIZE / SCOUR</div>
+    </div>
   </div>
 </div>
 
