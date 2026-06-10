@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Field Infiltration Test Log — RK&K Geotechnical</title>
+<title>Field Infiltration Test Log</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -248,7 +248,7 @@ table.sum-tbl .warn-icon{color:var(--amber);font-size:12px}
   <div class="hdr-inner">
     <div class="hdr-left">
       <h1>Field Infiltration Test <span>Log</span></h1>
-      <div class="hdr-sub" id="hdrSub">RK&amp;K GEOTECHNICAL · CONSTANT HEAD · v2.0</div>
+      <div class="hdr-sub" id="hdrSub">CONSTANT HEAD · v2.0</div>
       <div id="autosave-ind" style="font-size:9px;color:#4ade80;font-family:'IBM Plex Mono',monospace;margin-top:2px;letter-spacing:.4px;opacity:0;transition:opacity .4s">—</div>
     </div>
     <div class="hdr-right">
@@ -257,7 +257,6 @@ table.sum-tbl .warn-icon{color:var(--amber);font-size:12px}
       <button class="hdr-btn" onclick="loadJSON()">⬆ Load</button>
       <button class="hdr-btn" onclick="newProject()">↺ New</button>
       <button class="hdr-btn green" onclick="printAll()">⎙ Print</button>
-      <button class="hdr-btn" onclick="location.href='index.html'">⌂ Home</button>
     </div>
   </div>
 </div>
@@ -520,7 +519,7 @@ function updateHdrSub(){
   const el=$('hdrSub'); if(!el) return;
   const n=project.jobName?` · ${project.jobName}`:'';
   const p=project.projectNo?` · ${project.projectNo}`:'';
-  el.textContent=`RK&K GEOTECHNICAL · CONSTANT HEAD · v2.0${n}${p}`;
+  el.textContent=`CONSTANT HEAD · v2.0${n}${p}`;
 }
 
 // ════════════════════════════════════════════
@@ -1053,7 +1052,7 @@ function buildPrintHTML(){
     <div class="p-hdr">
       <div>
         <div class="p-hdr-title">Field Infiltration Test <span>Log</span></div>
-        <div style="font-size:9.5px;color:#5a738a;font-family:'IBM Plex Mono',monospace;margin-top:2px">RK&K GEOTECHNICAL · CONSTANT HEAD · v2.0</div>
+        <div style="font-size:9.5px;color:#5a738a;font-family:'IBM Plex Mono',monospace;margin-top:2px">CONSTANT HEAD · v2.0</div>
       </div>
       <div class="p-hdr-meta">
         Job: ${proj} · No: ${projNo}<br>

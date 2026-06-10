@@ -1,4 +1,4 @@
-// RK&K Geotech Tools — Service Worker
+// Geotech Tools — Service Worker
 // ─────────────────────────────────────────────────────────────────
 // IMPORTANT: Bump CACHE version string on every deployment.
 // This is what forces users' browsers to evict stale files and
@@ -8,7 +8,7 @@
 //   Format: 'geotools-v<major>.<minor>'
 //   Example after any update: 'geotools-v1.1', then 'geotools-v1.2', etc.
 // ─────────────────────────────────────────────────────────────────
-const CACHE = 'geotools-v1.5';
+const CACHE = 'geotools-v1.0';
 
 // ── PRE-CACHED ASSETS ─────────────────────────────────────────────
 // Only field tools are pre-cached for guaranteed offline availability.

@@ -360,7 +360,6 @@ header {
     <div class="logo-sub" id="hdr-proj">No project loaded</div>
   </div>
   <div class="header-right">
-    <button class="btn btn-ghost btn-sm" onclick="location.href='index.html'" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">⌂ Home</button>
     <button class="btn btn-ghost btn-sm" onclick="switchTabById('tab-boring')" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">+ Boring</button>
     <button class="btn btn-ghost btn-sm" onclick="exportGINT()" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">gINT</button>
     <button class="btn btn-ghost btn-sm" onclick="saveJSON()" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.3)">&#8659; JSON</button>
@@ -400,7 +399,7 @@ header {
     </div>
     <div class="grid-2">
       <div class="field">
-        <label>RKK Commission No.</label>
+        <label>Commission No.</label>
         <input type="text" id="proj-num" placeholder="e.g. 23-0142">
       </div>
       <div class="field">
@@ -1806,7 +1805,7 @@ function exportGINT() {
 
   // ── PROJECT sheet ──
   const projRows = [
-    ['Project Name','Client','RKK Commission Number','State','County or Locale','Input_Units','Output_Units','Depth_Log_Page','Draft','GintUpdated'],
+    ['Project Name','Client','Commission Number','State','County or Locale','Input_Units','Output_Units','Depth_Log_Page','Draft','GintUpdated'],
     [state.project.name, state.project.client, state.project.num,
      state.project.state, state.project.county,
      state.project.units, state.project.units,

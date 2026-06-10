@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1b4f8a">
-<title>RK&K – Daily Log of Subsurface Exploration</title>
+<title>Daily Log of Subsurface Exploration</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -259,7 +259,7 @@ textarea.finput.tall{min-height:100px}
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
     <div>
-      <div class="topbar-title">RK&amp;K · Daily Log</div>
+      <div class="topbar-title">Daily Log</div>
       <div class="topbar-sub" id="topbar-context">No project loaded</div>
     </div>
   </div>
@@ -277,10 +277,6 @@ textarea.finput.tall{min-height:100px}
     <button class="btn-top" onclick="window.print()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       <span>Print</span>
-    </button>
-    <button class="btn-top" onclick="location.href='index.html'">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span>Home</span>
     </button>
   </div>
 </div>
@@ -537,7 +533,7 @@ textarea.finput.tall{min-height:100px}
         <div class="card-body"><div class="fg"><label class="flabel">Official Visitors</label><input id="f-visitors" class="finput" type="text" placeholder="Names of official visitors on site"></div></div>
         <div class="sig-row">
           <div class="sig-group">
-            <label class="flabel">RK&amp;K Field Representative</label>
+            <label class="flabel">Field Representative</label>
             <div class="sigpad-wrap" id="wrap-rkk"><canvas id="sig-rkk" width="600" height="90"></canvas><div class="sigpad-controls"><button class="btn-sig-clear" onclick="clearSig('sig-rkk','wrap-rkk')">Clear</button></div><div class="sigpad-hint">Sign here</div></div>
             <div class="fg" style="margin-top:4px"><label class="flabel">Date</label><input id="f-rkk-date" class="finput" type="date" style="font-size:12px;padding:5px 8px"></div>
           </div>
@@ -1178,7 +1174,7 @@ function printSummaryFiltered(){
 function saveProjectJSON(){
   saveCurrentLogToState();
   const proj=project.no||'project', date=new Date().toISOString().slice(0,10);
-  const fn=`RKK_Project_${proj}_${date}.json`.replace(/[^a-z0-9_\-.]/gi,'_');
+  const fn=`DailyLog_Project_${proj}_${date}.json`.replace(/[^a-z0-9_\-.]/gi,'_');
   const blob=new Blob([JSON.stringify(project,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fn; a.click(); URL.revokeObjectURL(a.href);
   showToast('Project JSON saved ✓','success');
@@ -1204,14 +1200,14 @@ function loadProjectJSON(event){
 /* =====================================================================
    AUTOSAVE (localStorage, every 5 min)
 ===================================================================== */
-const AUTOSAVE_KEY='rkk_dailylog_autosave';
+const AUTOSAVE_KEY='dailylog_autosave';
 const AUTOSAVE_MS=5*60*1000;
 
 function autosave(){
   try{
     if(!project.name&&!project.logs.length) return;
     saveCurrentLogToState();
-    const snap={ _tool:'RKK Daily Log', _version:'1.0', _saved:new Date().toISOString(), project:JSON.parse(JSON.stringify(project)), activeLogId };
+    const snap={ _tool:'Daily Log', _version:'1.0', _saved:new Date().toISOString(), project:JSON.parse(JSON.stringify(project)), activeLogId };
     // Strip signature data from autosave to avoid quota issues; they're preserved in manual JSON save
     snap.project.logs.forEach(l=>{ if(l.signatures) l.signatures={crew:null,rkk:null,driller:null}; });
     localStorage.setItem(AUTOSAVE_KEY,JSON.stringify(snap));
@@ -1226,7 +1222,7 @@ function autosave(){
   try{
     const raw=localStorage.getItem(AUTOSAVE_KEY); if(!raw) return;
     const snap=JSON.parse(raw);
-    if(snap._tool!=='RKK Daily Log'||!snap.project) return;
+    if(snap._tool!=='Daily Log'||!snap.project) return;
     const ageMin=(Date.now()-new Date(snap._saved).getTime())/60000;
     if(ageMin>1440) return; // ignore if older than 24h
     window._pendingAutosave=snap;

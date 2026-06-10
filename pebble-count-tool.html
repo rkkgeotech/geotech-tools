@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wolman Pebble Count — RKK Geotech Tools</title>
+<title>Wolman Pebble Count — Geotech Tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -44,10 +44,6 @@ body { font-family: var(--sans); font-size: 13px; background: var(--bg); color: 
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
   padding: 3px 8px; white-space: nowrap;
 }
-.hdr-home { font-family: var(--mono); font-size: 11px; color: #7a9fc0;
-  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18);
-  padding: 4px 11px; border-radius: 3px; cursor: pointer; white-space: nowrap; transition: background .13s; }
-.hdr-home:hover { background: rgba(255,255,255,.16); color: #b8d4ef; }
 
 /* ── LAYOUT ── */
 .container { max-width: 1280px; margin: 20px auto; padding: 0 20px 60px; }
@@ -291,12 +287,9 @@ canvas#psd-chart { width: 100%; border: 1px solid var(--border); border-radius: 
   <div class="header-inner">
     <div class="header-left">
       <h1>Wolman Pebble Count <span>/ D50 Field Tool</span></h1>
-      <div class="header-sub">Wolman (1954) · SHA App. 14-B · RKK Geotech Tools</div>
+      <div class="header-sub">Wolman (1954) · SHA App. 14-B · Geotech Tools</div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <button class="hdr-home" onclick="location.href='index.html'">⌂ Home</button>
-      <div class="header-tag">GRAIN SIZE / SCOUR</div>
-    </div>
+    <div class="header-tag">GRAIN SIZE / SCOUR</div>
   </div>
 </div>
 
@@ -1266,7 +1259,7 @@ function exportSummaryHTML() {
       <div style="font-size:11px;color:#5a738a;margin-top:3px">SHA Appendix 14-B &nbsp;·&nbsp; Grain Size &amp; Scour Analysis</div>
     </div>
     <div class="rpt-meta">
-      RKK Geotech Tools<br>
+      Geotech Tools<br>
       Generated: ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}<br>
       Wolman (1954) / SHA App. 14-B
     </div>
@@ -1300,7 +1293,7 @@ function exportSummaryHTML() {
 // ─── JSON SAVE / LOAD ────────────────────────────────────────────────────────
 function saveJSON() {
   const payload = {
-    _tool: 'RKK Wolman Pebble Count v1',
+    _tool: 'Wolman Pebble Count v1',
     _saved: new Date().toISOString(),
     project: getProject(),
     currentLocation,

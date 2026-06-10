@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Micropile Capacity Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#0c1f35; --navy2:#152d4a; --blue:#1d5fa8; --blue2:#2471c9;
+    --steel:#4a7daa; --green:#166534; --red:#991b1b; --orange:#c2410c;
+    --bg:#f0f4f8; --bg2:#ffffff; --border:#c8d6e5; --text:#1a2b3c; --muted:#5a738a;
+    --mono:'IBM Plex Mono','Courier New',monospace;
+    --sans:'IBM Plex Sans','Segoe UI',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);font-size:13px;background:var(--bg);color:var(--text);line-height:1.5}
+
+  /* ── HEADER ── */
+  .header{background:var(--navy);color:#fff;border-bottom:3px solid var(--blue2)}
+  .header-inner{max-width:1200px;margin:0 auto;padding:15px 24px 12px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .header h1{font-size:17px;font-weight:700;letter-spacing:-.3px}
+  .header h1 span{color:#6db3f5}
+  .header-sub{font-size:10.5px;color:#7a9fc0;margin-top:3px;font-family:var(--mono)}
+  .header-tag{font-family:var(--mono);font-size:10px;color:#5a8ab0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:3px 8px;border-radius:2px;white-space:nowrap}
+  .hdr-actions{display:flex;gap:7px;align-items:center;flex-shrink:0}
+  .hdr-btn{font-family:var(--mono);font-size:11px;font-weight:600;padding:5px 12px;border-radius:3px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#c8ddf0;cursor:pointer;transition:background .15s;white-space:nowrap}
+  .hdr-btn:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.32)}
+  .hdr-btn.save{border-color:#4ade80aa;color:#4ade80}
+  .hdr-btn.save:hover{background:rgba(74,222,128,.12)}
+  /* Print dropdown */
+  .print-wrap{position:relative}
+  .print-btn{border-color:#93c5fdaa;color:#93c5fd}
+  .print-btn:hover{background:rgba(147,197,253,.1)}
+  .print-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--navy2);border:1px solid rgba(255,255,255,.15);border-radius:3px;min-width:160px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+  .print-menu button{display:block;width:100%;padding:8px 14px;text-align:left;font-family:var(--sans);font-size:12px;color:#c8ddf0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer;transition:background .1s}
+  .print-menu button:last-child{border-bottom:none}
+  .print-menu button:hover{background:rgba(255,255,255,.1);color:#fff}
+
+  .container{max-width:1200px;margin:0 auto;padding:20px 20px 60px}
+
+  /* ── PROJECT HEADER CARD ── */
+  .proj-card{background:var(--bg2);border:1px solid var(--border);border-radius:3px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden}
+  .proj-head{background:var(--navy2);color:#fff;padding:7px 16px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+  .proj-row{display:flex;gap:0;border-bottom:1px solid var(--border)}
+  .proj-row:last-child{border-bottom:none}
+  .proj-cell{display:flex;align-items:center;gap:10px;padding:9px 16px;flex:1;min-width:0}
+  .proj-cell:not(:first-child){border-left:1px solid var(--border)}
+  .proj-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);white-space:nowrap;flex-shrink:0}
+  .proj-input{border:none;border-bottom:1px solid var(--border);background:transparent;font-family:var(--sans);font-size:13px;color:var(--text);padding:1px 4px;flex:1;min-width:0;outline:none;transition:border-color .15s}
+  .proj-input:focus{border-bottom-color:var(--blue2)}
+  .proj-input::placeholder{color:#b0c0d0;font-style:italic}
+
+  /* ── LOCATION TABS ── */
+  .loc-tab-wrap{display:flex;align-items:flex-end;border-bottom:2px solid var(--navy2);overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .loc-tab-wrap::-webkit-scrollbar{display:none}
+  .loc-tab{display:flex;align-items:center;gap:5px;padding:8px 14px 8px 14px;font-size:12.5px;font-family:var(--sans);font-weight:500;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-bottom:none;border-radius:3px 3px 0 0;cursor:pointer;white-space:nowrap;margin-right:2px;margin-bottom:-2px;transition:background .1s;flex-shrink:0}
+  .loc-tab.active{background:var(--bg2);color:var(--navy);font-weight:700;border-color:var(--navy2);border-bottom:2px solid var(--bg2);z-index:1;position:relative}
+  .loc-tab:hover:not(.active){background:#e4ecf4}
+  .loc-tab.sum-tab{color:var(--blue);border-color:var(--border)}
+  .loc-tab.sum-tab.active{color:var(--navy);border-color:var(--navy2)}
+  .loc-tab-name{max-width:140px;overflow:hidden;text-overflow:ellipsis}
+  .loc-tab-del{font-size:15px;line-height:1;color:var(--muted);background:none;border:none;cursor:pointer;padding:0 1px;flex-shrink:0}
+  .loc-tab-del:hover{color:var(--red)}
+  .add-loc-btn{padding:8px 14px;font-size:12px;font-weight:600;color:var(--blue2);background:none;border:none;cursor:pointer;white-space:nowrap;margin-bottom:-2px;flex-shrink:0}
+  .add-loc-btn:hover{color:var(--blue)}
+  .loc-tab-content{background:var(--bg);margin-bottom:0}
+
+  /* ── LOCATION NAME INPUT ── */
+  .loc-name-card{background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px;padding:12px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+  .loc-name-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);white-space:nowrap}
+  .loc-name-input{border:none;border-bottom:1px solid var(--border);background:transparent;font-family:var(--sans);font-size:14px;font-weight:600;color:var(--navy);padding:2px 4px;flex:1;outline:none;transition:border-color .15s}
+  .loc-name-input:focus{border-bottom-color:var(--blue2)}
+  .loc-name-input::placeholder{color:#b0c4d8;font-weight:400;font-style:italic}
+
+  /* ── PHASE SECTIONS ── */
+  .phase{background:var(--bg2);border:1px solid var(--border);border-radius:3px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden}
+  .phase-head{display:flex;align-items:center;gap:12px;padding:11px 20px;background:var(--navy2);color:#fff}
+  .phase-head.struct{background:var(--steel)}
+  .phase-num{font-family:var(--mono);font-size:17px;font-weight:600;color:#6db3f5;line-height:1;flex-shrink:0}
+  .phase-title{font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+  .phase-sub{font-family:var(--mono);font-size:10px;color:#7a9fc0;margin-top:1px}
+  .phase-head.struct .phase-sub{color:#c8ddf0}
+  .phase-ref{font-family:var(--mono);font-size:10px;color:#5a8ab0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:2px 7px;border-radius:2px;margin-left:auto;white-space:nowrap;flex-shrink:0}
+  .phase-body{padding:20px 22px}
+
+  /* ── INNER CARDS ── */
+  .card{background:#f7f9fc;border:1px solid var(--border);border-radius:3px;margin-bottom:14px;overflow:hidden}
+  .card-head{background:var(--navy);color:#fff;padding:7px 14px;font-size:10.5px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+  .dot{width:5px;height:5px;border-radius:50%;background:var(--blue2);flex-shrink:0}
+  .card-body{padding:16px 18px}
+
+  /* ── FORM ── */
+  .field-row{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .field label em{font-style:italic;text-transform:none;letter-spacing:0;font-weight:400}
+  select,input[type=number],input[type=text]{padding:7px 10px;border:1px solid var(--border);border-radius:3px;font-size:13px;font-family:var(--sans);color:var(--text);background:#fff}
+  select:focus,input:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 3px rgba(36,113,201,.12)}
+  input[type=number]{width:114px}
+  input::placeholder{color:#b0c4d8}
+  .override{border-color:#e6cf6a;background:#fffde7}
+
+  /* ── TOGGLE ── */
+  .method-toggle{display:flex;gap:0;border:1px solid var(--border);border-radius:3px;overflow:hidden;width:fit-content}
+  .method-btn{padding:7px 16px;font-size:12px;font-family:var(--sans);font-weight:500;background:#fff;color:var(--muted);border:none;border-right:1px solid var(--border);cursor:pointer;transition:background .1s}
+  .method-btn:last-child{border-right:none}
+  .method-btn.active{background:var(--navy2);color:#fff;font-weight:600}
+  .method-btn:hover:not(.active){background:#eaf2fc}
+
+  /* ── FORMULA BAR ── */
+  .formula-bar{display:flex;gap:18px;flex-wrap:wrap;padding:9px 13px;background:var(--navy);border-radius:3px;font-family:var(--mono);font-size:10.5px;color:#6db3f5;margin-bottom:0}
+  .formula-bar span{white-space:nowrap}
+  .formula-bar .eq{color:#fde68a}
+
+  /* ── AASHTO TABLE REFERENCE ── */
+  .ref-toggle{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--blue2);cursor:pointer;margin:10px 0 13px;font-family:var(--mono);text-decoration:underline;text-underline-offset:2px;user-select:none}
+  .ref-toggle:hover{color:var(--blue)}
+  .ref-panel{display:none;margin-bottom:13px}
+  .ref-panel.open{display:block}
+  .ref-tbl{border-collapse:collapse;font-size:11.5px;width:100%}
+  .ref-tbl th{background:var(--navy2);color:#fff;padding:7px 10px;border:1px solid #2a4a6a;font-size:9.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;text-align:left}
+  .ref-tbl th.ctr{text-align:center}
+  .ref-tbl td{padding:7px 10px;border:1px solid #d8e4ee;font-size:11.5px;vertical-align:top}
+  .ref-tbl td.phi{text-align:center;font-family:var(--mono);font-weight:700;color:var(--navy)}
+  .ref-tbl .cur-row td{background:#dbeafe}
+  .ref-tbl .cur-row td.phi{background:#fef08a;font-size:13px}
+  .ref-tbl-note{font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+
+  /* ── CALC BLOCK ── */
+  .calc-block{background:#f0f5fb;border:1px solid #c8d9ed;border-left:3px solid var(--blue2);border-radius:3px;padding:12px 16px;margin-bottom:12px;font-family:var(--mono);font-size:11.5px;line-height:1.75;overflow-x:auto}
+  .calc-ref{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-family:var(--sans);margin-bottom:7px}
+  .calc-line{color:var(--navy);margin-bottom:1px}
+  .calc-line.sub{color:#1e50a0;padding-left:12px}
+  .calc-line.sub2{color:#3669b8;padding-left:12px}
+  .calc-line.result{font-weight:700;font-size:13px;border-top:1px solid #c0d0e4;padding-top:8px;margin-top:8px;color:var(--navy)}
+
+  /* ── PILLS ── */
+  .result-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 2px}
+  .pill{background:#f0f6ff;border:1px solid #c0d8f0;border-radius:3px;padding:9px 15px;min-width:125px}
+  .pill-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .pill-value{font-family:var(--mono);font-size:19px;font-weight:600;color:var(--navy);margin:3px 0 2px;letter-spacing:-.5px}
+  .pill-sub{font-size:10px;color:var(--muted)}
+  .pill.hl{background:var(--navy2);border-color:var(--navy2)}
+  .pill.hl .pill-label{color:#7a9fc0}
+  .pill.hl .pill-value{color:#fff;font-size:22px}
+  .pill.hl .pill-sub{color:#7a9fc0}
+  .pill.ok-pill{background:#f0fdf4;border-color:#bbf7d0}
+  .pill.ok-pill .pill-value{color:var(--green)}
+
+  /* ── STATUS CARDS ── */
+  .status-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+  .status-card{border-radius:3px;padding:16px 20px;border:2px solid}
+  .status-card.ok{background:#f0fdf4;border-color:#86efac}
+  .status-card.ng{background:#fff5f5;border-color:#fca5a5}
+  .status-card.na{background:#f8fafc;border-color:var(--border)}
+  .status-badge{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .status-badge.ok{color:var(--green)}
+  .status-badge.ng{color:var(--red)}
+  .status-badge.na{color:var(--muted)}
+  .status-icon{font-size:15px}
+  .status-label{font-size:11.5px;font-weight:600;color:var(--navy);margin-bottom:10px}
+  .status-row{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px;font-family:var(--mono)}
+  .status-row span:last-child{font-weight:600;color:var(--text)}
+  .status-dcr{font-family:var(--mono);font-size:22px;font-weight:700;margin-top:8px}
+  .status-dcr.ok{color:var(--green)}
+  .status-dcr.ng{color:var(--red)}
+  .status-dcr.na{color:var(--muted)}
+
+  /* ── NOTE BOXES ── */
+  .note-box{font-size:11.5px;color:var(--muted);background:#f4f8fc;border-left:3px solid var(--steel);padding:8px 12px;margin-bottom:14px;line-height:1.6}
+  .note-box strong{color:var(--text)}
+  .warn-box{font-size:11.5px;color:#7c2d12;background:#fff8f0;border-left:3px solid var(--orange);padding:8px 12px;margin-bottom:8px;line-height:1.6}
+  .info-box{font-size:11.5px;color:#1e3a5f;background:#eef5ff;border-left:3px solid var(--blue);padding:8px 12px;margin-bottom:14px;line-height:1.6}
+
+  /* ── αb TABLE ── */
+  .ab-tbl{border-collapse:collapse;font-size:11.5px;width:100%;margin-bottom:0}
+  .ab-tbl th{background:var(--navy2);color:#fff;padding:7px 10px;border:1px solid #2a4a6a;font-size:9.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;text-align:center;white-space:nowrap}
+  .ab-tbl th.desc-hdr{text-align:left;font-family:var(--sans);min-width:200px}
+  .ab-tbl th.act-hdr{background:var(--blue2)}
+  .ab-tbl td{padding:6px 10px;border:1px solid #d8e4ee;text-align:center;font-family:var(--mono);cursor:pointer;transition:background .1s}
+  .ab-tbl td.desc-cell{text-align:left;font-family:var(--sans);font-size:12px;line-height:1.4}
+  .ab-tbl tbody tr:hover td{background:#eef5ff}
+  .ab-tbl tbody tr.sel-row td{background:#dbeafe;font-weight:700}
+  .ab-tbl td.na-cell{color:#aab8cc;font-size:10px;cursor:default}
+  .ab-tbl td.act-col{background:#fffde7}
+  .ab-tbl tbody tr.sel-row td.act-col{background:#fef08a;font-weight:800}
+  .ab-tbl .tbl-sep td{font-size:9.5px;color:var(--muted);font-style:italic;font-family:var(--sans);text-align:left;background:#f5f7fa;padding:4px 10px;cursor:default;border-top:2px solid #c0cedc}
+
+  /* ── DCR TABLE ── */
+  .dcr-tbl{border-collapse:collapse;font-size:12px;width:100%}
+  .dcr-tbl th{background:var(--navy2);color:#fff;padding:7px 12px;border:1px solid #2a4a6a;font-size:10px;font-weight:600;text-align:center;white-space:nowrap}
+  .dcr-tbl th.left{text-align:left;font-family:var(--sans)}
+  .dcr-tbl td{padding:7px 12px;border:1px solid #d8e4ee;text-align:center;font-family:var(--mono);font-size:12px}
+  .dcr-tbl td.left{text-align:left;font-family:var(--sans);font-size:12.5px}
+  .dcr-tbl .ok{color:var(--green);font-weight:700}
+  .dcr-tbl .ng{color:var(--red);font-weight:700}
+  .dcr-tbl .na{color:var(--muted);font-style:italic;font-family:var(--sans)}
+  .dcr-tbl tr.ng-row td{background:#fff5f5}
+  .dcr-tbl tr.na-row td{background:#fafafa;color:var(--muted)}
+
+  /* ── SUMMARY TABLE ── */
+  .sum-tbl{border-collapse:collapse;font-size:11.5px;width:100%}
+  .sum-tbl th{background:var(--navy2);color:#fff;padding:7px 10px;border:1px solid #2a4a6a;font-size:9.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;text-align:center;white-space:nowrap}
+  .sum-tbl th.left{text-align:left;font-family:var(--sans)}
+  .sum-tbl td{padding:7px 10px;border:1px solid #d8e4ee;text-align:center;font-family:var(--mono);font-size:11.5px}
+  .sum-tbl td.left{text-align:left;font-family:var(--sans)}
+  .sum-tbl .ok{color:var(--green);font-weight:700}
+  .sum-tbl .ng{color:var(--red);font-weight:700}
+  .sum-tbl .na{color:var(--muted);font-style:italic}
+  .sum-tbl tr:nth-child(even) td{background:#f8fafc}
+  .sum-tbl tr.ng-row td{background:#fff5f5}
+
+  /* ── MISC ── */
+  .derived-val{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--navy);padding:7px 10px;background:#eef3f9;border:1px solid var(--border);border-radius:3px;min-width:80px;display:inline-block}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:14px}
+  .section-div{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+  /* ── PRINT-ALL CONTAINER (screen: hidden) ── */
+  #print-all-content{display:none}
+
+  /* ══════════════════════════════════════
+     PRINT STYLES
+  ══════════════════════════════════════ */
+  @media print {
+    body{background:#fff;font-size:11px}
+    .header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .hdr-actions,.add-loc-btn,.loc-tab-del,.print-wrap,.ref-toggle{display:none!important}
+    .loc-tab-wrap{display:none!important}
+    .container{padding:10px 14px 20px;max-width:100%}
+    .sum-tbl{font-size:8.5px}
+    .sum-col-status,.sum-col-soil{display:none!important}
+    .proj-card,.card,.calc-block,.check-card,.status-card,.result-row{box-shadow:none;break-inside:avoid}
+    .phase-head,.card-head,.proj-head,.loc-name-card{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ab-tbl tbody tr.sel-row td,.ab-tbl td.act-col,.ref-tbl .cur-row td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .status-card{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    input::placeholder,.proj-input::placeholder,.loc-name-input::placeholder{color:transparent}
+
+    /* Mode: location (default) — hide summary */
+    body:not([data-pm]) #summary-view,
+    body[data-pm="location"] #summary-view,
+    body[data-pm="location"] #print-all-content{display:none!important}
+
+    /* Mode: summary */
+    body[data-pm="summary"] #loc-main-content,
+    body[data-pm="summary"] #print-all-content{display:none!important}
+    body[data-pm="summary"] #summary-view{display:block!important}
+
+    /* Mode: all */
+    body[data-pm="all"] #loc-main-content,
+    body[data-pm="all"] #summary-view{display:none!important}
+    body[data-pm="all"] #print-all-content{display:block!important}
+    .print-loc-section{break-before:page;padding-top:16px}
+    .print-loc-section:first-child{break-before:avoid}
+    .print-loc-label{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy2)}
+  }
+  @media(max-width:760px){.two-col,.status-cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <h1>Micropile Capacity <span>Calculator</span></h1>
+      <div class="header-sub">Geotechnical Bond Resistance &nbsp;·&nbsp; LRFD Demand Check &nbsp;·&nbsp; Multi-Location</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="hdr-btn save" onclick="saveJSON()">&#8681; Save JSON</button>
+      <button class="hdr-btn" onclick="loadJSON()">&#8679; Load JSON</button>
+      <div class="print-wrap">
+        <button class="hdr-btn print-btn" onclick="togglePrintMenu(event)">&#9113; Print &#9662;</button>
+        <div class="print-menu" id="print-menu" style="display:none">
+          <button onclick="doPrint('location')">This Location</button>
+          <button onclick="doPrint('summary')">Summary Table Only</button>
+          <button onclick="doPrint('all')">All Locations</button>
+        </div>
+      </div>
+      <span class="header-tag">AASHTO LRFD 9th Ed. &nbsp;·&nbsp; §10.9.3</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- PROJECT INFORMATION -->
+<div class="proj-card">
+  <div class="proj-head">Project Information</div>
+  <div style="padding:0">
+    <div class="proj-row">
+      <div class="proj-cell" style="flex:2">
+        <span class="proj-label">Project Name</span>
+        <input class="proj-input" id="proj-name" type="text" placeholder="Project Name" autocomplete="off">
+      </div>
+      <div class="proj-cell" style="flex:1">
+        <span class="proj-label">Project No.</span>
+        <input class="proj-input" id="proj-num" type="text" placeholder="Project Number" autocomplete="off">
+      </div>
+    </div>
+    <div class="proj-row">
+      <div class="proj-cell" style="flex:2">
+        <span class="proj-label">Prepared By</span>
+        <input class="proj-input" id="calc-by" type="text" placeholder="Engineer Name" autocomplete="off">
+      </div>
+      <div class="proj-cell" style="flex:1">
+        <span class="proj-label">Date</span>
+        <input class="proj-input" id="calc-date" type="text" placeholder="MM/DD/YYYY" autocomplete="off">
+      </div>
+      <div class="proj-cell" style="flex:2">
+        <span class="proj-label">Checked By</span>
+        <input class="proj-input" id="chk-by" type="text" placeholder="Engineer Name" autocomplete="off">
+      </div>
+      <div class="proj-cell" style="flex:1">
+        <span class="proj-label">Date</span>
+        <input class="proj-input" id="chk-date" type="text" placeholder="MM/DD/YYYY" autocomplete="off">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOCATION TAB BAR -->
+<div class="loc-tab-wrap" id="loc-tab-wrap">
+  <!-- populated by JS -->
+</div>
+
+<!-- LOCATION CONTENT (single DOM, values swapped on tab switch) -->
+<div id="loc-main-content">
+
+  <!-- Location name -->
+  <div class="loc-name-card">
+    <span class="loc-name-label">Design Location</span>
+    <input class="loc-name-input" id="loc-name" type="text" placeholder="e.g., Pier 2 — North Abutment" autocomplete="off" oninput="updateLocName()">
+  </div>
+
+  <!-- INFO FROM STRUCTURES -->
+  <div class="phase">
+    <div class="phase-head struct">
+      <div>
+        <div class="phase-title">Information from Structures</div>
+        <div class="phase-sub">Pile loads and footing geometry provided by the Structures team</div>
+      </div>
+      <div class="phase-ref">Service Limit State</div>
+    </div>
+    <div class="phase-body">
+      <div class="field-row" style="margin-bottom:10px">
+        <div class="field">
+          <label>Bottom of Footing EL (ft)</label>
+          <input type="number" id="footing-el" placeholder="—" step="0.01" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>Max Service Reaction — Compression (kips)</label>
+          <input type="number" id="pu" placeholder="—" min="0" max="50000" step="0.1" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>Max Service Reaction — Tension (kips) <em>— 0 if N/A</em></label>
+          <input type="number" id="tu" placeholder="—" min="0" max="50000" step="0.1" oninput="calc()">
+        </div>
+      </div>
+      <div class="note-box" style="margin-bottom:0">
+        Enter per-pile reactions at the <strong>service limit state</strong> (unfactored).
+        Per §C10.9.3.5.1, micropile bond resistance is compared against service limit state demands.
+        Enter the absolute value for tension (uplift).
+      </div>
+    </div>
+  </div>
+
+  <div class="note-box">
+    <strong>Preliminary Design Tool — §10.9.3.5.4.</strong>
+    Geotechnical resistance uses presumptive α<sub>b</sub> values with φ<sub>qs</sub> = 0.55.
+    Resistance factors may increase to a maximum of 0.70 upon load test verification.
+    Final design shall be performed by a specialty micropile contractor.
+  </div>
+
+  <!-- PHASE 1: GEOTECHNICAL RESISTANCE -->
+  <div class="phase">
+    <div class="phase-head">
+      <div class="phase-num">①</div>
+      <div>
+        <div class="phase-title">Geotechnical Resistance</div>
+        <div class="phase-sub">Grout-to-ground bond &nbsp;·&nbsp; Eq. 10.9.3.5.2-1</div>
+      </div>
+      <div class="phase-ref">§10.9.3.5</div>
+    </div>
+    <div class="phase-body">
+
+      <!-- Pile Geometry -->
+      <div class="card">
+        <div class="card-head"><div class="dot"></div>Pile Geometry</div>
+        <div class="card-body">
+          <div class="field-row">
+            <div class="field">
+              <label>Drill Hole Dia., d<sub>b</sub> (in) <em>— bond zone</em></label>
+              <input type="number" id="db" placeholder="—" min="1" max="72" step="0.25" oninput="calc()">
+            </div>
+            <div class="field">
+              <label>Cased Length, L<sub>c</sub> (ft)</label>
+              <input type="number" id="Lc" placeholder="—" min="0" max="500" step="0.5" oninput="calc()">
+            </div>
+            <div class="field">
+              <label>Bond Length, L<sub>b</sub> (ft)</label>
+              <input type="number" id="Lb" placeholder="—" min="0" max="500" step="0.5" oninput="calc()">
+            </div>
+            <div class="field">
+              <label>Total Length</label>
+              <span class="derived-val" id="total-len">—</span>
+            </div>
+          </div>
+          <div class="field-row" style="margin-bottom:0;align-items:center">
+            <div class="field">
+              <label>Micropile Type <em>(§10.9.1)</em></label>
+              <div class="method-toggle" id="type-toggle">
+                <button class="method-btn active" onclick="setType('A')">Type A</button>
+                <button class="method-btn" onclick="setType('B')">Type B</button>
+                <button class="method-btn" onclick="setType('C')">Type C</button>
+                <button class="method-btn" onclick="setType('D')">Type D</button>
+                <button class="method-btn" onclick="setType('E')">Type E</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- αb Reference Table -->
+      <div class="info-box">
+        <strong>Table C10.9.3.5.2-1 &nbsp;·&nbsp; Typical α<sub>b</sub> Ranges.</strong>
+        Click a row to populate the α<sub>b</sub> fields below. Active micropile type column highlighted.
+        Rock types: Type A only (gravity-grouted; pressure injection not used in rock).
+      </div>
+      <table class="ab-tbl" id="ab-tbl">
+        <thead>
+          <tr>
+            <th class="desc-hdr">Soil / Rock Description</th>
+            <th id="th-A">Type A</th>
+            <th id="th-B">Type B</th>
+            <th id="th-C">Type C</th>
+            <th id="th-D">Type D</th>
+            <th id="th-E">Type E</th>
+          </tr>
+        </thead>
+        <tbody id="ab-tbody"></tbody>
+      </table>
+
+      <div class="formula-bar">
+        <span>Eq. 10.9.3.5.2-1</span>
+        <span class="eq">R<sub>s</sub> = &pi; &times; d<sub>b</sub> &times; &alpha;<sub>b</sub> &times; L<sub>b</sub></span>
+        <span>d<sub>b</sub> = drill hole dia. (ft) &nbsp;&middot;&nbsp; &alpha;<sub>b</sub> = grout-to-ground bond (ksf) &nbsp;&middot;&nbsp; L<sub>b</sub> = bond length (ft)</span>
+      </div>
+
+      <!-- AASHTO Table Reference Toggle -->
+      <div class="ref-toggle" onclick="toggleRefTable()" id="ref-toggle-btn">&#9654; View AASHTO Table 10.5.5.2.5-1 &mdash; Resistance Factors (φ<sub>qs</sub>)</div>
+      <div class="ref-panel" id="ref-panel">
+        <table class="ref-tbl">
+          <thead>
+            <tr>
+              <th style="min-width:200px">Limit State</th>
+              <th>Method / Ground Condition</th>
+              <th class="ctr">φ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="ref-row-presumptive" class="cur-row">
+              <td rowspan="3">Compression Resistance of Single Micropile, φ<sub>stat</sub></td>
+              <td>Side Resistance — Presumptive α<sub>b</sub> Values <sup>(1)</sup></td>
+              <td class="phi">0.55</td>
+            </tr>
+            <tr>
+              <td>Tip Resistance on Rock — O'Neill &amp; Reese (1999)</td>
+              <td class="phi">0.50</td>
+            </tr>
+            <tr>
+              <td>Side Resistance + Tip Resistance — Load Test</td>
+              <td class="phi">&le; 0.70</td>
+            </tr>
+            <tr>
+              <td>Block Failure, φ<sub>bl</sub></td>
+              <td>Clay</td>
+              <td class="phi">0.60</td>
+            </tr>
+            <tr id="ref-row-uplift">
+              <td rowspan="2">Uplift Resistance of Single Micropile, φ<sub>up</sub></td>
+              <td>Presumptive Values <sup>(1)</sup></td>
+              <td class="phi">0.55</td>
+            </tr>
+            <tr>
+              <td>Tension Load Test</td>
+              <td class="phi">&le; 0.70</td>
+            </tr>
+            <tr>
+              <td>Group Uplift Resistance, φ<sub>ug</sub></td>
+              <td>Sand &amp; Clay</td>
+              <td class="phi">0.50</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="ref-tbl-note">
+          <sup>(1)</sup> Apply to presumptive grout-to-ground bond values for preliminary design only (Article C10.9.3.5.2). &nbsp;
+          For micropiles in potentially creeping soils, highly plastic soils, or weak rock — reduce the resistance factor by <strong>20%</strong>.
+        </div>
+      </div>
+
+      <div class="field-row" style="margin-top:4px">
+        <div class="field">
+          <label>&alpha;<sub>b</sub> Min (ksf)</label>
+          <input type="number" id="ab-min" placeholder="—" min="0" max="200" step="0.1" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>&alpha;<sub>b</sub> Max (ksf)</label>
+          <input type="number" id="ab-max" placeholder="—" min="0" max="200" step="0.1" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>&alpha;<sub>b</sub> Design (ksf) <em>— avg or override</em></label>
+          <input type="number" id="ab-avg" placeholder="—" min="0" max="200" step="0.1" oninput="calc()" class="override">
+        </div>
+        <div class="field">
+          <label>&phi;<sub>qs</sub> <em>— Table 10.5.5.2.5-1</em></label>
+          <input type="number" id="phi-qs" placeholder="0.55" min="0.10" max="1.00" step="0.01" oninput="calc()">
+        </div>
+      </div>
+
+      <hr class="section-div">
+
+      <div class="calc-block">
+        <div class="calc-ref">Nominal Grout-to-Ground Bond Resistance &nbsp;·&nbsp; Eq. 10.9.3.5.2-1</div>
+        <div class="calc-line">R<sub>s</sub> = &pi; &times; d<sub>b</sub>(ft) &times; &alpha;<sub>b</sub> &times; L<sub>b</sub></div>
+        <div class="calc-line sub" id="geo-line-min">—</div>
+        <div class="calc-line sub" id="geo-line-avg">—</div>
+        <div class="calc-line sub" id="geo-line-max">—</div>
+      </div>
+      <div class="calc-block">
+        <div class="calc-ref">Factored Resistance &nbsp;·&nbsp; Eq. 10.9.3.5.1-1 &nbsp;·&nbsp; Table 10.5.5.2.5-1</div>
+        <div class="calc-line">R<sub>R</sub> = &phi;<sub>qs</sub> &times; R<sub>s</sub></div>
+        <div class="calc-line sub" id="geo-line-rr">—</div>
+        <div class="calc-line result" id="geo-result-rr">—</div>
+      </div>
+
+      <div class="result-row">
+        <div class="pill"><div class="pill-label">R<sub>s</sub> &nbsp;(Min &alpha;<sub>b</sub>)</div><div class="pill-value" id="pill-rs-min">—</div><div class="pill-sub">kips, nominal</div></div>
+        <div class="pill hl"><div class="pill-label">R<sub>s</sub> &nbsp;(Design &alpha;<sub>b</sub>)</div><div class="pill-value" id="pill-rs-avg">—</div><div class="pill-sub">kips, nominal</div></div>
+        <div class="pill"><div class="pill-label">R<sub>s</sub> &nbsp;(Max &alpha;<sub>b</sub>)</div><div class="pill-value" id="pill-rs-max">—</div><div class="pill-sub">kips, nominal</div></div>
+        <div class="pill ok-pill"><div class="pill-label">R<sub>R</sub> &nbsp;Factored</div><div class="pill-value" id="pill-rr">—</div><div class="pill-sub" id="pill-rr-sub">kips</div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PHASE 2: SUMMARY -->
+  <div class="phase">
+    <div class="phase-head">
+      <div class="phase-num">②</div>
+      <div>
+        <div class="phase-title">Summary &amp; Demand Check</div>
+        <div class="phase-sub">Factored resistance vs. service limit state demands from the Structures team</div>
+      </div>
+      <div class="phase-ref">§10.9.3.5</div>
+    </div>
+    <div class="phase-body">
+      <div class="status-cards" id="status-cards">
+        <div class="status-card na" id="sc-comp">
+          <div class="status-badge na"><span class="status-icon">○</span>Compression Check</div>
+          <div class="status-label">Bond Resistance vs. Service Compression</div>
+          <div class="status-row"><span>P<sub>s</sub></span><span id="sc-pu">—</span></div>
+          <div class="status-row"><span>R<sub>R</sub></span><span id="sc-rr-c">—</span></div>
+          <div class="status-dcr na" id="sc-dcr-c">—</div>
+        </div>
+        <div class="status-card na" id="sc-ten">
+          <div class="status-badge na"><span class="status-icon">○</span>Tension Check</div>
+          <div class="status-label">Bond Resistance vs. Service Tension (Uplift)</div>
+          <div class="status-row"><span>T<sub>s</sub></span><span id="sc-tu">—</span></div>
+          <div class="status-row"><span>R<sub>R</sub></span><span id="sc-rr-t">—</span></div>
+          <div class="status-dcr na" id="sc-dcr-t">—</div>
+        </div>
+      </div>
+      <table class="dcr-tbl">
+        <thead>
+          <tr>
+            <th class="left" style="min-width:220px">Check</th>
+            <th>Reference</th>
+            <th>&phi;<sub>qs</sub></th>
+            <th>R<sub>n</sub> (kips)</th>
+            <th>R<sub>R</sub> (kips)</th>
+            <th>Service Demand (kips)</th>
+            <th>CDR</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="dcr-tbody"></tbody>
+      </table>
+      <div class="note-box" style="margin-top:12px;margin-bottom:0">
+        <strong>CDR</strong> = Factored Resistance (R<sub>R</sub>) ÷ Service Demand. Per §C10.9.3.5.1, bond resistance is compared against service limit state demands. Values ≥ 1.00 are adequate.
+      </div>
+    </div>
+  </div>
+
+</div><!-- /loc-main-content -->
+
+<!-- SUMMARY VIEW (shown when Summary tab active) -->
+<div id="summary-view" style="display:none">
+  <div class="phase" style="margin-top:0">
+    <div class="phase-head">
+      <div class="phase-num" style="font-size:14px">&#931;</div>
+      <div>
+        <div class="phase-title">Design Location Summary</div>
+        <div class="phase-sub">Geotechnical bond resistance vs. structural demands — all locations</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div id="summary-table-wrap"></div>
+      <div class="note-box" style="margin-top:12px;margin-bottom:0">
+        All resistance values use design α<sub>b</sub> (average or override). φ<sub>qs</sub> = 0.55 unless overridden per location.
+        CDR = Factored Resistance (R<sub>R</sub>) ÷ Service Demand. Per §C10.9.3.5.1, bond resistance is compared against service limit state demands.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT-ALL CONTAINER (screen: hidden; print: visible in "all" mode) -->
+<div id="print-all-content"></div>
+
+</div><!-- /container -->
+
+<script>
+// ═══════════════════════════════════════════
+//  αb TABLE DATA
+// ═══════════════════════════════════════════
+const AB_DATA = [
+  { id:'silt-clay-soft', desc:'Silt &amp; Clay (some sand)<br><span style="font-size:10.5px;color:var(--muted)">(soft, medium plastic)</span>',
+    vals:{ A:[0.7,1.4], B:[0.7,2.0], C:[0.7,2.5], D:[0.7,3.0], E:[0.7,2.0] } },
+  { id:'silt-clay-stiff', desc:'Silt &amp; Clay (some sand)<br><span style="font-size:10.5px;color:var(--muted)">(stiff, dense to very dense)</span>',
+    vals:{ A:[0.7,2.5], B:[1.4,4.0], C:[2.0,4.0], D:[2.0,4.0], E:[1.4,4.0] } },
+  { id:'sand-loose', desc:'Sand (some silt)<br><span style="font-size:10.5px;color:var(--muted)">(fine, loose–medium dense)</span>',
+    vals:{ A:[1.4,3.0], B:[1.4,4.0], C:[2.0,4.0], D:[2.0,5.0], E:[1.4,5.0] } },
+  { id:'sand-dense', desc:'Sand (some silt, gravel)<br><span style="font-size:10.5px;color:var(--muted)">(fine–coarse, medium–very dense)</span>',
+    vals:{ A:[2.0,4.5], B:[2.5,7.5], C:[3.0,7.5], D:[3.0,8.0], E:[2.5,7.5] } },
+  { id:'gravel', desc:'Gravel (some sand)<br><span style="font-size:10.5px;color:var(--muted)">(medium–very dense)</span>',
+    vals:{ A:[2.0,5.5], B:[2.5,7.5], C:[3.0,7.5], D:[3.0,8.0], E:[2.5,7.5] } },
+  { id:'glacial-till', desc:'Glacial Till (silt, sand, gravel)<br><span style="font-size:10.5px;color:var(--muted)">(medium–very dense, cemented)</span>',
+    vals:{ A:[2.0,4.0], B:[2.0,6.5], C:[2.5,6.5], D:[2.5,7.0], E:[2.0,6.5] } },
+  { id:'soft-shale', rock:true, desc:'Soft Shales<br><span style="font-size:10.5px;color:var(--muted)">(fresh–moderate fracturing, little to no weathering)</span>',
+    vals:{ A:[4.3,11.5], B:null, C:null, D:null, E:null } },
+  { id:'hard-shale', rock:true, desc:'Slates &amp; Hard Shales<br><span style="font-size:10.5px;color:var(--muted)">(fresh–moderate fracturing, little to no weathering)</span>',
+    vals:{ A:[10.8,28.8], B:null, C:null, D:null, E:null } },
+  { id:'limestone', rock:true, desc:'Limestone<br><span style="font-size:10.5px;color:var(--muted)">(fresh–moderate fracturing, little to no weathering)</span>',
+    vals:{ A:[21.6,43.2], B:null, C:null, D:null, E:null } },
+  { id:'sandstone', rock:true, desc:'Sandstone<br><span style="font-size:10.5px;color:var(--muted)">(fresh–moderate fracturing, little to no weathering)</span>',
+    vals:{ A:[10.8,36.0], B:null, C:null, D:null, E:null } },
+  { id:'granite-basalt', rock:true, desc:'Granite &amp; Basalt<br><span style="font-size:10.5px;color:var(--muted)">(fresh–moderate fracturing, little to no weathering)</span>',
+    vals:{ A:[28.8,87.7], B:null, C:null, D:null, E:null } },
+];
+
+// ═══════════════════════════════════════════
+//  FIELD IDs (saved/loaded per location)
+// ═══════════════════════════════════════════
+const CALC_FIELDS = ['footing-el','pu','tu',
+                     'db','Lc','Lb','ab-min','ab-max','ab-avg','phi-qs'];
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+function newLoc(n) {
+  const loc = { name: 'Location ' + n, _pileType:'A', _soilId:null,
+                _RsAvg:0, _RsMin:0, _RsMax:0, _RR:0, _phi:0.55 };
+  CALC_FIELDS.forEach(f => { loc[f] = ''; });
+  return loc;
+}
+
+let locations   = [newLoc(1)];
+let activeIdx   = 0;
+let isSumTab    = false;
+let selectedType = 'A';
+let selectedSoilId = null;
+let locCount    = 1; // for naming new locations
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+function init() {
+  buildAbTable();
+  renderTabs();
+  loadLocation(0);
+  calc();
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.print-wrap')) {
+      document.getElementById('print-menu').style.display = 'none';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+//  LOCATION MANAGEMENT
+// ═══════════════════════════════════════════
+function saveCurrentLocation() {
+  const loc = locations[activeIdx];
+  CALC_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) loc[id] = el.value;
+  });
+  const nameEl = document.getElementById('loc-name');
+  if (nameEl) loc.name = nameEl.value || ('Location ' + (activeIdx + 1));
+  loc._pileType  = selectedType;
+  loc._soilId    = selectedSoilId;
+}
+
+function loadLocation(idx) {
+  const loc = locations[idx];
+  CALC_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = loc[id] || '';
+  });
+  const nameEl = document.getElementById('loc-name');
+  if (nameEl) nameEl.value = loc.name || '';
+  // Restore type
+  setTypeInternal(loc._pileType || 'A');
+  // Restore soil selection
+  if (selectedSoilId) {
+    const prev = document.getElementById('row-' + selectedSoilId);
+    if (prev) prev.classList.remove('sel-row');
+  }
+  selectedSoilId = null;
+  if (loc._soilId) {
+    selectedSoilId = loc._soilId;
+    const tr = document.getElementById('row-' + loc._soilId);
+    if (tr) tr.classList.add('sel-row');
+  }
+}
+
+function switchLocation(idx) {
+  if (isSumTab) {
+    isSumTab = false;
+  } else {
+    saveCurrentLocation();
+  }
+  activeIdx = idx;
+  isSumTab  = false;
+  renderTabs();
+  document.getElementById('loc-main-content').style.display = '';
+  document.getElementById('summary-view').style.display = 'none';
+  loadLocation(idx);
+  calc();
+}
+
+function switchToSummary() {
+  if (!isSumTab) saveCurrentLocation();
+  isSumTab = true;
+  renderTabs();
+  document.getElementById('loc-main-content').style.display = 'none';
+  document.getElementById('summary-view').style.display = '';
+  renderSummaryTable();
+}
+
+function addLocation() {
+  if (!isSumTab) saveCurrentLocation();
+  locCount++;
+  locations.push(newLoc(locCount));
+  activeIdx = locations.length - 1;
+  isSumTab  = false;
+  renderTabs();
+  document.getElementById('loc-main-content').style.display = '';
+  document.getElementById('summary-view').style.display = 'none';
+  loadLocation(activeIdx);
+  calc();
+  document.getElementById('loc-name').focus();
+}
+
+function deleteLocation(idx, e) {
+  e.stopPropagation();
+  if (locations.length === 1) return; // can't delete last
+  const confirmed = confirm('Delete "' + (locations[idx].name || 'Location ' + (idx+1)) + '"?');
+  if (!confirmed) return;
+  locations.splice(idx, 1);
+  if (activeIdx >= locations.length) activeIdx = locations.length - 1;
+  isSumTab = false;
+  renderTabs();
+  document.getElementById('loc-main-content').style.display = '';
+  document.getElementById('summary-view').style.display = 'none';
+  loadLocation(activeIdx);
+  calc();
+}
+
+function updateLocName() {
+  const val = document.getElementById('loc-name').value || ('Location ' + (activeIdx + 1));
+  locations[activeIdx].name = val;
+  // Update tab label live
+  const tab = document.querySelector('.loc-tab[data-idx="' + activeIdx + '"] .loc-tab-name');
+  if (tab) tab.textContent = val;
+}
+
+// ═══════════════════════════════════════════
+//  TAB RENDERING
+// ═══════════════════════════════════════════
+function renderTabs() {
+  const wrap = document.getElementById('loc-tab-wrap');
+  wrap.innerHTML = '';
+  locations.forEach((loc, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'loc-tab' + ((!isSumTab && i === activeIdx) ? ' active' : '');
+    btn.dataset.idx = i;
+    btn.onclick = () => switchLocation(i);
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'loc-tab-name';
+    nameSpan.textContent = loc.name || 'Location ' + (i+1);
+    btn.appendChild(nameSpan);
+    if (locations.length > 1) {
+      const del = document.createElement('button');
+      del.className = 'loc-tab-del';
+      del.innerHTML = '&times;';
+      del.title = 'Delete this location';
+      del.onclick = (e) => deleteLocation(i, e);
+      btn.appendChild(del);
+    }
+    wrap.appendChild(btn);
+  });
+  // Summary tab
+  const sumBtn = document.createElement('button');
+  sumBtn.className = 'loc-tab sum-tab' + (isSumTab ? ' active' : '');
+  sumBtn.innerHTML = '<span class="loc-tab-name">&#931; Summary</span>';
+  sumBtn.onclick = switchToSummary;
+  wrap.appendChild(sumBtn);
+  // Add button
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-loc-btn';
+  addBtn.innerHTML = '&#xFF0B; Add Location';
+  addBtn.onclick = addLocation;
+  wrap.appendChild(addBtn);
+}
+
+// ═══════════════════════════════════════════
+//  SUMMARY TABLE
+// ═══════════════════════════════════════════
+function renderSummaryTable() {
+  // Recompute all locations' results
+  const savedIdx = activeIdx;
+  const savedType = selectedType, savedSoil = selectedSoilId;
+
+  locations.forEach((loc, i) => {
+    activeIdx = i;
+    loadLocation(i);
+    calcSilent(loc);
+  });
+
+  activeIdx = savedIdx;
+  setTypeInternal(savedType);
+  if (savedSoil) {
+    selectedSoilId = savedSoil;
+    const tr = document.getElementById('row-' + savedSoil);
+    if (tr) tr.classList.add('sel-row');
+  } else {
+    selectedSoilId = null;
+  }
+
+  const getSoilLabel = id => {
+    if (!id) return '—';
+    const r = AB_DATA.find(x => x.id === id);
+    if (!r) return '—';
+    // Strip HTML tags for table display
+    return r.desc.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().split('\n')[0];
+  };
+
+  let html = `<table class="sum-tbl">
+  <thead><tr>
+    <th class="left" style="min-width:180px">Location</th>
+    <th>d<sub>b</sub> (in)</th>
+    <th>L<sub>b</sub> (ft)</th>
+    <th class="sum-col-soil left" style="min-width:150px">Soil / Rock</th>
+    <th>&alpha;<sub>b</sub> (ksf)</th>
+    <th>&phi;<sub>qs</sub></th>
+    <th>R<sub>s</sub> (k)</th>
+    <th>R<sub>R</sub> (k)</th>
+    <th>P<sub>s</sub> (k)</th>
+    <th>T<sub>s</sub> (k)</th>
+    <th>Comp CDR</th>
+    <th>Ten CDR</th>
+    <th class="sum-col-status">Status</th>
+  </tr></thead><tbody>`;
+
+  locations.forEach(loc => {
+    const rr   = loc._RR || 0;
+    const pu   = parseFloat(loc['pu']) || 0;
+    const tu   = parseFloat(loc['tu']) || 0;
+    const dcrC = (rr > 0 && pu > 0) ? rr / pu : null;
+    const dcrT = (rr > 0 && tu > 0) ? rr / tu : null;
+    const cOk  = dcrC !== null && dcrC >= 1.0;
+    const cNg  = dcrC !== null && dcrC < 1.0;
+    const tOk  = dcrT !== null && dcrT >= 1.0;
+    const tNg  = dcrT !== null && dcrT < 1.0;
+    const allOk = (!cNg) && (!tNg);
+    const anyNg = cNg || tNg;
+
+    const soilLabel = getSoilLabel(loc._soilId);
+    const trClass = anyNg ? ' class="ng-row"' : '';
+    html += `<tr${trClass}>
+      <td class="left">${escHtml(loc.name || '—')}</td>
+      <td>${loc['db'] || '—'}</td>
+      <td>${loc['Lb'] || '—'}</td>
+      <td class="sum-col-soil left" style="font-family:var(--sans);font-size:11px">${soilLabel}</td>
+      <td>${loc['ab-avg'] || '—'}</td>
+      <td>${loc['phi-qs'] || '0.55'}</td>
+      <td>${fmtR(loc._RsAvg)}</td>
+      <td>${fmtR(rr)}</td>
+      <td>${pu > 0 ? pu.toFixed(1) : '—'}</td>
+      <td>${tu > 0 ? tu.toFixed(1) : '—'}</td>
+      <td class="${cOk?'ok':cNg?'ng':'na'}">${dcrC !== null ? dcrC.toFixed(3) : '—'}</td>
+      <td class="${tOk?'ok':tNg?'ng':'na'}">${dcrT !== null ? dcrT.toFixed(3) : '—'}</td>
+      <td class="sum-col-status ${anyNg?'ng':allOk&&(dcrC!==null||dcrT!==null)?'ok':'na'}">
+        ${anyNg ? '&#10007; NG' : (dcrC!==null||dcrT!==null) ? '&#10003; OK' : '—'}
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('summary-table-wrap').innerHTML = html;
+}
+
+function fmtR(x) { return (x && x > 0) ? x.toFixed(1) : '—'; }
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ═══════════════════════════════════════════
+//  αb TABLE
+// ═══════════════════════════════════════════
+function buildAbTable() {
+  const tbody = document.getElementById('ab-tbody');
+  tbody.innerHTML = '';
+  let sepAdded = false;
+  AB_DATA.forEach(row => {
+    if (row.rock && !sepAdded) {
+      sepAdded = true;
+      const sep = document.createElement('tr');
+      sep.className = 'tbl-sep';
+      sep.innerHTML = `<td colspan="6"><sup>(1)</sup> Rock types — Type A (gravity-grouted) only. Types B–E: N/A.</td>`;
+      tbody.appendChild(sep);
+    }
+    const tr = document.createElement('tr');
+    tr.id = 'row-' + row.id;
+    tr.onclick = () => selectSoil(row.id);
+    const typeIdx = ['A','B','C','D','E'].indexOf(selectedType);
+    let html = `<td class="desc-cell">${row.desc}</td>`;
+    ['A','B','C','D','E'].forEach((t, i) => {
+      const val = row.vals[t];
+      const act = i === typeIdx ? ' act-col' : '';
+      html += val
+        ? `<td class="${act.trim()}">${val[0].toFixed(1)}–${val[1].toFixed(1)}</td>`
+        : `<td class="na-cell${act}">N/A</td>`;
+    });
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+  });
+  updateTypeHighlight();
+}
+
+function updateTypeHighlight() {
+  const idx = ['A','B','C','D','E'].indexOf(selectedType);
+  ['A','B','C','D','E'].forEach(t => {
+    const th = document.getElementById('th-' + t);
+    if (th) th.className = t === selectedType ? 'act-hdr' : '';
+  });
+  AB_DATA.forEach(row => {
+    const tr = document.getElementById('row-' + row.id);
+    if (!tr) return;
+    tr.querySelectorAll('td:not(.desc-cell)').forEach((td, i) => {
+      td.classList.toggle('act-col', i === idx);
+    });
+  });
+}
+
+function selectSoil(id) {
+  if (selectedSoilId) {
+    const p = document.getElementById('row-' + selectedSoilId);
+    if (p) p.classList.remove('sel-row');
+  }
+  selectedSoilId = id;
+  const tr = document.getElementById('row-' + id);
+  if (tr) tr.classList.add('sel-row');
+  const row = AB_DATA.find(r => r.id === id);
+  if (!row) return;
+  const vals = row.vals[selectedType] || row.vals['A'];
+  if (vals) {
+    document.getElementById('ab-min').value = vals[0].toFixed(1);
+    document.getElementById('ab-max').value = vals[1].toFixed(1);
+    document.getElementById('ab-avg').value = ((vals[0]+vals[1])/2).toFixed(2);
+  }
+  calc();
+}
+
+function setType(t) {
+  setTypeInternal(t);
+  if (selectedSoilId) selectSoil(selectedSoilId);
+}
+
+function setTypeInternal(t) {
+  selectedType = t;
+  document.querySelectorAll('#type-toggle .method-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['A','B','C','D','E'][i] === t);
+  });
+  updateTypeHighlight();
+}
+
+// ═══════════════════════════════════════════
+//  REFERENCE TABLE TOGGLE
+// ═══════════════════════════════════════════
+function toggleRefTable() {
+  const panel = document.getElementById('ref-panel');
+  const btn   = document.getElementById('ref-toggle-btn');
+  const open  = panel.classList.toggle('open');
+  btn.innerHTML = (open ? '&#9660;' : '&#9654;') +
+    ' View AASHTO Table 10.5.5.2.5-1 &mdash; Resistance Factors (&phi;<sub>qs</sub>)';
+}
+
+// ═══════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function fmt(x, d=2) { return (isNaN(x)||!isFinite(x)) ? '—' : x.toFixed(d); }
+function set(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+
+// ═══════════════════════════════════════════
+//  CALC — with DOM update
+// ═══════════════════════════════════════════
+function calc() {
+  saveCurrentLocation();
+  const Lc = v('Lc'), Lb = v('Lb');
+  set('total-len', (Lc || Lb) ? (Lc+Lb).toFixed(1)+' ft' : '—');
+  const result = geoCalcCore();
+  updateGeoDisplay(result);
+  updateSummaryDisplay(result);
+  // Store results on location
+  locations[activeIdx]._RsAvg = result.RsAvg;
+  locations[activeIdx]._RsMin = result.RsMin;
+  locations[activeIdx]._RsMax = result.RsMax;
+  locations[activeIdx]._RR    = result.RR;
+  locations[activeIdx]._phi   = result.phi;
+}
+
+// ═══════════════════════════════════════════
+//  CALC — silent (no DOM update), writes to loc object
+// ═══════════════════════════════════════════
+function calcSilent(loc) {
+  const dbFt   = (parseFloat(loc['db']) || 0) / 12;
+  const Lb     = parseFloat(loc['Lb']) || 0;
+  const abAvg  = parseFloat(loc['ab-avg']) || 0;
+  const abMin  = parseFloat(loc['ab-min']) || 0;
+  const abMax  = parseFloat(loc['ab-max']) || 0;
+  const phi    = parseFloat(loc['phi-qs']) || 0.55;
+  loc._RsAvg   = (dbFt > 0 && Lb > 0 && abAvg > 0) ? Math.PI * dbFt * abAvg * Lb : 0;
+  loc._RsMin   = (dbFt > 0 && Lb > 0 && abMin > 0) ? Math.PI * dbFt * abMin * Lb : 0;
+  loc._RsMax   = (dbFt > 0 && Lb > 0 && abMax > 0) ? Math.PI * dbFt * abMax * Lb : 0;
+  loc._RR      = phi * loc._RsAvg;
+  loc._phi     = phi;
+}
+
+// ═══════════════════════════════════════════
+//  GEO CALC CORE
+// ═══════════════════════════════════════════
+function geoCalcCore() {
+  const dbIn  = v('db'), Lb = v('Lb');
+  const abMin = v('ab-min'), abAvg = v('ab-avg'), abMax = v('ab-max');
+  const phi   = v('phi-qs') || 0.55;
+  const ready = dbIn > 0 && Lb > 0 && abAvg > 0;
+  if (!ready) return { ready:false, phi };
+  const dbFt  = dbIn / 12;
+  return {
+    ready: true,
+    dbFt, dbIn, Lb, abMin, abAvg, abMax, phi,
+    RsMin: abMin > 0 ? Math.PI * dbFt * abMin * Lb : 0,
+    RsAvg: Math.PI * dbFt * abAvg * Lb,
+    RsMax: abMax > 0 ? Math.PI * dbFt * abMax * Lb : 0,
+    RR: phi * Math.PI * dbFt * abAvg * Lb
+  };
+}
+
+function updateGeoDisplay(r) {
+  if (!r.ready) {
+    ['geo-line-min','geo-line-avg','geo-line-max','geo-line-rr','geo-result-rr',
+     'pill-rs-min','pill-rs-avg','pill-rs-max','pill-rr'].forEach(id => set(id,'—'));
+    set('pill-rr-sub','kips'); return;
+  }
+  const d = r.dbFt.toFixed(4);
+  set('geo-line-min', r.abMin > 0
+    ? `R<sub>s,min</sub> = &pi; &times; ${d} ft &times; ${fmt(r.abMin)} ksf &times; ${fmt(r.Lb)} ft = <strong>${fmt(r.RsMin)} kips</strong>`
+    : `R<sub>s,min</sub> = — (α<sub>b</sub> min not entered)`);
+  set('geo-line-avg',
+    `R<sub>s,avg</sub> = &pi; &times; ${d} ft &times; ${fmt(r.abAvg)} ksf &times; ${fmt(r.Lb)} ft = <strong>${fmt(r.RsAvg)} kips</strong>`);
+  set('geo-line-max', r.abMax > 0
+    ? `R<sub>s,max</sub> = &pi; &times; ${d} ft &times; ${fmt(r.abMax)} ksf &times; ${fmt(r.Lb)} ft = <strong>${fmt(r.RsMax)} kips</strong>`
+    : `R<sub>s,max</sub> = — (α<sub>b</sub> max not entered)`);
+  set('geo-line-rr', `R<sub>R</sub> = ${fmt(r.phi,2)} &times; ${fmt(r.RsAvg)} = <strong>${fmt(r.RR)} kips</strong>`);
+  set('geo-result-rr', `<strong>R<sub>R</sub> = ${fmt(r.RR)} kips</strong> &nbsp;<span style="font-weight:400;color:var(--muted)">(&phi;<sub>qs</sub> &times; R<sub>s</sub>, &alpha;<sub>b</sub> = ${fmt(r.abAvg)} ksf)</span>`);
+  set('pill-rs-min', r.abMin > 0 ? fmt(r.RsMin,1) : '—');
+  set('pill-rs-avg', fmt(r.RsAvg,1));
+  set('pill-rs-max', r.abMax > 0 ? fmt(r.RsMax,1) : '—');
+  set('pill-rr',     fmt(r.RR,1));
+  set('pill-rr-sub', `kips &nbsp;(&phi;<sub>qs</sub> = ${fmt(r.phi,2)})`);
+}
+
+function updateSummaryDisplay(r) {
+  const Pu = v('pu'), Tu = v('tu');
+  const RR = r.ready ? r.RR : 0;
+  const phi = r.phi || 0.55;
+  const RsAvg = r.ready ? r.RsAvg : 0;
+
+  // Status cards
+  const updateCard = (cardId, badgeId, dcrId, rrId, demId, dem, label, demLabel) => {
+    const card = document.getElementById(cardId);
+    const badge = card.querySelector('.status-badge');
+    const icon  = card.querySelector('.status-icon');
+    const lbl   = card.querySelector('.status-label');
+    const dcrEl = document.getElementById(dcrId);
+    set(rrId, RR > 0 ? fmt(RR,1)+' kips' : '—');
+    set(demId, dem > 0 ? fmt(dem,1)+' kips' : '—');
+
+    if (!r.ready || RR === 0 || dem === 0) {
+      card.className = 'status-card na';
+      badge.className = 'status-badge na';
+      icon.textContent = '○';
+      dcrEl.className = 'status-dcr na';
+      dcrEl.textContent = '—';
+    } else {
+      const dcr = RR / dem;
+      const ok  = dcr >= 1.0;
+      card.className = 'status-card ' + (ok ? 'ok' : 'ng');
+      badge.className = 'status-badge ' + (ok ? 'ok' : 'ng');
+      icon.textContent = ok ? '✓' : '✗';
+      dcrEl.className = 'status-dcr ' + (ok ? 'ok' : 'ng');
+      dcrEl.textContent = 'CDR = ' + dcr.toFixed(3);
+    }
+    badge.innerHTML = `<span class="status-icon">${icon.textContent}</span>${label}`;
+    if (lbl) lbl.textContent = demLabel;
+  };
+
+  updateCard('sc-comp', null, 'sc-dcr-c', 'sc-rr-c', 'sc-pu', Pu, 'Compression Check', 'Bond Resistance vs. Service Compression');
+  updateCard('sc-ten',  null, 'sc-dcr-t', 'sc-rr-t', 'sc-tu', Tu, 'Tension Check',      'Bond Resistance vs. Service Tension (Uplift)');
+
+  // DCR table
+  const checks = [
+    { name:'Geotechnical Bond — Compression', ref:'§10.9.3.5.2', phi:fmt(phi,2), Rn:RsAvg, RR, dem:Pu, active:Pu>0 && r.ready },
+    { name:'Geotechnical Bond — Tension (Uplift)', ref:'§10.9.3.5.2', phi:fmt(phi,2), Rn:RsAvg, RR, dem:Tu, active:Tu>0 && r.ready },  ];
+  const tbody = document.getElementById('dcr-tbody');
+  tbody.innerHTML = '';
+  checks.forEach(c => {
+    const dcr  = (c.active && c.RR > 0) ? c.RR / c.dem : null;
+    const ok   = dcr !== null && dcr >= 1.0;
+    const ng   = dcr !== null && dcr < 1.0;
+    const tr   = document.createElement('tr');
+    tr.className = ng ? 'ng-row' : (!c.active ? 'na-row' : '');
+    tr.innerHTML =
+      `<td class="left">${c.name}</td>` +
+      `<td style="font-family:var(--sans)">${c.ref}</td>` +
+      `<td>${c.phi}</td>` +
+      `<td>${c.Rn > 0 ? fmt(c.Rn,1) : '<span class="na">—</span>'}</td>` +
+      `<td>${c.RR > 0 ? fmt(c.RR,1) : '<span class="na">—</span>'}</td>` +
+      `<td>${c.active ? fmt(c.dem,1) : '<span class="na">—</span>'}</td>` +
+      (dcr === null ? `<td class="na">—</td><td class="na">N/A</td>`
+        : `<td class="${ok?'ok':'ng'}">${fmt(dcr,3)}</td><td class="${ok?'ok':'ng'}">${ok?'&#10003; OK':'&#10007; NG'}</td>`);
+    tbody.appendChild(tr);
+  });
+}
+
+// ═══════════════════════════════════════════
+//  PRINT
+// ═══════════════════════════════════════════
+function togglePrintMenu(e) {
+  const menu = document.getElementById('print-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  e.stopPropagation();
+}
+
+function doPrint(mode) {
+  document.getElementById('print-menu').style.display = 'none';
+
+  if (mode === 'all') {
+    if (!isSumTab) saveCurrentLocation();
+    const savedIdx  = activeIdx;
+    const savedType = selectedType;
+    const savedSoil = selectedSoilId;
+    const wasSumTab = isSumTab;
+
+    const mainEl    = document.getElementById('loc-main-content');
+    const sumEl     = document.getElementById('summary-view');
+    const container = document.getElementById('print-all-content');
+    container.innerHTML = '';
+
+    // Ensure loc-main-content is accessible for cloning
+    // (it's hidden when the Summary tab is active)
+    mainEl.style.display = '';
+
+    // ── 1. Summary table section (always first) ──────────────────
+    // renderSummaryTable iterates all locations and populates #summary-view
+    renderSummaryTable();
+    const sumSection = document.createElement('div');
+    sumSection.className = 'print-loc-section';  // :first-child → no page break before it
+    const sumClone = sumEl.cloneNode(true);
+    sumClone.removeAttribute('id');
+    sumClone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    sumClone.style.display = '';  // clear any inline display:none from location-tab state
+    sumSection.appendChild(sumClone);
+    container.appendChild(sumSection);
+
+    // ── 2. Individual location sections ─────────────────────────
+    locations.forEach((loc, i) => {
+      activeIdx = i;
+      loadLocation(i);
+      const r = geoCalcCore();
+      updateGeoDisplay(r);
+      updateSummaryDisplay(r);
+      const sec = document.createElement('div');
+      sec.className = 'print-loc-section';        // break-before:page on each
+      const lbl = document.createElement('div');
+      lbl.className = 'print-loc-label';
+      lbl.textContent = loc.name || ('Location ' + (i + 1));
+      sec.appendChild(lbl);
+      const clone = mainEl.cloneNode(true);
+      clone.removeAttribute('id');
+      clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+      sec.appendChild(clone);
+      container.appendChild(sec);
+    });
+
+    // ── Restore state ────────────────────────────────────────────
+    activeIdx = savedIdx;
+    setTypeInternal(savedType);
+    if (savedSoil) {
+      selectedSoilId = savedSoil;
+      const tr = document.getElementById('row-' + savedSoil);
+      if (tr) tr.classList.add('sel-row');
+    } else {
+      selectedSoilId = null;
+    }
+    loadLocation(savedIdx);
+    calc();
+
+    // Restore display state (was on Summary tab or location tab)
+    if (wasSumTab) {
+      mainEl.style.display = 'none';
+      sumEl.style.display  = '';
+    } else {
+      mainEl.style.display = '';
+      sumEl.style.display  = 'none';
+    }
+
+    document.body.dataset.pm = 'all';
+    window.print();
+    setTimeout(() => { delete document.body.dataset.pm; }, 500);
+    return;
+  }
+
+  document.body.dataset.pm = mode;
+  window.print();
+  setTimeout(() => { delete document.body.dataset.pm; }, 500);
+}
+
+// ═══════════════════════════════════════════
+//  SAVE / LOAD JSON
+// ═══════════════════════════════════════════
+function saveJSON() {
+  if (!isSumTab) saveCurrentLocation();
+  const proj = {};
+  ['proj-name','proj-num','calc-by','calc-date','chk-by','chk-date']
+    .forEach(id => { const el = document.getElementById(id); if(el) proj[id] = el.value; });
+  const data = { tool:'micropile-capacity-calculator', version:'2.0',
+                 savedAt:new Date().toISOString(), project:proj,
+                 locations, activeIdx };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const pname = (document.getElementById('proj-name').value||'').trim().replace(/[^a-zA-Z0-9_-]/g,'_')||'micropile';
+  const pnum  = (document.getElementById('proj-num').value||'').trim().replace(/[^a-zA-Z0-9_-]/g,'_');
+  a.download = [pname,pnum,'micropile-calc'].filter(Boolean).join('_')+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function loadJSON() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        const data = JSON.parse(evt.target.result);
+        if (data.project) {
+          Object.entries(data.project).forEach(([id,val]) => {
+            const el = document.getElementById(id); if(el) el.value = val;
+          });
+        }
+        if (data.locations && data.locations.length) {
+          locations = data.locations;
+          locCount  = locations.length;
+          activeIdx = data.activeIdx || 0;
+        }
+        isSumTab = false;
+        renderTabs();
+        document.getElementById('loc-main-content').style.display = '';
+        document.getElementById('summary-view').style.display = 'none';
+        loadLocation(activeIdx);
+        calc();
+      } catch(err) { alert('Could not load file: ' + err.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ═══════════════════════════════════════════
+//  START
+// ═══════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
